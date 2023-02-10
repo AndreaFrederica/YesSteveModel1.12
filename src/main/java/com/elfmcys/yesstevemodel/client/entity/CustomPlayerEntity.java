@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
+import static com.elfmcys.yesstevemodel.util.ControllerUtils.*;
+
 public class CustomPlayerEntity implements IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this, false);
     private ResourceLocation mainModel = CustomPlayerModel.DEFAULT_MAIN_MODEL;
@@ -33,18 +35,22 @@ public class CustomPlayerEntity implements IAnimatable {
         return PlayState.CONTINUE;
     }
 
+    /**
+     * 越往后优先级越高
+     */
     @Override
     @Keep
     @SuppressWarnings("all")
     public void registerControllers(AnimationData data) {
         AnimationManager manager = AnimationManager.getInstance();
-        data.addAnimationController(new AnimationController(this, "main_controller", 2, manager::predicate));
-        data.addAnimationController(new AnimationController(this, "use_controller", 10, manager::predicateUse));
+        data.addAnimationController(new AnimationController(this, MAIN_CONTROLLER, 2, manager::predicateMain));
+        data.addAnimationController(new AnimationController(this, USE_CONTROLLER, 10, manager::predicateUse));
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("parallel_%d_controller", i);
             String animationName = String.format("parallel%d", i);
             data.addAnimationController(new AnimationController<>(this, controllerName, 2, e -> playLoopAnimation(e, animationName)));
         }
+        data.addAnimationController(new AnimationController(this, CAP_CONTROLLER, 5, manager::predicateCap));
     }
 
     public ResourceLocation getMainModel() {

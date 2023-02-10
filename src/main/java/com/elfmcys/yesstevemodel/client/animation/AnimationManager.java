@@ -53,7 +53,7 @@ public final class AnimationManager {
         }
     }
 
-    public PlayState predicate(AnimationEvent<CustomPlayerEntity> event) {
+    public PlayState predicateCap(AnimationEvent<CustomPlayerEntity> event) {
         CustomPlayerEntity animatable = event.getAnimatable();
         PlayerEntity player = animatable.getPlayer();
         if (player == null) {
@@ -67,12 +67,16 @@ public final class AnimationManager {
             if (cap.isPlayAnimation()) {
                 return playAnimation(event, cap.getAnimation());
             }
-            return predicateMain(event, player);
+            return PlayState.STOP;
         }).orElse(PlayState.STOP);
     }
 
     @Nonnull
-    private PlayState predicateMain(AnimationEvent<CustomPlayerEntity> event, PlayerEntity player) {
+    public PlayState predicateMain(AnimationEvent<CustomPlayerEntity> event) {
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        if (player == null) {
+            return PlayState.STOP;
+        }
         for (int i = Priority.HIGHEST; i <= Priority.LOWEST; i++) {
             if (!data.containsKey(i)) {
                 continue;
@@ -101,6 +105,6 @@ public final class AnimationManager {
                 return playAnimation(event, "use_lefthand", ILoopType.EDefaultLoopTypes.LOOP);
             }
         }
-        return PlayState.CONTINUE;
+        return PlayState.STOP;
     }
 }

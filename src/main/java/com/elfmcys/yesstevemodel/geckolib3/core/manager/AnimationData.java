@@ -8,6 +8,7 @@ package com.elfmcys.yesstevemodel.geckolib3.core.manager;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @SuppressWarnings("rawtypes")
 public class AnimationData {
-    private final Map<String, AnimationController> animationControllers = new Object2ObjectOpenHashMap<>();
+    private final Map<String, AnimationController> animationControllers = new Object2ObjectLinkedOpenHashMap<>();
     public double tick;
     public boolean isFirstTick = true;
     public double startTick = -1;

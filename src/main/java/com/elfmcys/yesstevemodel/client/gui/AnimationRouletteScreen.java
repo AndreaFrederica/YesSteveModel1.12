@@ -1,7 +1,9 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetPlayAnimation;
+import com.elfmcys.yesstevemodel.util.ControllerUtils;
 import com.elfmcys.yesstevemodel.util.Keep;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -47,7 +49,8 @@ public class AnimationRouletteScreen extends Screen {
         if (-1 < selectId && selectId < 8 && minecraft != null) {
             minecraft.getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             NetworkHandler.CHANNEL.sendToServer(new SetPlayAnimation(selectId));
-            if (minecraft.player != null) {
+            ControllerUtils.markCapControllerReload();
+            if (minecraft.player != null && GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG.get()) {
                 minecraft.player.sendMessage(new TranslationTextComponent("message.yes_steve_model.model.animation_roulette.play", selectId), Util.NIL_UUID);
             }
             minecraft.setScreen(null);

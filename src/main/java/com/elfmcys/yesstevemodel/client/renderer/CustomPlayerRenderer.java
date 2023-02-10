@@ -37,7 +37,6 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
         addLayer(new CustomPlayerItemInHandLayer<>(this));
     }
 
-
     @Override
     @Keep
     public void render(Entity entity, float entityYaw, float partialTick, MatrixStack poseStack, IRenderTypeBuffer bufferSource, int packedLight) {
@@ -138,5 +137,9 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
             return this.animatable.getHeightScale();
         }
         return super.getHeightScale(animatable);
+    }
+
+    public CustomPlayerEntity getCustomPlayerEntity() {
+        return this.animatable;
     }
 }

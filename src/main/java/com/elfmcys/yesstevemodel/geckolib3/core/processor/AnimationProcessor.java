@@ -78,7 +78,6 @@ public class AnimationProcessor<T extends IAnimatable> {
                 AnimationPoint sYPoint = boneAnimation.scaleYQueue().poll();
                 AnimationPoint sZPoint = boneAnimation.scaleZQueue().poll();
 
-
                 DirtyTracker dirtyTracker = modelTracker.get(bone.getName());
                 if (dirtyTracker == null) {
                     continue;
