@@ -4,11 +4,11 @@ import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
+import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.elfmcys.yesstevemodel.util.YesModelUtils;
 import com.google.common.collect.Maps;
-import net.minecraft.util.ResourceLocation;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
@@ -27,7 +27,7 @@ public final class YsmFormat {
         Collection<File> ysmFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"ysm"}, false);
         for (File ysmFile : ysmFiles) {
             String modelId = removeExtension(ysmFile.getName());
-            if (!ResourceLocation.isValidResourceLocation(modelId)) {
+            if (!ServerModelManager.isValidResourceLocation(modelId)) {
                 continue;
             }
             try {

@@ -4,10 +4,10 @@ import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
+import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.google.common.collect.Maps;
-import net.minecraft.util.ResourceLocation;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +34,7 @@ public final class FolderFormat {
                 continue;
             }
             String dirName = dir.getName();
-            if (!ResourceLocation.isValidResourceLocation(dirName)) {
+            if (!ServerModelManager.isValidResourceLocation(dirName)) {
                 continue;
             }
             boolean noMainModelFile = true;

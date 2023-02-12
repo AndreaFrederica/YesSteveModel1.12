@@ -4,11 +4,11 @@ import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
+import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.util.InputStreamUtils;
 import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.google.common.collect.Maps;
-import net.minecraft.util.ResourceLocation;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +32,7 @@ public final class ZipFormat {
         Collection<File> zipFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"zip"}, false);
         for (File file : zipFiles) {
             String modelId = removeExtension(file.getName());
-            if (!ResourceLocation.isValidResourceLocation(modelId)) {
+            if (!ServerModelManager.isValidResourceLocation(modelId)) {
                 continue;
             }
             try (ZipFile zipFile = new ZipFile(file)) {

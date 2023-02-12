@@ -16,6 +16,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.management.PlayerList;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -173,5 +174,48 @@ public final class ServerModelManager {
             fileName = fileName.substring(0, lastIndex);
         }
         return fileName;
+    }
+
+    public static boolean isValidResourceLocation(String pResourceName) {
+        String[] decompose = decompose(pResourceName, ':');
+        return isValidNamespace(StringUtils.isEmpty(decompose[0]) ? "minecraft" : decompose[0]) && isValidPath(decompose[1]);
+    }
+
+    private static String[] decompose(String res, char split) {
+        String[] strings = new String[]{"minecraft", res};
+        int i = res.indexOf(split);
+        if (i >= 0) {
+            strings[1] = res.substring(i + 1);
+            if (i >= 1) {
+                strings[0] = res.substring(0, i);
+            }
+        }
+        return strings;
+    }
+
+    private static boolean isValidNamespace(String pNamespace) {
+        for (int i = 0; i < pNamespace.length(); ++i) {
+            if (!validNamespaceChar(pNamespace.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validNamespaceChar(char pCharValue) {
+        return pCharValue == '_' || pCharValue == '-' || pCharValue >= 'a' && pCharValue <= 'z' || pCharValue >= '0' && pCharValue <= '9' || pCharValue == '.';
+    }
+
+    private static boolean isValidPath(String pPath) {
+        for (int i = 0; i < pPath.length(); ++i) {
+            if (!validPathChar(pPath.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validPathChar(char pCharValue) {
+        return pCharValue == '_' || pCharValue == '-' || pCharValue >= 'a' && pCharValue <= 'z' || pCharValue >= '0' && pCharValue <= '9' || pCharValue == '/' || pCharValue == '.';
     }
 }
