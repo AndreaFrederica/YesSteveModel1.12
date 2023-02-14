@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
 import static com.elfmcys.yesstevemodel.util.ControllerUtils.*;
 
 public class CustomPlayerEntity implements IAnimatable {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this, false);
+    private final AnimationFactory factory = GeckoLibUtil.createFactory(this, true);
     private ResourceLocation mainModel = CustomPlayerModel.DEFAULT_MAIN_MODEL;
     private ResourceLocation texture = CustomPlayerModel.DEFAULT_TEXTURE;
     private String previewAnimation = "";
