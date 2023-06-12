@@ -21,6 +21,8 @@ public class ModelProperties implements Serializable {
     private double heightScale = 0.7;
     @SerializedName("ysm_width_scale")
     private double widthScale = 0.7;
+    @SerializedName("ysm_extra_info")
+    private ExtraInfo extraInfo = null;
 
     public String getIdentifier() {
         return identifier;
@@ -84,5 +86,13 @@ public class ModelProperties implements Serializable {
 
     public void setWidthScale(double widthScale) {
         this.widthScale = widthScale;
+    }
+
+    public ExtraInfo getExtraInfo() {
+        return extraInfo;
+    }
+
+    public void setExtraInfo(ExtraInfo extraInfo) {
+        this.extraInfo = extraInfo;
     }
 }

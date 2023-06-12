@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.manager;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
+import com.elfmcys.yesstevemodel.util.Keep;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 

@@ -1,8 +1,8 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang.functions;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class SinDegrees extends Function {
     public SinDegrees(IValue[] values, String name) throws Exception {

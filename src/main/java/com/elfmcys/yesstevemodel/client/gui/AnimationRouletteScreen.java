@@ -1,10 +1,13 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
+import com.elfmcys.yesstevemodel.client.ClientModelManager;
+import com.elfmcys.yesstevemodel.client.input.ExtraAnimationKey;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetPlayAnimation;
-import com.elfmcys.yesstevemodel.util.ControllerUtils;
 import com.elfmcys.yesstevemodel.util.Keep;
+import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.audio.SimpleSound;
@@ -12,18 +15,25 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 
 public class AnimationRouletteScreen extends Screen {
     private int x;
     private int y;
     private int selectId = -1;
+    private String[] names;
 
     public AnimationRouletteScreen() {
         super(new StringTextComponent("Animation Roulette GUI"));
@@ -34,6 +44,15 @@ public class AnimationRouletteScreen extends Screen {
     protected void init() {
         this.x = width / 2;
         this.y = height / 2 - 8;
+
+        if (minecraft != null && minecraft.player != null) {
+            minecraft.player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+                ResourceLocation modelId = cap.getModelId();
+                if (ClientModelManager.EXTRA_ANIMATION_NAME.containsKey(ModelIdUtil.getMainId(modelId))) {
+                    this.names = ClientModelManager.EXTRA_ANIMATION_NAME.get(ModelIdUtil.getMainId(modelId));
+                }
+            });
+        }
     }
 
     @Override
@@ -68,7 +87,20 @@ public class AnimationRouletteScreen extends Screen {
         float startDeg = (float) Math.PI / count;
         for (int i = 0; i < count; i++) {
             int r = 65;
-            drawCenteredString(poseStack, font, String.valueOf(i), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2), 0xF3EFE0);
+            IFormattableTextComponent keyText = new StringTextComponent("[ ").withStyle(TextFormatting.YELLOW);
+            KeyBinding keyMapping = ExtraAnimationKey.EXTRA_ANIMATION_KEYS.get(i);
+            if (keyMapping.getKey() == InputMappings.UNKNOWN) {
+                keyText.append(new TranslationTextComponent("key.yes_steve_model.extra_animation.none"));
+            } else {
+                keyText.append(keyMapping.getTranslatedKeyMessage());
+            }
+            keyText.append(" ]");
+            if (this.names != null && this.names.length > i && StringUtils.isNoneBlank(this.names[i])) {
+                drawCenteredString(poseStack, font, new StringTextComponent(this.names[i]), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 - 8), 0xF3EFE0);
+            } else {
+                drawCenteredString(poseStack, font, String.valueOf(i), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 - 8), 0xF3EFE0);
+            }
+            drawCenteredString(poseStack, font, keyText, (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 + 4), 0xF3EFE0);
             startDeg = startDeg + 2 * (float) Math.PI / count;
         }
     }

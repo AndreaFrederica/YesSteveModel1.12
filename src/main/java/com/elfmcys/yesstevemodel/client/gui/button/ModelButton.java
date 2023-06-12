@@ -13,6 +13,7 @@ import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
@@ -27,13 +28,15 @@ public class ModelButton extends Button {
     private final Pair<ResourceLocation, List<ResourceLocation>> modelInfo;
     private final boolean needAuth;
     private final int color;
+    private final List<ITextComponent> tooltips;
 
-    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo) {
+    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo, List<ITextComponent> tooltips) {
         super(pX, pY, 52, 90, new StringTextComponent(modelInfo.getLeft().getPath()), (b) -> {
         });
         this.modelInfo = modelInfo;
         this.needAuth = needAuth;
         this.color = needAuth ? 0x7F_000000 : 0xFF_434242;
+        this.tooltips = tooltips;
     }
 
     @Override
@@ -67,19 +70,6 @@ public class ModelButton extends Button {
         RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 20, 30, minecraft.player, modelInfo.getLeft(), modelInfo.getRight().get(0));
         RenderSystem.disableScissor();
 
-        if (minecraft.player != null) {
-            minecraft.player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
-                if (cap.containModel(modelInfo.getLeft())) {
-                    minecraft.getTextureManager().bind(ICON);
-                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-                    RenderSystem.enableBlend();
-                    RenderSystem.defaultBlendFunc();
-                    RenderSystem.enableDepthTest();
-                    blit(poseStack, this.x + this.width - 14, this.y, 16, 16, 16, 0, 16, 16, 256, 256);
-                }
-            });
-        }
-
         ITextComponent message = this.getMessage();
         List<IReorderingProcessor> split = font.split(message, 45);
         if (split.size() > 1) {
@@ -94,8 +84,28 @@ public class ModelButton extends Button {
             fillGradient(poseStack, this.x + this.width - 1, this.y + 1, this.x + this.width, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
             fillGradient(poseStack, this.x, this.y + this.height - 1, this.x + this.width, this.y + this.height, 0xff_F3EFE0, 0xff_F3EFE0);
         }
+
+        if (minecraft.player != null) {
+            minecraft.player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+                if (cap.containModel(modelInfo.getLeft())) {
+                    minecraft.getTextureManager().bind(ICON);
+                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
+                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.enableDepthTest();
+                    blit(poseStack, this.x + this.width - 14, this.y, 16, 16, 16, 0, 16, 16, 256, 256);
+                }
+            });
+        }
+
         if (needAuth) {
             fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, 0x9f_222222, 0x9f_222222);
+        }
+    }
+
+    public void renderComponentTooltip(Screen screen, MatrixStack pPoseStack, int pMouseX, int pMouseY) {
+        if (this.isHovered() && tooltips != null) {
+            screen.renderComponentTooltip(pPoseStack, tooltips, pMouseX, pMouseY);
         }
     }
 

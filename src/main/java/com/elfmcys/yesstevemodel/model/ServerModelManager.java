@@ -99,6 +99,7 @@ public final class ServerModelManager {
 
         // 不管存不存在，强行覆盖
         copyDefaultModel();
+        copyWineFoxModel();
         copyVanillaModel();
         initPassword();
         cacheAllModels(CUSTOM);
@@ -112,9 +113,20 @@ public final class ServerModelManager {
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.json"), defaultPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.json"), defaultPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/default.png"), defaultPath, "default.png");
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/blue.png"), defaultPath, "blue.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.animation.json"), defaultPath, MAIN_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.animation.json"), defaultPath, ARM_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/extra.animation.json"), defaultPath, EXTRA_ANIMATION_FILE_NAME);
+    }
+
+    private static void copyWineFoxModel() {
+        Path wineFoxPath = CUSTOM.resolve("wine_fox");
+        createFolder(wineFoxPath);
+
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.json"), wineFoxPath, MAIN_MODEL_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arm.json"), wineFoxPath, ARM_MODEL_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/skin.png"), wineFoxPath, "skin.png");
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.animation.json"), wineFoxPath, MAIN_ANIMATION_FILE_NAME);
     }
 
     private static void copyVanillaModel() {

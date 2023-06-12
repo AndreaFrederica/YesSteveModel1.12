@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.manager;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class InstancedAnimationFactory extends AnimationFactory {
     private AnimationData animationData;

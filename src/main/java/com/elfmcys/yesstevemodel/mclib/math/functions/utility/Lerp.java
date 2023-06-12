@@ -1,9 +1,9 @@
 package com.elfmcys.yesstevemodel.mclib.math.functions.utility;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class Lerp extends Function {
     public Lerp(IValue[] values, String name) throws Exception {

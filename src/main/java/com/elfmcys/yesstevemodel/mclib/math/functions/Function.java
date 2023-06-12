@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.mclib.math.functions;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public abstract class Function implements IValue {
     protected IValue[] args;

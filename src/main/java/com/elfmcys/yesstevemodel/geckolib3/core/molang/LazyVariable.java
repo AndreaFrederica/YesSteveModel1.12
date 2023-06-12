@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.mclib.math.Variable;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 import java.util.function.DoubleSupplier;
 

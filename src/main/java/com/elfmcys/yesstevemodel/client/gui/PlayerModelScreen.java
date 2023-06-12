@@ -1,12 +1,12 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
-import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
 import com.elfmcys.yesstevemodel.util.Keep;
+import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -63,12 +63,6 @@ public class PlayerModelScreen extends Screen {
                 });
             }
         }
-        if (this.category == Category.VANILLA) {
-            ResourceLocation steve = new ResourceLocation(YesSteveModel.MOD_ID, "steve");
-            ResourceLocation alex = new ResourceLocation(YesSteveModel.MOD_ID, "alex");
-            this.models.put(steve, ClientModelManager.MODELS.get(steve));
-            this.models.put(alex, ClientModelManager.MODELS.get(alex));
-        }
         if (this.category == Category.STAR) {
             if (minecraft != null && minecraft.player != null) {
                 minecraft.player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
@@ -106,7 +100,7 @@ public class PlayerModelScreen extends Screen {
             perText = textField.getValue();
             focus = textField.isFocused();
         }
-        textField = new TextFieldWidget(getMinecraft().font, x + 144, y + 6, 186, 16, new StringTextComponent("YSM Search Box"));
+        textField = new TextFieldWidget(getMinecraft().font, x + 144, y + 6, 160, 16, new StringTextComponent("YSM Search Box"));
         textField.setValue(perText);
         textField.setTextColor(0xF3EFE0);
         textField.setFocus(focus);
@@ -127,34 +121,33 @@ public class PlayerModelScreen extends Screen {
         }).setTooltips("gui.yes_steve_model.model.texture"));
         addButton(new StarButton(x + 110, y + 5));
 
-        addButton(new FlatIconButton(x + 397, y + 5, 18, 18, 32, 0, (b) -> {
+        addButton(new FlatIconButton(x + 348, y + 5, 18, 18, 32, 0, (b) -> {
             if (this.category != Category.ALL) {
                 this.category = Category.ALL;
                 this.page = 0;
                 this.init();
             }
         }).setTooltips("gui.yes_steve_model.all_models"));
-        addButton(new FlatIconButton(x + 376, y + 5, 18, 18, 48, 0, (b) -> {
+        addButton(new FlatIconButton(x + 328, y + 5, 18, 18, 48, 0, (b) -> {
             if (this.category != Category.AUTH) {
                 this.category = Category.AUTH;
                 this.page = 0;
                 this.init();
             }
         }).setTooltips("gui.yes_steve_model.auth_models"));
-        addButton(new FlatIconButton(x + 355, y + 5, 18, 18, 0, 0, (b) -> {
+        addButton(new FlatIconButton(x + 308, y + 5, 18, 18, 0, 0, (b) -> {
             if (this.category != Category.STAR) {
                 this.category = Category.STAR;
                 this.page = 0;
                 this.init();
             }
         }).setTooltips("gui.yes_steve_model.star_models"));
-        addButton(new FlatIconButton(x + 334, y + 5, 18, 18, 16, 16, (b) -> {
-            if (this.category != Category.VANILLA) {
-                this.category = Category.VANILLA;
-                this.page = 0;
-                this.init();
-            }
-        }).setTooltips("gui.yes_steve_model.vanilla_models"));
+        addButton(new FlatIconButton(x + 397, y + 5, 18, 18, 16, 16, (b) -> {
+            this.getMinecraft().setScreen(new ConfigScreen(this));
+        }).setTooltips("gui.yes_steve_model.config"));
+        addButton(new FlatIconButton(x + 377, y + 5, 18, 18, 0, 16, (b) -> {
+            this.getMinecraft().setScreen(new DownloadScreen(this));
+        }).setTooltips("gui.yes_steve_model.download"));
 
         addButton(new FlatColorButton(x + 198, y + 215, 52, 14, new TranslationTextComponent("gui.yes_steve_model.pre_page"), (b) -> {
             if (this.page > 0) {
@@ -184,9 +177,9 @@ public class PlayerModelScreen extends Screen {
             if (minecraft != null && minecraft.player != null) {
                 minecraft.player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
                     if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
-                        addButton(new ModelButton(xStart, yStart, true, Pair.of(id, models.get(id))));
+                        addButton(new ModelButton(xStart, yStart, true, Pair.of(id, models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
                     } else {
-                        addButton(new ModelButton(xStart, yStart, false, Pair.of(id, models.get(id))));
+                        addButton(new ModelButton(xStart, yStart, false, Pair.of(id, models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
                     }
                 });
             }
@@ -201,6 +194,7 @@ public class PlayerModelScreen extends Screen {
 
         fillGradient(poseStack, x, y, x + 135, y + 235, 0xff_222222, 0xff_222222);
         fillGradient(poseStack, x + 138, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
+        fillGradient(poseStack, x + 371, y + 7, x + 372, y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
 
         textField.render(poseStack, mouseX, mouseY, partialTicks);
         ClientPlayerEntity player = Minecraft.getInstance().player;
@@ -237,6 +231,8 @@ public class PlayerModelScreen extends Screen {
         super.render(poseStack, mouseX, mouseY, partialTicks);
         this.buttons.stream().filter(r -> r instanceof FlatIconButton)
                 .forEach(r -> ((FlatIconButton) r).renderToolTip(this, poseStack, mouseX, mouseY));
+        this.buttons.stream().filter(r -> r instanceof ModelButton)
+                .forEach(r -> ((ModelButton) r).renderComponentTooltip(this, poseStack, mouseX, mouseY));
     }
 
     @Override
@@ -351,6 +347,6 @@ public class PlayerModelScreen extends Screen {
         /**
          * 不同页面类别
          */
-        ALL, AUTH, VANILLA, STAR
+        ALL, AUTH, STAR
     }
 }

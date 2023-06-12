@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.processor;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public interface IBone {
     @Keep

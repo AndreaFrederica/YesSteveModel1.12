@@ -1,9 +1,9 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang.expressions;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.Variable;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class MolangAssignment extends MolangExpression {
     public Variable variable;

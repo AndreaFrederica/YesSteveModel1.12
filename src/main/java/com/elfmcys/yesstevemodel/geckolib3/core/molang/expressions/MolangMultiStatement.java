@@ -1,8 +1,8 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang.expressions;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.LazyVariable;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
+import com.elfmcys.yesstevemodel.util.Keep;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 

@@ -1,8 +1,8 @@
 package com.elfmcys.yesstevemodel.mclib.math.functions.limit;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class Min extends Function {
     public Min(IValue[] values, String name) throws Exception {

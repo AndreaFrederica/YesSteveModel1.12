@@ -5,8 +5,8 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.snapshot;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 public class BoneSnapshot {
     public String name;

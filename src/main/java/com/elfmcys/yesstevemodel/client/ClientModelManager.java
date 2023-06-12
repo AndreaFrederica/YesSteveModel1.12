@@ -6,6 +6,7 @@ import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.file.AnimationFile;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.FormatVersion;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.tree.RawGeometryTree;
@@ -28,14 +29,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.JSONException;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +51,8 @@ import java.util.Map;
 public class ClientModelManager {
     public static Map<ResourceLocation, List<ResourceLocation>> MODELS = Maps.newHashMap();
     public static Map<ResourceLocation, Pair<Double, Double>> SCALE_INFO = Maps.newHashMap();
+    public static Map<ResourceLocation, List<ITextComponent>> EXTRA_INFO = Maps.newHashMap();
+    public static Map<ResourceLocation, String[]> EXTRA_ANIMATION_NAME = Maps.newHashMap();
     public static AnimationFile DEFAULT_ANIMATION_FILE = new AnimationFile();
     public static List<String> CACHE_MD5 = Lists.newArrayList();
     public static List<String> AUTH_MODELS = Lists.newArrayList();
@@ -75,6 +85,11 @@ public class ClientModelManager {
                     RawGeometryTree rawGeometryTree = RawGeometryTree.parseHierarchy(rawModel);
                     GeoModel geoModel = GeoBuilder.getGeoBuilder(id.getNamespace()).constructGeoModel(rawGeometryTree);
                     SCALE_INFO.put(id, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
+                    ExtraInfo extraInfo = rawGeometryTree.properties.getExtraInfo();
+                    EXTRA_INFO.put(id, handleExtraInfo(id, extraInfo));
+                    if (extraInfo != null && extraInfo.getExtraAnimationNames() != null && extraInfo.getExtraAnimationNames().length > 0) {
+                        EXTRA_ANIMATION_NAME.put(id, extraInfo.getExtraAnimationNames());
+                    }
                     geoModels.put(id, geoModel);
                 }
             }
@@ -158,6 +173,8 @@ public class ClientModelManager {
         CACHE_MD5.clear();
         AUTH_MODELS.clear();
         SCALE_INFO.clear();
+        EXTRA_INFO.clear();
+        EXTRA_ANIMATION_NAME.clear();
         String[] md5Info = getMd5Info();
         SyncModelFiles syncModelFiles = new SyncModelFiles(md5Info);
         ThreadTools.THREAD_POOL.submit(() -> {
@@ -185,5 +202,25 @@ public class ClientModelManager {
 
     private static byte[] getBytes(Path root, String fileName) throws IOException {
         return FileUtils.readFileToByteArray(root.resolve(fileName).toFile());
+    }
+
+    @Nullable
+    private static List<ITextComponent> handleExtraInfo(ResourceLocation id, @Nullable ExtraInfo extraInfo) {
+        if (extraInfo == null || StringUtils.isBlank(extraInfo.getName())) {
+            return null;
+        }
+        List<ITextComponent> component = Lists.newArrayList();
+        component.add(new StringTextComponent(extraInfo.getName()).withStyle(TextFormatting.GOLD));
+        if (StringUtils.isNoneBlank(extraInfo.getTips())) {
+            String[] split = extraInfo.getTips().split("\n");
+            Arrays.stream(split).forEach(s -> component.add(new StringTextComponent(s).withStyle(TextFormatting.GRAY)));
+        }
+        if (extraInfo.getAuthors() != null && extraInfo.getAuthors().length != 0) {
+            component.add(new TranslationTextComponent("gui.yes_steve_model.model.authors", StringUtils.join(extraInfo.getAuthors(), "丨")));
+        }
+        if (StringUtils.isNoneBlank(extraInfo.getLicense())) {
+            component.add(new TranslationTextComponent("gui.yes_steve_model.model.license", extraInfo.getLicense()));
+        }
+        return component;
     }
 }

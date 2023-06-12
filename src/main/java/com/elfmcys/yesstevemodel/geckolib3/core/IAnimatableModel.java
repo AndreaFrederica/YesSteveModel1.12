@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.geckolib3.core;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.AnimationProcessor;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
+import com.elfmcys.yesstevemodel.util.Keep;
 
 @SuppressWarnings("rawtypes")
 public interface IAnimatableModel<E> {

@@ -4,6 +4,7 @@ import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
+import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.event.api.SpecialPlayerRenderEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
@@ -42,6 +43,9 @@ public class RenderFirstPlayerBackground {
 
     @SubscribeEvent
     public static void onRenderHand(RenderHandEvent event) {
+        if (GeneralConfig.DISABLE_SELF_MODEL.get()) {
+            return;
+        }
         ClientPlayerEntity player = Minecraft.getInstance().player;
         if (player == null || ALREADY_RENDERED) {
             return;

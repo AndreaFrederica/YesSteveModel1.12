@@ -27,8 +27,9 @@ public class AnimationRegister {
         register("sleep", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SLEEPING);
         register("swim", Priority.HIGHEST, (player, event) -> player.isSwimming());
         register("climbing", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SWIMMING);
-        register("fly", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.FALL_FLYING);
+        register("fly", Priority.HIGHEST, (player, event) -> player.abilities.flying);
 
+        register("elytra_fly", Priority.HIGH, (player, event) -> player.getPose() == Pose.FALL_FLYING && player.isFallFlying());
         register("ride_pig", Priority.HIGH, (player, event) -> player.getVehicle() instanceof PigEntity);
         register("ride", Priority.HIGH, (player, event) -> player.getVehicle() instanceof IEquipable);
         register("boat", Priority.HIGH, (player, event) -> player.getVehicle() instanceof BoatEntity);
