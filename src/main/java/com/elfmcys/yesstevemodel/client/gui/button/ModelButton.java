@@ -104,7 +104,7 @@ public class ModelButton extends Button {
     }
 
     public void renderComponentTooltip(Screen screen, MatrixStack pPoseStack, int pMouseX, int pMouseY) {
-        if (this.isHovered() && tooltips != null) {
+        if (this.isHovered && tooltips != null) {
             screen.renderComponentTooltip(pPoseStack, tooltips, pMouseX, pMouseY);
         }
     }
