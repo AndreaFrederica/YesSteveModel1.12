@@ -19,7 +19,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'java'
 
-version = '1.1.2'
+version = '1.1.4'
 group = 'com.elfmcys.yesstevemodel'
 archivesBaseName = 'yesstevemodel-1.16.5-release'
 

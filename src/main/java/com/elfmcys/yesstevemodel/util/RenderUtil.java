@@ -16,6 +16,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.Pose;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
@@ -198,7 +200,7 @@ public final class RenderUtil {
             if (animatable instanceof CustomPlayerEntity) {
                 CustomPlayerEntity entity = (CustomPlayerEntity) animatable;
                 consumer.accept(entity);
-                renderModel((double) pPosX, (double) pPosY, (float) pScale, player, modelId, textureId, renderer, animatable, entity);
+                renderModel((double) pPosX, (double) pPosY, (float) pScale, player, modelId, textureId, renderer, entity);
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
@@ -213,7 +215,7 @@ public final class RenderUtil {
         });
     }
 
-    private static void renderModel(double pPosX, double pPosY, float pScale, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId, GeoReplacedEntityRenderer renderer, IAnimatable animatable, CustomPlayerEntity entity) {
+    private static void renderModel(double pPosX, double pPosY, float pScale, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId, GeoReplacedEntityRenderer renderer, CustomPlayerEntity entity) {
         entity.setMainModel(ModelIdUtil.getMainId(modelId));
         entity.setTexture(textureId);
 
@@ -235,6 +237,20 @@ public final class RenderUtil {
         float yHeadRotO = player.yHeadRotO;
         float yHeadRot = player.yHeadRot;
 
+        ItemStack[] itemStacks = new ItemStack[EquipmentSlotType.values().length];
+        int i = 0;
+        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+            itemStacks[i] = player.getItemBySlot(slot);
+            if (slot == EquipmentSlotType.MAINHAND) {
+                player.inventory.items.set(player.inventory.selected, ItemStack.EMPTY);
+            } else if (slot == EquipmentSlotType.OFFHAND) {
+                player.inventory.offhand.set(0, ItemStack.EMPTY);
+            } else {
+                player.inventory.armor.set(slot.getIndex(), ItemStack.EMPTY);
+            }
+            i++;
+        }
+
         player.yBodyRot = 200;
         player.yRot = 180;
         player.xRot = 0;
@@ -247,7 +263,7 @@ public final class RenderUtil {
         dispatcher.setRenderShadow(false);
         IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         RenderSystem.runAsFancy(() -> {
-            renderer.render(player, animatable, 0, 1.0f, poseStack, bufferSource, 0xf000f0);
+            renderer.render(player, entity, 0, 1.0f, poseStack, bufferSource, 0xf000f0);
         });
         bufferSource.endBatch();
         dispatcher.setRenderShadow(true);
@@ -257,6 +273,19 @@ public final class RenderUtil {
         player.xRot = xRot;
         player.yHeadRotO = yHeadRotO;
         player.yHeadRot = yHeadRot;
+
+        i = 0;
+        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+            ItemStack itemStack = itemStacks[i];
+            if (slot == EquipmentSlotType.MAINHAND) {
+                player.inventory.items.set(player.inventory.selected, itemStack);
+            } else if (slot == EquipmentSlotType.OFFHAND) {
+                player.inventory.offhand.set(0, itemStack);
+            } else {
+                player.inventory.armor.set(slot.getIndex(), itemStack);
+            }
+            i++;
+        }
 
         RenderSystem.popMatrix();
     }

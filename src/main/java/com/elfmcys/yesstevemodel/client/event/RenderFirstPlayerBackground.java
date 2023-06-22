@@ -18,7 +18,10 @@ import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -83,11 +86,23 @@ public class RenderFirstPlayerBackground {
                 int packedLight = event.getLight();
                 if (instance != null) {
                     poseStack.pushPose();
+                    if (Minecraft.getInstance().options.bobView) {
+                        bobView(poseStack, event.getPartialTicks(), player);
+                    }
                     poseStack.translate(0, -1.5, 0);
                     geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(bone, poseStack, buffer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1));
                     poseStack.popPose();
                 }
             }
         });
+    }
+
+    private static void bobView(MatrixStack pMatrixStack, float pPartialTicks, PlayerEntity player) {
+        float walk = player.walkDist - player.walkDistO;
+        float walk2 = -(player.walkDist + walk * pPartialTicks);
+        float lerp = MathHelper.lerp(pPartialTicks, player.oBob, player.bob);
+        pMatrixStack.translate(-MathHelper.sin(walk2 * (float) Math.PI) * lerp * 0.5F, Math.abs(MathHelper.cos(walk2 * (float) Math.PI) * lerp), 0.0D);
+        pMatrixStack.mulPose(Vector3f.ZN.rotationDegrees(MathHelper.sin(walk2 * (float) Math.PI) * lerp * 3.0F));
+        pMatrixStack.mulPose(Vector3f.XN.rotationDegrees(Math.abs(MathHelper.cos(walk2 * (float) Math.PI - 0.2F) * lerp) * 5.0F));
     }
 }

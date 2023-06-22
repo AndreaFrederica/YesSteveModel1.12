@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
@@ -21,10 +22,12 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SharedConstants;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.ModList;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -100,7 +103,7 @@ public class PlayerModelScreen extends Screen {
             perText = textField.getValue();
             focus = textField.isFocused();
         }
-        textField = new TextFieldWidget(getMinecraft().font, x + 144, y + 6, 160, 16, new StringTextComponent("YSM Search Box"));
+        textField = new TextFieldWidget(getMinecraft().font, x + 144, y + 6, 140, 16, new StringTextComponent("YSM Search Box"));
         textField.setValue(perText);
         textField.setTextColor(0xF3EFE0);
         textField.setFocus(focus);
@@ -121,21 +124,21 @@ public class PlayerModelScreen extends Screen {
         }).setTooltips("gui.yes_steve_model.model.texture"));
         addButton(new StarButton(x + 110, y + 5));
 
-        addButton(new FlatIconButton(x + 348, y + 5, 18, 18, 32, 0, (b) -> {
+        addButton(new FlatIconButton(x + 328, y + 5, 18, 18, 32, 0, (b) -> {
             if (this.category != Category.ALL) {
                 this.category = Category.ALL;
                 this.page = 0;
                 this.init();
             }
         }).setTooltips("gui.yes_steve_model.all_models"));
-        addButton(new FlatIconButton(x + 328, y + 5, 18, 18, 48, 0, (b) -> {
+        addButton(new FlatIconButton(x + 308, y + 5, 18, 18, 48, 0, (b) -> {
             if (this.category != Category.AUTH) {
                 this.category = Category.AUTH;
                 this.page = 0;
                 this.init();
             }
         }).setTooltips("gui.yes_steve_model.auth_models"));
-        addButton(new FlatIconButton(x + 308, y + 5, 18, 18, 0, 0, (b) -> {
+        addButton(new FlatIconButton(x + 288, y + 5, 18, 18, 0, 0, (b) -> {
             if (this.category != Category.STAR) {
                 this.category = Category.STAR;
                 this.page = 0;
@@ -148,6 +151,9 @@ public class PlayerModelScreen extends Screen {
         addButton(new FlatIconButton(x + 377, y + 5, 18, 18, 0, 16, (b) -> {
             this.getMinecraft().setScreen(new DownloadScreen(this));
         }).setTooltips("gui.yes_steve_model.download"));
+        addButton(new FlatIconButton(x + 357, y + 5, 18, 18, 80, 0, (b) -> {
+            this.getMinecraft().setScreen(new OpenModelFolderScreen(this));
+        }).setTooltips("gui.yes_steve_model.open_model_folder.open"));
 
         addButton(new FlatColorButton(x + 198, y + 215, 52, 14, new TranslationTextComponent("gui.yes_steve_model.pre_page"), (b) -> {
             if (this.page > 0) {
@@ -194,7 +200,7 @@ public class PlayerModelScreen extends Screen {
 
         fillGradient(poseStack, x, y, x + 135, y + 235, 0xff_222222, 0xff_222222);
         fillGradient(poseStack, x + 138, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
-        fillGradient(poseStack, x + 371, y + 7, x + 372, y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
+        fillGradient(poseStack, x + 351, y + 7, x + 352, y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
 
         textField.render(poseStack, mouseX, mouseY, partialTicks);
         ClientPlayerEntity player = Minecraft.getInstance().player;
@@ -228,6 +234,11 @@ public class PlayerModelScreen extends Screen {
         String pageInfo = String.format("%d/%d", page + 1, this.maxPage + 1);
         font.draw(poseStack, pageInfo, x + 138 + (282 - font.width(pageInfo)) / 2.0F, y + 223 - font.lineHeight / 2, 0xF3EFE0);
 
+        String debugInfo = String.format("%s-%s", SharedConstants.getCurrentVersion().getName(), ModList.get().getModFileById(YesSteveModel.MOD_ID).getMods().get(0).getVersion().toString());
+        font.draw(poseStack, debugInfo, x + 2, y + 226, TextFormatting.DARK_GRAY.getColor());
+
+        // FIXME: 2023/6/21 奇妙的修复了 bug，应该不影响渲染？
+        InventoryScreen.renderEntityInInventory(0, 0, 0, 0, 0, player);
         super.render(poseStack, mouseX, mouseY, partialTicks);
         this.buttons.stream().filter(r -> r instanceof FlatIconButton)
                 .forEach(r -> ((FlatIconButton) r).renderToolTip(this, poseStack, mouseX, mouseY));

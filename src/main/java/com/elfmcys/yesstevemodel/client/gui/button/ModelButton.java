@@ -110,6 +110,7 @@ public class ModelButton extends Button {
     }
 
     @Override
+    @Keep
     protected boolean clicked(double pMouseX, double pMouseY) {
         return !this.needAuth && super.clicked(pMouseX, pMouseY);
     }

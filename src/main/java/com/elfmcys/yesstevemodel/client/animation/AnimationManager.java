@@ -1,16 +1,22 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
+import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
+import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalSwing;
+import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalUse;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.PlayState;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationBuilder;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
+import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
@@ -93,16 +99,65 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
-    public PlayState predicateUse(AnimationEvent<CustomPlayerEntity> event) {
+    public PlayState predicateSwing(AnimationEvent<CustomPlayerEntity> event) {
         PlayerEntity player = event.getAnimatable().getPlayer();
         if (player == null) {
             return PlayState.STOP;
         }
         if (player.swinging && !player.isSleeping()) {
-            if (player.swingingArm == Hand.MAIN_HAND) {
-                return playAnimation(event, "use_righthand", ILoopType.EDefaultLoopTypes.LOOP);
+            if (player.swingTime == 0) {
+                event.getController().shouldResetTick = true;
+                event.getController().adjustTick(0);
+            }
+            return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
+                ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
+                ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
+                if (conditionalSwing != null) {
+                    String name = conditionalSwing.doTest(player, player.swingingArm);
+                    if (StringUtils.isNoneBlank(name)) {
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                    }
+                }
+                return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
+            }).orElse(PlayState.STOP);
+        }
+        return PlayState.STOP;
+    }
+
+    public PlayState predicateUse(AnimationEvent<CustomPlayerEntity> event) {
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        if (player == null) {
+            return PlayState.STOP;
+        }
+        if (player.isUsingItem() && !player.isSleeping()) {
+            if (player.getTicksUsingItem() == 0) {
+                event.getController().shouldResetTick = true;
+                event.getController().adjustTick(0);
+            }
+            if (player.getUsedItemHand() == Hand.MAIN_HAND) {
+                return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
+                    ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
+                    ConditionalUse conditionalUse = ConditionManager.getUseMainhand(id);
+                    if (conditionalUse != null) {
+                        String name = conditionalUse.doTest(player, Hand.MAIN_HAND);
+                        if (StringUtils.isNoneBlank(name)) {
+                            return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                        }
+                    }
+                    return playAnimation(event, "use_mainhand", ILoopType.EDefaultLoopTypes.LOOP);
+                }).orElse(PlayState.STOP);
             } else {
-                return playAnimation(event, "use_lefthand", ILoopType.EDefaultLoopTypes.LOOP);
+                return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
+                    ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
+                    ConditionalUse conditionalUse = ConditionManager.getUseOffhand(id);
+                    if (conditionalUse != null) {
+                        String name = conditionalUse.doTest(player, Hand.OFF_HAND);
+                        if (StringUtils.isNoneBlank(name)) {
+                            return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                        }
+                    }
+                    return playAnimation(event, "use_offhand", ILoopType.EDefaultLoopTypes.LOOP);
+                }).orElse(PlayState.STOP);
             }
         }
         return PlayState.STOP;

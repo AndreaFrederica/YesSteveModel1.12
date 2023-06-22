@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.gui.button;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.util.Keep;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -35,6 +36,7 @@ public class FlatIconButton extends FlatColorButton {
     }
 
     @Override
+    @Keep
     public void renderButton(MatrixStack poseStack, int mouseX, int mouseY, float pPartialTick) {
         super.renderButton(poseStack, mouseX, mouseY, pPartialTick);
         Minecraft minecraft = Minecraft.getInstance();

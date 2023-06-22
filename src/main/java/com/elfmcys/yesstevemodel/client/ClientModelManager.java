@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
 import com.elfmcys.yesstevemodel.client.texture.OuterFileTexture;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
@@ -128,6 +129,7 @@ public class ClientModelManager {
                 main.putAnimation(name, action);
             }
         });
+        main.animations().forEach((name, animation) -> ConditionManager.addTest(id, name));
         animations.put(id, main);
     }
 
@@ -175,6 +177,7 @@ public class ClientModelManager {
         SCALE_INFO.clear();
         EXTRA_INFO.clear();
         EXTRA_ANIMATION_NAME.clear();
+        ConditionManager.clear();
         String[] md5Info = getMd5Info();
         SyncModelFiles syncModelFiles = new SyncModelFiles(md5Info);
         ThreadTools.THREAD_POOL.submit(() -> {
