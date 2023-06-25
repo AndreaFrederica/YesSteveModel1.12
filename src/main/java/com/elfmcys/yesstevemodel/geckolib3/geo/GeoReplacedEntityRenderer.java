@@ -302,13 +302,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends E
         if (pose != Pose.SLEEPING) {
             poseStack.mulPose(Vector3f.YP.rotationDegrees(180f - rotationYaw));
         }
-        if (entity.deathTime > 0) {
-            float deathRotation = (entity.deathTime + partialTick - 1f) / 20f * 1.6f;
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees(Math.min(MathHelper.sqrt(deathRotation), 1) * getDeathMaxRotation(entity)));
-        } else if (entity.isAutoSpinAttack()) {
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(-90f - entity.xRot));
-            poseStack.mulPose(Vector3f.YP.rotationDegrees((entity.tickCount + partialTick) * -75f));
-        } else if (pose == Pose.SLEEPING) {
+        if (pose == Pose.SLEEPING) {
             Direction bedOrientation = entity.getBedOrientation();
             poseStack.mulPose(Vector3f.YP.rotationDegrees(bedOrientation != null ? getFacingAngle(bedOrientation) : rotationYaw));
             poseStack.mulPose(Vector3f.ZP.rotationDegrees(getDeathMaxRotation(entity)));

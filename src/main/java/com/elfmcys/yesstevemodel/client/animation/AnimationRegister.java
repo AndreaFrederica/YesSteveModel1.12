@@ -27,23 +27,25 @@ import net.minecraft.util.math.vector.Vector3d;
 import java.util.function.BiPredicate;
 
 public class AnimationRegister {
-    private static final double MIN_SPEED = 0.15;
+    private static final double MIN_SPEED = 0.05;
 
     public static void registerAnimationState() {
         register("death", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.HIGHEST, (player, event) -> player.isDeadOrDying());
+        register("riptide", Priority.HIGHEST, (player, event) -> player.isAutoSpinAttack());
         register("sleep", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SLEEPING);
         register("swim", Priority.HIGHEST, (player, event) -> player.isSwimming());
-        register("climb", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SWIMMING && Math.abs(event.getLimbSwingAmount()) > 0.05);
+        register("climb", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SWIMMING && Math.abs(event.getLimbSwingAmount()) > MIN_SPEED);
         register("climbing", Priority.HIGHEST, (player, event) -> player.getPose() == Pose.SWIMMING);
-        register("fly", Priority.HIGHEST, (player, event) -> player.abilities.flying);
 
-        register("elytra_fly", Priority.HIGH, (player, event) -> player.getPose() == Pose.FALL_FLYING && player.isFallFlying());
         register("ride_pig", Priority.HIGH, (player, event) -> player.getVehicle() instanceof PigEntity);
         register("ride", Priority.HIGH, (player, event) -> player.getVehicle() instanceof IEquipable);
         register("boat", Priority.HIGH, (player, event) -> player.getVehicle() instanceof BoatEntity);
         register("sit", Priority.HIGH, (player, event) -> player.isPassenger());
 
-        register("swim_stand", Priority.NORMAL, (player, event) -> player.isInWater() && event.getLimbSwingAmount() > MIN_SPEED);
+        register("fly", Priority.HIGH, (player, event) -> player.abilities.flying);
+        register("elytra_fly", Priority.HIGH, (player, event) -> player.getPose() == Pose.FALL_FLYING && player.isFallFlying());
+
+        register("swim_stand", Priority.NORMAL, (player, event) -> player.isInWater());
         register("attacked", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.NORMAL, (player, event) -> player.hurtTime > 0);
         register("jump", Priority.NORMAL, (player, event) -> !player.isOnGround() && !player.isInWater());
         register("sneak", Priority.NORMAL, (player, event) -> player.isOnGround() && player.getPose() == Pose.CROUCHING && Math.abs(event.getLimbSwingAmount()) > MIN_SPEED);
@@ -127,6 +129,8 @@ public class AnimationRegister {
         parser.register(new LazyVariable("ysm.is_passenger", MolangUtils.FALSE));
         parser.register(new LazyVariable("ysm.is_sleep", MolangUtils.FALSE));
         parser.register(new LazyVariable("ysm.is_sneak", MolangUtils.FALSE));
+        parser.register(new LazyVariable("ysm.is_riptide", MolangUtils.FALSE));
+
         parser.register(new LazyVariable("ysm.armor_value", 0));
         parser.register(new LazyVariable("ysm.hurt_time", 0));
     }
@@ -219,6 +223,8 @@ public class AnimationRegister {
         parser.setValue("ysm.is_passenger", () -> MolangUtils.booleanToFloat(player.isPassenger()));
         parser.setValue("ysm.is_sleep", () -> MolangUtils.booleanToFloat(player.getPose() == Pose.SLEEPING));
         parser.setValue("ysm.is_sneak", () -> MolangUtils.booleanToFloat(player.isOnGround() && player.getPose() == Pose.CROUCHING));
+        parser.setValue("ysm.is_riptide", () -> MolangUtils.booleanToFloat(player.isAutoSpinAttack()));
+
         parser.setValue("ysm.armor_value", player::getArmorValue);
         parser.setValue("ysm.hurt_time", () -> player.hurtTime);
     }

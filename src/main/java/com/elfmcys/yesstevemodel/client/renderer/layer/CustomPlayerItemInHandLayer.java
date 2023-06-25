@@ -46,7 +46,7 @@ public class CustomPlayerItemInHandLayer<T extends LivingEntity & IAnimatable> e
         if (!itemStack.isEmpty() && this.entityRenderer.getGeoModel() != null) {
             poseStack.pushPose();
             translateToHand(arm, poseStack, this.entityRenderer.getGeoModel());
-            poseStack.translate(0, 0, -0.15);
+            poseStack.translate(0, -0.0625, -0.1);
             poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
             boolean isLeftHand = arm == HandSide.LEFT;
             Minecraft.getInstance().getItemInHandRenderer().renderItem(livingEntity, itemStack, transformType, isLeftHand, poseStack, bufferSource, light);

@@ -55,7 +55,7 @@ public class ConditionalUse {
             tagTest.add(res);
         }
         if (name.startsWith(extraPre)) {
-            if (name.equals(UseAction.NONE.name().toLowerCase(Locale.US))) {
+            if (substring.equals(UseAction.NONE.name().toLowerCase(Locale.US))) {
                 return;
             }
             Arrays.stream(UseAction.values()).filter(a -> a.name().toLowerCase(Locale.US).equals(substring)).findFirst().ifPresent(extraTest::add);

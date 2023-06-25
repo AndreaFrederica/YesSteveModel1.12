@@ -14,6 +14,9 @@ import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
@@ -99,6 +102,27 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    public PlayState predicateHold(AnimationEvent<CustomPlayerEntity> event) {
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        if (player == null) {
+            return PlayState.STOP;
+        }
+        if (!player.swinging && !player.isUsingItem()) {
+            ItemStack mainHandItem = player.getItemInHand(Hand.MAIN_HAND);
+            if (mainHandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(mainHandItem)) {
+                return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+            ItemStack offhandItem = player.getItemInHand(Hand.OFF_HAND);
+            if (offhandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(offhandItem)) {
+                return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+            if (player.fishing != null) {
+                return playAnimation(event, "hold_mainhand:fishing", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+        }
+        return PlayState.STOP;
+    }
+
     public PlayState predicateSwing(AnimationEvent<CustomPlayerEntity> event) {
         PlayerEntity player = event.getAnimatable().getPlayer();
         if (player == null) {
@@ -130,7 +154,7 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
         if (player.isUsingItem() && !player.isSleeping()) {
-            if (player.getTicksUsingItem() == 0) {
+            if (player.getTicksUsingItem() == 1) {
                 event.getController().shouldResetTick = true;
                 event.getController().adjustTick(0);
             }
