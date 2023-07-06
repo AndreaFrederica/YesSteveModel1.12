@@ -289,4 +289,25 @@ public final class RenderUtil {
 
         RenderSystem.popMatrix();
     }
+
+    public static void renderPlayerEntity(ClientPlayerEntity player, double posX, double posY, float scale, float yawOffset, int z) {
+        RenderSystem.pushMatrix();
+        RenderSystem.translatef((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
+        RenderSystem.scalef(1, 1, -1);
+        MatrixStack stack = new MatrixStack();
+        stack.scale(scale, scale, scale);
+        Quaternion zRot = Vector3f.ZP.rotationDegrees(180.0F);
+        Quaternion yRot = Vector3f.YP.rotationDegrees(player.yBodyRot + yawOffset - 180);
+        zRot.mul(yRot);
+        stack.mulPose(zRot);
+        EntityRendererManager renderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        yRot.conj();
+        renderDispatcher.overrideCameraOrientation(yRot);
+        renderDispatcher.setRenderShadow(false);
+        IRenderTypeBuffer.Impl buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+        RenderSystem.runAsFancy(() -> renderDispatcher.render(player, 0, 0, 0.0D, 0.0F, 1.0F, stack, buffer, 15728880));
+        buffer.endBatch();
+        renderDispatcher.setRenderShadow(true);
+        RenderSystem.popMatrix();
+    }
 }

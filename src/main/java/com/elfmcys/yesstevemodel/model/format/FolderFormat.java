@@ -110,6 +110,7 @@ public final class FolderFormat {
         animation.put("main", getBytes(modelPath, MAIN_ANIMATION_FILE_NAME));
         animation.put("arm", getBytes(modelPath, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(modelPath, EXTRA_ANIMATION_FILE_NAME));
+        animation.put("tac", getBytes(modelPath, TAC_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.FOLDER, model, texture, animation);
     }
@@ -124,6 +125,9 @@ public final class FolderFormat {
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
             filePath = CUSTOM.resolve("default/extra.animation.json");
+        }
+        if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
+            filePath = CUSTOM.resolve("default/tac.animation.json");
         }
 
         if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName)) {

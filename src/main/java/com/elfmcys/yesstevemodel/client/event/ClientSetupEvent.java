@@ -2,10 +2,7 @@ package com.elfmcys.yesstevemodel.client.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
-import com.elfmcys.yesstevemodel.client.input.AnimationRouletteKey;
-import com.elfmcys.yesstevemodel.client.input.DebugAnimationKey;
-import com.elfmcys.yesstevemodel.client.input.ExtraAnimationKey;
-import com.elfmcys.yesstevemodel.client.input.PlayerModelScreenKey;
+import com.elfmcys.yesstevemodel.client.input.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -19,6 +16,7 @@ public class ClientSetupEvent {
         ClientRegistry.registerKeyBinding(PlayerModelScreenKey.PLAYER_MODEL_KEY);
         ClientRegistry.registerKeyBinding(AnimationRouletteKey.ANIMATION_ROULETTE_KEY);
         ClientRegistry.registerKeyBinding(DebugAnimationKey.DEBUG_ANIMATION_KEY);
+        ClientRegistry.registerKeyBinding(ExtraPlayerConfigKey.EXTRA_PLAYER_RENDER_KEY);
         ExtraAnimationKey.registerKeyBinding();
         AnimationRegister.registerAnimationState();
         AnimationRegister.registerVariables();

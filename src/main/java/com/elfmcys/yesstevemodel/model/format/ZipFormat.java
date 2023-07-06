@@ -98,6 +98,7 @@ public final class ZipFormat {
         animation.put("main", getBytes(zipFile, MAIN_ANIMATION_FILE_NAME));
         animation.put("arm", getBytes(zipFile, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(zipFile, EXTRA_ANIMATION_FILE_NAME));
+        animation.put("tac", getBytes(zipFile, TAC_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.ZIP, model, texture, animation);
     }
@@ -113,6 +114,10 @@ public final class ZipFormat {
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(EXTRA_ANIMATION_FILE_NAME) == null) {
             Path filePath = CUSTOM.resolve("default/extra.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
+        if (TAC_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(TAC_ANIMATION_FILE_NAME) == null) {
+            Path filePath = CUSTOM.resolve("default/tac.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
 

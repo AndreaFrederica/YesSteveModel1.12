@@ -36,6 +36,8 @@ minecraft {
             workingDirectory project.file('run/client_a')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 examplemod {
                     source sourceSets.main
@@ -58,6 +60,8 @@ minecraft {
             workingDirectory project.file('run/server')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 examplemod {
                     source sourceSets.main
@@ -70,10 +74,18 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    flatDir {
+        dir 'libs'
+    }
 }
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.34'
+    implementation fg.deobf('libs:curios-forge:1.16.5-4.1.0.0')
+    implementation fg.deobf('libs:obfuscate:0.6.3-1.16.5')
+    implementation fg.deobf('libs:tac-a-0.3.6.1:1.16.5')
+    implementation fg.deobf('libs:firstperson:2.0.1')
+    implementation fg.deobf('libs:transliterationlib:1.0.4')
 }
 
 jar {

@@ -4,13 +4,13 @@ import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
 import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalSwing;
 import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalUse;
+import com.elfmcys.yesstevemodel.client.compat.TacGunRenderer;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.PlayState;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationBuilder;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
-import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,12 +19,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.ModList;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
 
 public final class AnimationManager {
+    private final static String TAC_ID = "tac";
     private static AnimationManager MANAGER;
     private final Int2ObjectOpenHashMap<LinkedList<AnimationState>> data = new Int2ObjectOpenHashMap<>();
 
@@ -95,6 +97,9 @@ public final class AnimationManager {
                 if (state.getPredicate().test(player, event)) {
                     String animationName = state.getAnimationName();
                     ILoopType loopType = state.getLoopType();
+                    if (ModList.get().isLoaded(TAC_ID) && TacGunRenderer.isGun(player.getMainHandItem())) {
+                        return TacGunRenderer.playGunMainAnimation(event, animationName, loopType);
+                    }
                     return playAnimation(event, animationName, loopType);
                 }
             }
@@ -111,6 +116,9 @@ public final class AnimationManager {
             ItemStack mainHandItem = player.getItemInHand(Hand.MAIN_HAND);
             if (mainHandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(mainHandItem)) {
                 return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+            if (ModList.get().isLoaded(TAC_ID) && TacGunRenderer.isGun(mainHandItem)) {
+                return TacGunRenderer.playGunHoldAnimation(event, mainHandItem);
             }
             ItemStack offhandItem = player.getItemInHand(Hand.OFF_HAND);
             if (offhandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(offhandItem)) {
@@ -133,17 +141,15 @@ public final class AnimationManager {
                 event.getController().shouldResetTick = true;
                 event.getController().adjustTick(0);
             }
-            return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
-                ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
-                ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
-                if (conditionalSwing != null) {
-                    String name = conditionalSwing.doTest(player, player.swingingArm);
-                    if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                    }
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
+            if (conditionalSwing != null) {
+                String name = conditionalSwing.doTest(player, player.swingingArm);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                 }
-                return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
-            }).orElse(PlayState.STOP);
+            }
+            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
         }
         return PlayState.STOP;
     }
@@ -158,30 +164,29 @@ public final class AnimationManager {
                 event.getController().shouldResetTick = true;
                 event.getController().adjustTick(0);
             }
+            if (ModList.get().isLoaded(TAC_ID) && TacGunRenderer.isGrenade(player.getUseItem())) {
+                return TacGunRenderer.playGrenadeAnimation(event, player.getUsedItemHand());
+            }
             if (player.getUsedItemHand() == Hand.MAIN_HAND) {
-                return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
-                    ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
-                    ConditionalUse conditionalUse = ConditionManager.getUseMainhand(id);
-                    if (conditionalUse != null) {
-                        String name = conditionalUse.doTest(player, Hand.MAIN_HAND);
-                        if (StringUtils.isNoneBlank(name)) {
-                            return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                        }
+                ResourceLocation id = event.getAnimatable().getAnimation();
+                ConditionalUse conditionalUse = ConditionManager.getUseMainhand(id);
+                if (conditionalUse != null) {
+                    String name = conditionalUse.doTest(player, Hand.MAIN_HAND);
+                    if (StringUtils.isNoneBlank(name)) {
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                     }
-                    return playAnimation(event, "use_mainhand", ILoopType.EDefaultLoopTypes.LOOP);
-                }).orElse(PlayState.STOP);
+                }
+                return playAnimation(event, "use_mainhand", ILoopType.EDefaultLoopTypes.LOOP);
             } else {
-                return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
-                    ResourceLocation id = ModelIdUtil.getMainId(cap.getModelId());
-                    ConditionalUse conditionalUse = ConditionManager.getUseOffhand(id);
-                    if (conditionalUse != null) {
-                        String name = conditionalUse.doTest(player, Hand.OFF_HAND);
-                        if (StringUtils.isNoneBlank(name)) {
-                            return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                        }
+                ResourceLocation id = event.getAnimatable().getAnimation();
+                ConditionalUse conditionalUse = ConditionManager.getUseOffhand(id);
+                if (conditionalUse != null) {
+                    String name = conditionalUse.doTest(player, Hand.OFF_HAND);
+                    if (StringUtils.isNoneBlank(name)) {
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                     }
-                    return playAnimation(event, "use_offhand", ILoopType.EDefaultLoopTypes.LOOP);
-                }).orElse(PlayState.STOP);
+                }
+                return playAnimation(event, "use_offhand", ILoopType.EDefaultLoopTypes.LOOP);
             }
         }
         return PlayState.STOP;

@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.gui.button.ConfigCheckBox;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatColorButton;
+import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.util.Keep;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -29,6 +30,7 @@ public class ConfigScreen extends Screen {
         addButton(new ConfigCheckBox(x + 5, y + 47, "disable_other_model", GeneralConfig.DISABLE_OTHER_MODEL));
         addButton(new ConfigCheckBox(x + 5, y + 69, "print_animation_roulette_msg", GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG));
         addButton(new ConfigCheckBox(x + 5, y + 91, "disable_self_hands", GeneralConfig.DISABLE_SELF_HANDS));
+        addButton(new ConfigCheckBox(x + 5, y + 112, "disable_player_render", ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER));
     }
 
     @Override

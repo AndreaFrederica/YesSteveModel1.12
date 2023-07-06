@@ -69,6 +69,7 @@ public final class ServerModelManager {
     public static final String MAIN_ANIMATION_FILE_NAME = "main.animation.json";
     public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
     public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
+    public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
         for (ServerPlayerEntity player : playerList.getPlayers()) {
@@ -117,6 +118,7 @@ public final class ServerModelManager {
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.animation.json"), defaultPath, MAIN_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.animation.json"), defaultPath, ARM_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/extra.animation.json"), defaultPath, EXTRA_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/tac.animation.json"), defaultPath, TAC_ANIMATION_FILE_NAME);
     }
 
     private static void copyWineFoxModel() {

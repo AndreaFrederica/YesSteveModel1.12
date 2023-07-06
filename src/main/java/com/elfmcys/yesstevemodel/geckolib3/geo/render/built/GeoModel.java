@@ -11,6 +11,8 @@ public class GeoModel {
     public List<GeoBone> leftHandBones = new ObjectArrayList<>();
     public List<GeoBone> rightHandBones = new ObjectArrayList<>();
     public List<GeoBone> elytraBones = new ObjectArrayList<>();
+    public List<GeoBone> tacPistolBones = new ObjectArrayList<>();
+    public List<GeoBone> tacRifleBones = new ObjectArrayList<>();
     public ModelProperties properties;
 
     public boolean hasTopLevelBone(String name) {

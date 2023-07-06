@@ -93,6 +93,7 @@ public final class YsmFormat {
         animation.put("main", getBytes(data, MAIN_ANIMATION_FILE_NAME));
         animation.put("arm", getBytes(data, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(data, EXTRA_ANIMATION_FILE_NAME));
+        animation.put("tac", getBytes(data, TAC_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.YSM, model, texture, animation);
     }
@@ -108,6 +109,10 @@ public final class YsmFormat {
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(EXTRA_ANIMATION_FILE_NAME)) {
             Path filePath = CUSTOM.resolve("default/extra.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
+        if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(TAC_ANIMATION_FILE_NAME)) {
+            Path filePath = CUSTOM.resolve("default/tac.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
 

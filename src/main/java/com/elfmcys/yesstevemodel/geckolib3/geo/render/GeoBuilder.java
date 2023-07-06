@@ -24,6 +24,8 @@ public class GeoBuilder implements IGeoBuilder {
     private static final String LEFT_HAND_LOCATOR = "LeftHandLocator";
     private static final String RIGHT_HAND_LOCATOR = "RightHandLocator";
     private static final String ELYTRA_LOCATOR_NAME = "ElytraLocator";
+    private static final String TAC_PISTOL_LOCATOR_NAME = "PistolLocator";
+    private static final String TAC_RIFLE_LOCATOR_NAME = "RifleLocator";
 
     public static void registerGeoBuilder(String modid, IGeoBuilder builder) {
         MODDED_GEO_BUILDERS.put(modid, builder);
@@ -53,6 +55,14 @@ public class GeoBuilder implements IGeoBuilder {
         model.getBone(ELYTRA_LOCATOR_NAME).ifPresent(b -> {
             getBoneParent(b, model.elytraBones);
             Collections.reverse(model.elytraBones);
+        });
+        model.getBone(TAC_PISTOL_LOCATOR_NAME).ifPresent(b -> {
+            getBoneParent(b, model.tacPistolBones);
+            Collections.reverse(model.tacPistolBones);
+        });
+        model.getBone(TAC_RIFLE_LOCATOR_NAME).ifPresent(b -> {
+            getBoneParent(b, model.tacRifleBones);
+            Collections.reverse(model.tacRifleBones);
         });
         return model;
     }

@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
+import com.elfmcys.yesstevemodel.client.compat.TacGunRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
@@ -15,8 +16,11 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.HandSide;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraftforge.fml.ModList;
 
 public class CustomPlayerItemInHandLayer<T extends LivingEntity & IAnimatable> extends GeoLayerRenderer<T> {
+    private final static String TAC_ID = "tac";
+
     public CustomPlayerItemInHandLayer(IGeoRenderer<T> entityRendererIn) {
         super(entityRendererIn);
     }
@@ -33,24 +37,36 @@ public class CustomPlayerItemInHandLayer<T extends LivingEntity & IAnimatable> e
         if (!offhandItem.isEmpty() || !mainHandItem.isEmpty()) {
             poseStack.pushPose();
             if (!geoModel.rightHandBones.isEmpty()) {
-                this.renderArmWithItem(entityLivingBaseIn, mainHandItem, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, HandSide.RIGHT, poseStack, bufferIn, packedLightIn);
+                poseStack.pushPose();
+                this.renderArmWithItem(entityLivingBaseIn, mainHandItem, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, HandSide.RIGHT, poseStack, bufferIn, packedLightIn, partialTicks);
+                poseStack.popPose();
             }
             if (!geoModel.leftHandBones.isEmpty()) {
-                this.renderArmWithItem(entityLivingBaseIn, offhandItem, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, HandSide.LEFT, poseStack, bufferIn, packedLightIn);
+                poseStack.pushPose();
+                this.renderArmWithItem(entityLivingBaseIn, offhandItem, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, HandSide.LEFT, poseStack, bufferIn, packedLightIn, partialTicks);
+                poseStack.popPose();
             }
-            poseStack.popPose();
+            if (ModList.get().isLoaded(TAC_ID) && TacGunRenderer.isGun(offhandItem)) {
+                poseStack.pushPose();
+                TacGunRenderer.renderOffhandGun(offhandItem, geoModel, entityLivingBaseIn, poseStack, packedLightIn, partialTicks);
+                poseStack.popPose();
+            }
         }
     }
 
-    protected void renderArmWithItem(LivingEntity livingEntity, ItemStack itemStack, ItemCameraTransforms.TransformType transformType, HandSide arm, MatrixStack poseStack, IRenderTypeBuffer bufferSource, int light) {
-        if (!itemStack.isEmpty() && this.entityRenderer.getGeoModel() != null) {
-            poseStack.pushPose();
-            translateToHand(arm, poseStack, this.entityRenderer.getGeoModel());
-            poseStack.translate(0, -0.0625, -0.1);
-            poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+    protected void renderArmWithItem(LivingEntity livingEntity, ItemStack itemStack, ItemCameraTransforms.TransformType transformType, HandSide arm, MatrixStack poseStack, IRenderTypeBuffer bufferSource, int light, float partialTicks) {
+        if (!itemStack.isEmpty()) {
             boolean isLeftHand = arm == HandSide.LEFT;
-            Minecraft.getInstance().getItemInHandRenderer().renderItem(livingEntity, itemStack, transformType, isLeftHand, poseStack, bufferSource, light);
-            poseStack.popPose();
+            translateToHand(arm, poseStack, this.entityRenderer.getGeoModel());
+            if (ModList.get().isLoaded(TAC_ID) && TacGunRenderer.isGun(itemStack)) {
+                if (!isLeftHand) {
+                    TacGunRenderer.renderMainhandGun(itemStack, livingEntity, poseStack, light, partialTicks);
+                }
+            } else {
+                poseStack.translate(0, -0.0625, -0.1);
+                poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
+                Minecraft.getInstance().getItemInHandRenderer().renderItem(livingEntity, itemStack, transformType, isLeftHand, poseStack, bufferSource, light);
+            }
         }
     }
 
