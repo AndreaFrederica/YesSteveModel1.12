@@ -16,12 +16,14 @@ import com.tac.guns.client.handler.GunRenderingHandler;
 import com.tac.guns.client.handler.RecoilHandler;
 import com.tac.guns.client.handler.ReloadHandler;
 import com.tac.guns.common.Gun;
+import com.tac.guns.common.WeaponType;
 import com.tac.guns.item.GrenadeItem;
 import com.tac.guns.item.GunItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
@@ -117,6 +119,20 @@ public class TacGunRenderer {
     public static PlayState playGunHoldAnimation(AnimationEvent<CustomPlayerEntity> event, ItemStack heldItem) {
         Gun gun = ((GunItem) heldItem.getItem()).getModifiedGun(heldItem);
         WeaponType weaponType = gun.getDisplay().getWeaponType();
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        int fireTick = RecoilHandler.get().getRecoilTracker(player).getTick();
+
+        if (!player.isSwimming() && player.getPose() == Pose.SWIMMING) {
+            if (Math.abs(event.getLimbSwingAmount()) > 0.05) {
+                return getGunTypeAnimation(event, weaponType, "tac:climb:");
+            } else {
+                if (0 < fireTick && fireTick < 5) {
+                    return getGunTypeAnimation(event, weaponType, "tac:climbing:fire:");
+                }
+                return getGunTypeAnimation(event, weaponType, "tac:climbing:");
+            }
+        }
+
         int reloadProgress = ReloadHandler.get().getReloadTimer();
         if (reloadProgress > 0) {
             if (reloadProgress == 1) {
@@ -125,8 +141,7 @@ public class TacGunRenderer {
             }
             return getGunTypeAnimation(event, weaponType, "tac:reload:");
         }
-        PlayerEntity player = event.getAnimatable().getPlayer();
-        int fireTick = RecoilHandler.get().getRecoilTracker(player).getTick();
+
         if (0 < fireTick && fireTick < 5) {
             return getGunTypeAnimation(event, weaponType, "tac:fire:");
         }
@@ -143,11 +158,19 @@ public class TacGunRenderer {
 
     @Nonnull
     private static PlayState getGunTypeAnimation(AnimationEvent<CustomPlayerEntity> event, WeaponType weaponType, String prefix) {
-        return switch (weaponType) {
-            case PT -> playLoopAnimation(event, prefix + "pistol");
-            case RPG -> playLoopAnimation(event, prefix + "rpg");
-            case AR, MG, SG, SR, SMG -> playLoopAnimation(event, prefix + "rifle");
-        };
+        switch (weaponType) {
+            case PT:
+                return playLoopAnimation(event, prefix + "pistol");
+            case RPG:
+                return playLoopAnimation(event, prefix + "rpg");
+            case AR:
+            case MG:
+            case SG:
+            case SR:
+            case SMG:
+            default:
+                return playLoopAnimation(event, prefix + "rifle");
+        }
     }
 
     @Nonnull

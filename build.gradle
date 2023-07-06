@@ -84,8 +84,6 @@ dependencies {
     implementation fg.deobf('libs:curios-forge:1.16.5-4.1.0.0')
     implementation fg.deobf('libs:obfuscate:0.6.3-1.16.5')
     implementation fg.deobf('libs:tac-a-0.3.6.1:1.16.5')
-    implementation fg.deobf('libs:firstperson:2.0.1')
-    implementation fg.deobf('libs:transliterationlib:1.0.4')
 }
 
 jar {

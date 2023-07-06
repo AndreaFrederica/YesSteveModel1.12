@@ -58,7 +58,6 @@ public class CustomPlayerModel extends AnimatedGeoModel {
     @Override
     @Keep
     public void setCustomAnimations(IAnimatable animatable, int instanceId, AnimationEvent animationEvent) {
-        super.setCustomAnimations(animatable, instanceId, animationEvent);
         List extraData = animationEvent.getExtraData();
         MolangParser parser = GeckoLibCache.getInstance().parser;
         if (!Minecraft.getInstance().isPaused() && extraData.size() == 1 && extraData.get(0) instanceof EntityModelData && animatable instanceof CustomPlayerEntity) {
@@ -69,7 +68,10 @@ public class CustomPlayerModel extends AnimatedGeoModel {
                 return;
             }
             AnimationRegister.setParserValue(animationEvent, parser, data, player);
+            super.setCustomAnimations(animatable, instanceId, animationEvent);
             this.codeAnimation(animationEvent, data, player);
+        } else {
+            super.setCustomAnimations(animatable, instanceId, animationEvent);
         }
     }
 
