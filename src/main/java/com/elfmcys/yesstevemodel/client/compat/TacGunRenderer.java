@@ -20,6 +20,7 @@ import com.tac.guns.common.WeaponType;
 import com.tac.guns.item.GrenadeItem;
 import com.tac.guns.item.GunItem;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.entity.LivingEntity;
@@ -134,7 +135,8 @@ public class TacGunRenderer {
         }
 
         int reloadProgress = ReloadHandler.get().getReloadTimer();
-        if (reloadProgress > 0) {
+        ClientPlayerEntity localPlayer = Minecraft.getInstance().player;
+        if (reloadProgress > 0 && player.equals(localPlayer)) {
             if (reloadProgress == 1) {
                 event.getController().shouldResetTick = true;
                 event.getController().adjustTick(0);
