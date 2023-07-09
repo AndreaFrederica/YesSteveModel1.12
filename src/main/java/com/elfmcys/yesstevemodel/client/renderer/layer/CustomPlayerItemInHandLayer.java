@@ -35,7 +35,6 @@ public class CustomPlayerItemInHandLayer<T extends LivingEntity & IAnimatable> e
         ItemStack mainHandItem = entityLivingBaseIn.getMainHandItem();
         GeoModel geoModel = entityRenderer.getGeoModel();
         if (!offhandItem.isEmpty() || !mainHandItem.isEmpty()) {
-            poseStack.pushPose();
             if (!geoModel.rightHandBones.isEmpty()) {
                 poseStack.pushPose();
                 this.renderArmWithItem(entityLivingBaseIn, mainHandItem, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, HandSide.RIGHT, poseStack, bufferIn, packedLightIn, partialTicks);
