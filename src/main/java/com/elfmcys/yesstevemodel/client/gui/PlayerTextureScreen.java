@@ -7,6 +7,7 @@ import com.elfmcys.yesstevemodel.client.gui.button.FlatIconButton;
 import com.elfmcys.yesstevemodel.client.gui.button.TextureButton;
 import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MainWindow;
@@ -18,6 +19,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.ArrayList;
@@ -130,7 +132,12 @@ public class PlayerTextureScreen extends Screen {
             }
             String name = animations.get(animationIndex);
             int yStart = y + 27 + 17 * i;
-            addButton(new FlatColorButton(x + 5, yStart, 80, 16, new StringTextComponent(name), b -> this.animation = name));
+            String key = String.format("gui.yes_steve_model.texture.button.%s", name.replaceAll("\\:", "."));
+            String keyDesc = String.format("gui.yes_steve_model.texture.button.%s.desc", name.replaceAll("\\:", "."));
+            FlatColorButton sideButton = new FlatColorButton(x + 5, yStart, 80, 16, new TranslationTextComponent(key), b -> this.animation = name);
+            sideButton.setTooltips(Lists.newArrayList(new TranslationTextComponent(keyDesc).withStyle(TextFormatting.GOLD),
+                    new TranslationTextComponent("gui.yes_steve_model.texture.button.animation_name", name).withStyle(TextFormatting.GRAY)));
+            addButton(sideButton);
         }
 
         for (int i = 0; i < 4; i++) {
@@ -182,8 +189,8 @@ public class PlayerTextureScreen extends Screen {
         font.draw(poseStack, animationPageInfo, x + 5 + (80 - font.width(animationPageInfo)) / 2.0F, y + 218, 0xF3EFE0);
 
         super.render(poseStack, mouseX, mouseY, partialTick);
-        this.buttons.stream().filter(r -> r instanceof FlatIconButton)
-                .forEach(r -> ((FlatIconButton) r).renderToolTip(this, poseStack, mouseX, mouseY));
+        this.buttons.stream().filter(r -> r instanceof FlatColorButton)
+                .forEach(r -> ((FlatColorButton) r).renderToolTip(this, poseStack, mouseX, mouseY));
     }
 
     @Override

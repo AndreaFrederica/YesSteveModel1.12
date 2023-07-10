@@ -144,15 +144,18 @@ public class TacGunRenderer {
             return getGunTypeAnimation(event, weaponType, "tac:reload:");
         }
 
-        if (0 < fireTick && fireTick < 5) {
-            return getGunTypeAnimation(event, weaponType, "tac:fire:");
-        }
         float aimProgress = AimingHandler.get().getAimProgress(player, event.getPartialTick());
         if (aimProgress > 0) {
+            if (0 < fireTick && fireTick < 5) {
+                return getGunTypeAnimation(event, weaponType, "tac:aim:fire:");
+            }
             return getGunTypeAnimation(event, weaponType, "tac:aim:");
         } else {
             if (player.isOnGround() && player.isSprinting()) {
                 return getGunTypeAnimation(event, weaponType, "tac:run:");
+            }
+            if (0 < fireTick && fireTick < 5) {
+                return getGunTypeAnimation(event, weaponType, "tac:hold:fire:");
             }
             return getGunTypeAnimation(event, weaponType, "tac:hold:");
         }

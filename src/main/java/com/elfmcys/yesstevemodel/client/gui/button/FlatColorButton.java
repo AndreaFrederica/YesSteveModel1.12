@@ -4,14 +4,36 @@ import com.elfmcys.yesstevemodel.util.Keep;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+
+import java.util.Collections;
+import java.util.List;
 
 public class FlatColorButton extends Button {
     private boolean isSelect = false;
+    private List<ITextComponent> tooltips;
 
     public FlatColorButton(int pX, int pY, int pWidth, int pHeight, ITextComponent pMessage, Button.IPressable pOnPress) {
         super(pX, pY, pWidth, pHeight, pMessage, pOnPress);
+    }
+
+    public FlatColorButton setTooltips(String key) {
+        tooltips = Collections.singletonList(new TranslationTextComponent(key));
+        return this;
+    }
+
+    public FlatColorButton setTooltips(List<ITextComponent> tooltips) {
+        this.tooltips = tooltips;
+        return this;
+    }
+
+    public void renderToolTip(Screen screen, MatrixStack pMatrixStack, int pMouseX, int pMouseY) {
+        if (this.isHovered() && tooltips != null) {
+            screen.renderComponentTooltip(pMatrixStack, tooltips, pMouseX, pMouseY);
+        }
     }
 
     @Override
