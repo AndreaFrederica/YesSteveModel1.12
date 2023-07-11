@@ -13,6 +13,7 @@ import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
@@ -62,6 +63,13 @@ public final class AnimationManager {
             states.add(state);
             data.put(state.getPriority(), states);
         }
+    }
+
+    public PlayState predicateParallel(AnimationEvent<CustomPlayerEntity> event, String animationName) {
+        if (Minecraft.getInstance().isPaused()) {
+            return PlayState.STOP;
+        }
+        return playLoopAnimation(event, animationName);
     }
 
     public PlayState predicateCap(AnimationEvent<CustomPlayerEntity> event) {
