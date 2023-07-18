@@ -23,11 +23,13 @@ import net.minecraft.item.Items;
 import net.minecraft.item.UseAction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraftforge.fml.ModList;
 
 import java.util.function.BiPredicate;
 
 public class AnimationRegister {
     private static final double MIN_SPEED = 0.05;
+    private static final String FIRST_PERSON_MOD_ID = "firstpersonmod";
 
     public static void registerAnimationState() {
         register("death", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.HIGHEST, (player, event) -> player.isDeadOrDying());
@@ -133,6 +135,9 @@ public class AnimationRegister {
 
         parser.register(new LazyVariable("ysm.armor_value", 0));
         parser.register(new LazyVariable("ysm.hurt_time", 0));
+        parser.register(new LazyVariable("ysm.food_level", 20));
+
+        parser.register(new LazyVariable("ysm.first_person_mod_hide", MolangUtils.FALSE));
     }
 
     public static void setParserValue(AnimationEvent<CustomPlayerEntity> animationEvent, MolangParser parser, EntityModelData data, PlayerEntity player) {
@@ -227,6 +232,7 @@ public class AnimationRegister {
 
         parser.setValue("ysm.armor_value", player::getArmorValue);
         parser.setValue("ysm.hurt_time", () -> player.hurtTime);
+        parser.setValue("ysm.food_level", () -> player.getFoodData().getFoodLevel());
     }
 
     private static boolean hasCape(PlayerEntity player) {

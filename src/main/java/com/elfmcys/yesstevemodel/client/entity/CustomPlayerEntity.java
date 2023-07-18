@@ -15,6 +15,7 @@ import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.GeckoLibUtil;
 import com.elfmcys.yesstevemodel.util.Keep;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,6 +57,12 @@ public class CustomPlayerEntity implements IAnimatable {
             String controllerName = String.format("parallel_%d_controller", i);
             String animationName = String.format("parallel%d", i);
             data.addAnimationController(new AnimationController<>(this, controllerName, 2, e -> manager.predicateParallel(e, animationName)));
+        }
+        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+            if (slot.getType() == EquipmentSlotType.Group.ARMOR) {
+                String controllerName = String.format("%s_controller", slot.getName());
+                data.addAnimationController(new AnimationController(this, controllerName, 2, e -> manager.predicateArmor(e, slot)));
+            }
         }
         data.addAnimationController(new AnimationController(this, CAP_CONTROLLER, 2, manager::predicateCap));
     }

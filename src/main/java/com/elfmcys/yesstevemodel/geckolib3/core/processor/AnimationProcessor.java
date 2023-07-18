@@ -159,7 +159,8 @@ public class AnimationProcessor<T extends IAnimatable> {
 
             if (!tracker.getValue().hasRotationChanged) {
                 if (saveSnapshot.isCurrentlyRunningRotationAnimation) {
-                    saveSnapshot.mostRecentResetRotationTick = (float) seekTime;
+                    // FIXME: 2023/7/12 莫名其妙修好了旋转 bug，原因未知
+                    saveSnapshot.mostRecentResetRotationTick = 0;
                     saveSnapshot.isCurrentlyRunningRotationAnimation = false;
                 }
                 double percentageReset = Math.min((seekTime - saveSnapshot.mostRecentResetRotationTick) / resetTickLength, 1);

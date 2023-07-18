@@ -1,9 +1,7 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
-import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
-import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalSwing;
-import com.elfmcys.yesstevemodel.client.animation.condition.ConditionalUse;
+import com.elfmcys.yesstevemodel.client.animation.condition.*;
 import com.elfmcys.yesstevemodel.client.compat.TacGunRenderer;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
@@ -11,10 +9,12 @@ import com.elfmcys.yesstevemodel.geckolib3.core.PlayState;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationBuilder;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
+import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -136,6 +136,29 @@ public final class AnimationManager {
                 return playAnimation(event, "hold_mainhand:fishing", ILoopType.EDefaultLoopTypes.LOOP);
             }
         }
+
+        if (!player.getMainHandItem().isEmpty() && checkSwingAndUse(player, Hand.MAIN_HAND)) {
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
+            if (conditionalHold != null) {
+                String name = conditionalHold.doTest(player, Hand.MAIN_HAND);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                }
+            }
+        }
+
+
+        if (!player.getOffhandItem().isEmpty() && checkSwingAndUse(player, Hand.OFF_HAND)) {
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
+            if (conditionalHold != null) {
+                String name = conditionalHold.doTest(player, Hand.OFF_HAND);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                }
+            }
+        }
         return PlayState.STOP;
     }
 
@@ -198,5 +221,39 @@ public final class AnimationManager {
             }
         }
         return PlayState.STOP;
+    }
+
+    public PlayState predicateArmor(AnimationEvent<CustomPlayerEntity> event, EquipmentSlotType slot) {
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        if (player == null) {
+            return PlayState.STOP;
+        }
+        ItemStack itemBySlot = player.getItemBySlot(slot);
+        if (itemBySlot.isEmpty()) {
+            return PlayState.STOP;
+        }
+
+        ResourceLocation id = event.getAnimatable().getAnimation();
+        ConditionArmor conditionArmor = ConditionManager.getArmor(id);
+        if (conditionArmor != null) {
+            String name = conditionArmor.doTest(player, slot);
+            if (StringUtils.isNoneBlank(name)) {
+                return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+            }
+        }
+
+        ResourceLocation animation = event.getAnimatable().getAnimation();
+        String defaultName = slot.getName() + ":default";
+        if (GeckoLibCache.getInstance().getAnimations().get(animation).animations().containsKey(defaultName)) {
+            return playAnimation(event, defaultName, ILoopType.EDefaultLoopTypes.LOOP);
+        }
+        return PlayState.STOP;
+    }
+
+    private boolean checkSwingAndUse(PlayerEntity player, Hand hand) {
+        if (player.swinging && player.swingingArm == hand) {
+            return false;
+        }
+        return !player.isUsingItem() || player.getUsedItemHand() != hand;
     }
 }

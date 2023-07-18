@@ -176,6 +176,7 @@ public class DebugAnimationKey {
 
         renderText(gui, poseStack, y, "ysm.is_close_eyes", getEyeCloseState(partialTick, player));
         renderText(gui, poseStack, y, "ysm.is_riptide", player.isAutoSpinAttack());
+        renderText(gui, poseStack, y, "ysm.food_level", player.getFoodData().getFoodLevel());
     }
 
     private static boolean hasCape(ClientPlayerEntity player) {
