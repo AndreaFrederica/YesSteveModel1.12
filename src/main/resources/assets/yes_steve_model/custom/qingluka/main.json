@@ -10,10 +10,10 @@
 				"visible_bounds_height": 3.5,
 				"visible_bounds_offset": [0, 1.25, 0],
 				"ysm_extra_info": {
-					"name": "默认女性模型2-晴路卡",
-					"tips": "由晴路卡制作的alex模型",
-					"authors": ["晴路卡 哥斯拉(适配"],
-					"license": "CC0协议"
+					"name": "Alex Type II",
+					"tips": "由晴路卡制作的 Alex 模型",
+					"authors": ["晴路卡", "哥斯拉"],
+					"license": "CC 0"
 				}
 			},
 			"bones": [

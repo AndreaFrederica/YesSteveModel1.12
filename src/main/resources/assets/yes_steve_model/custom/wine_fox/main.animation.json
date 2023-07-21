@@ -7677,7 +7677,7 @@
 					"scale": "(query.health/query.max_health)<0.2?0:1"
 				},
 				"FOX": {
-					"scale": "(q.health/q.max_health)<0.2?0:1"
+					"scale": "(query.health/query.max_health)<0.2?1:0"
 				}
 			}
 		},

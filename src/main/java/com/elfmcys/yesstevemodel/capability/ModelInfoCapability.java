@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.capability;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
@@ -10,9 +11,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import javax.annotation.Nullable;
 
 public class ModelInfoCapability {
-    private ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, "default");
-    private ResourceLocation selectTexture = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
-    private String animation = "default";
+    private ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, GeneralConfig.DEFAULT_MODEL_ID.get());
+    private ResourceLocation selectTexture = new ResourceLocation(YesSteveModel.MOD_ID, GeneralConfig.DEFAULT_MODEL_ID.get() + "/" + GeneralConfig.DEFAULT_MODEL_TEXTURE.get());
+    private String animation = "idle";
     private boolean playAnimation = false;
     private boolean dirty;
 
