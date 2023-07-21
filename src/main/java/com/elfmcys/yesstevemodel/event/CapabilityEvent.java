@@ -45,19 +45,17 @@ public final class CapabilityEvent {
 
     @SubscribeEvent
     public static void onPlayerCloned(PlayerEvent.Clone event) {
-        if (event.isWasDeath()) {
-            LazyOptional<ModelInfoCapability> oldModelInfoCap = getModelInfoCap(event.getOriginal());
-            LazyOptional<AuthModelsCapability> oldAuthModelsCap = getAuthModelsCap(event.getOriginal());
-            LazyOptional<StarModelsCapability> oldStarModelsCap = getStarModelsCap(event.getOriginal());
+        LazyOptional<ModelInfoCapability> oldModelInfoCap = getModelInfoCap(event.getOriginal());
+        LazyOptional<AuthModelsCapability> oldAuthModelsCap = getAuthModelsCap(event.getOriginal());
+        LazyOptional<StarModelsCapability> oldStarModelsCap = getStarModelsCap(event.getOriginal());
 
-            LazyOptional<ModelInfoCapability> newModelInfoCap = getModelInfoCap(event.getPlayer());
-            LazyOptional<AuthModelsCapability> newAuthModelsCap = getAuthModelsCap(event.getPlayer());
-            LazyOptional<StarModelsCapability> newStarModelsCap = getStarModelsCap(event.getPlayer());
+        LazyOptional<ModelInfoCapability> newModelInfoCap = getModelInfoCap(event.getPlayer());
+        LazyOptional<AuthModelsCapability> newAuthModelsCap = getAuthModelsCap(event.getPlayer());
+        LazyOptional<StarModelsCapability> newStarModelsCap = getStarModelsCap(event.getPlayer());
 
-            newModelInfoCap.ifPresent((newModelInfo) -> oldModelInfoCap.ifPresent(newModelInfo::copyFrom));
-            newAuthModelsCap.ifPresent((newAuthModels) -> oldAuthModelsCap.ifPresent(newAuthModels::copyFrom));
-            newStarModelsCap.ifPresent((newStarModels) -> oldStarModelsCap.ifPresent(newStarModels::copyFrom));
-        }
+        newModelInfoCap.ifPresent((newModelInfo) -> oldModelInfoCap.ifPresent(newModelInfo::copyFrom));
+        newAuthModelsCap.ifPresent((newAuthModels) -> oldAuthModelsCap.ifPresent(newAuthModels::copyFrom));
+        newStarModelsCap.ifPresent((newStarModels) -> oldStarModelsCap.ifPresent(newStarModels::copyFrom));
     }
 
     @SubscribeEvent
