@@ -128,6 +128,7 @@ public final class ServerModelManager {
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/red.png"), defaultBoyPath, "red.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/blue.png"), defaultBoyPath, "blue.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/main.animation.json"), defaultBoyPath, MAIN_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/tac.animation.json"), defaultBoyPath, TAC_ANIMATION_FILE_NAME);
     }
 
     private static void copyWineFoxModel() {

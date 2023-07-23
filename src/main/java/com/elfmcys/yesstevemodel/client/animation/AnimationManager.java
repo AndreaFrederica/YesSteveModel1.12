@@ -115,7 +115,25 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
-    public PlayState predicateHold(AnimationEvent<CustomPlayerEntity> event) {
+    public PlayState predicateOffhandHold(AnimationEvent<CustomPlayerEntity> event) {
+        PlayerEntity player = event.getAnimatable().getPlayer();
+        if (player == null) {
+            return PlayState.STOP;
+        }
+        if (!player.getOffhandItem().isEmpty() && checkSwingAndUse(player, Hand.OFF_HAND)) {
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
+            if (conditionalHold != null) {
+                String name = conditionalHold.doTest(player, Hand.OFF_HAND);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+                }
+            }
+        }
+        return PlayState.STOP;
+    }
+
+    public PlayState predicateMainhandHold(AnimationEvent<CustomPlayerEntity> event) {
         PlayerEntity player = event.getAnimatable().getPlayer();
         if (player == null) {
             return PlayState.STOP;
@@ -142,18 +160,6 @@ public final class AnimationManager {
             ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
             if (conditionalHold != null) {
                 String name = conditionalHold.doTest(player, Hand.MAIN_HAND);
-                if (StringUtils.isNoneBlank(name)) {
-                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                }
-            }
-        }
-
-
-        if (!player.getOffhandItem().isEmpty() && checkSwingAndUse(player, Hand.OFF_HAND)) {
-            ResourceLocation id = event.getAnimatable().getAnimation();
-            ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
-            if (conditionalHold != null) {
-                String name = conditionalHold.doTest(player, Hand.OFF_HAND);
                 if (StringUtils.isNoneBlank(name)) {
                     return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                 }
