@@ -23,7 +23,6 @@ import net.minecraft.item.Items;
 import net.minecraft.item.UseAction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraftforge.fml.ModList;
 
 import java.util.function.BiPredicate;
 
@@ -158,8 +157,8 @@ public class AnimationRegister {
 
         parser.setValue("query.has_cape", () -> MolangUtils.booleanToFloat(hasCape(player)));
         parser.setValue("query.has_rider", () -> MolangUtils.booleanToFloat(player.isVehicle()));
-        parser.setValue("query.head_x_rotation", () -> MathHelper.clamp(data.netHeadYaw, -85, 85));
-        parser.setValue("query.head_y_rotation", () -> MathHelper.clamp(data.headPitch, -90, 90));
+        parser.setValue("query.head_x_rotation", () -> data.netHeadYaw);
+        parser.setValue("query.head_y_rotation", () -> data.headPitch);
         parser.setValue("query.health", player::getHealth);
         parser.setValue("query.hurt_time", () -> player.hurtTime);
 
@@ -194,8 +193,8 @@ public class AnimationRegister {
         parser.setValue("query.walk_distance", () -> player.moveDist);
         parser.setValue("query.yaw_speed", () -> getYawSpeed(animationEvent, player));
 
-        parser.setValue("ysm.head_yaw", () -> MathHelper.clamp(data.netHeadYaw, -85, 85));
-        parser.setValue("ysm.head_pitch", () -> MathHelper.clamp(data.headPitch, -90, 90));
+        parser.setValue("ysm.head_yaw", () -> data.netHeadYaw);
+        parser.setValue("ysm.head_pitch", () -> data.headPitch);
 
         parser.setValue("ysm.has_helmet", () -> getSlotValue(player, EquipmentSlotType.HEAD));
         parser.setValue("ysm.has_chest_plate", () -> getSlotValue(player, EquipmentSlotType.CHEST));
