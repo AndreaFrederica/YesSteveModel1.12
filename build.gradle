@@ -4,6 +4,7 @@ buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
         maven { url = 'https://maven.parchmentmc.org' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -11,12 +12,14 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.parchmentmc:librarian:1.+'
         classpath 'com.guardsquare:proguard-gradle:7.3.1'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
 apply plugin: 'eclipse'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
+apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'java'
 
 version = '1.1.5-hotfix-2'
@@ -71,6 +74,11 @@ minecraft {
     }
 }
 
+mixin {
+    add sourceSets.main, "yes_steve_model.refmap.json"
+    config "yes_steve_model.mixins.json"
+}
+
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
@@ -84,6 +92,8 @@ dependencies {
     implementation fg.deobf('libs:curios-forge:1.16.5-4.1.0.0')
     implementation fg.deobf('libs:obfuscate:0.6.3-1.16.5')
     implementation fg.deobf('libs:tac-a-0.3.6.1:1.16.5')
+    implementation fg.deobf('libs:FirstPersonMod:2.0.1')
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 jar {

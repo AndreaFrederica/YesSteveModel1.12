@@ -2,6 +2,7 @@
 -libraryjars <java.home>/jmods/java.base.jmod(!**.jar;!module-info.class)
 -libraryjars libs/forge-1.16.5-36.2.34_mapped_parchment_2022.03.06-1.16.5.jar
 -libraryjars libs/gson-2.8.0.jar
+-libraryjars libs/FirstPersonMod-2.0.1.jar
 
 # 打印更加详细的信息，但是忽略依赖错误
 -verbose
@@ -17,8 +18,10 @@
 -classobfuscationdictionary dict.txt
 -repackageclasses com.elfmcys.yesstevemodel
 
-# 保留唯一的主模组类
+# 保留唯一的主模组类和Mixin类
 -keep class com.elfmcys.yesstevemodel.YesSteveModel
+-keep class com.elfmcys.yesstevemodel.mixin.*
+-keep class com.elfmcys.yesstevemodel.mixin.plugin.*
 
 # 保留部分枚举类属性
 -keepclassmembers enum * {

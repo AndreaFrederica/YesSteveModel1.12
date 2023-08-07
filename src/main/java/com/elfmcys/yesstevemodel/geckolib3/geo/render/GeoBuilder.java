@@ -26,6 +26,8 @@ public class GeoBuilder implements IGeoBuilder {
     private static final String ELYTRA_LOCATOR_NAME = "ElytraLocator";
     private static final String TAC_PISTOL_LOCATOR_NAME = "PistolLocator";
     private static final String TAC_RIFLE_LOCATOR_NAME = "RifleLocator";
+    private static final String FIRST_PERSON_HEAD_NAME = "AllHead";
+    private static final String FIRST_PERSON_VIEW_LOCATOR_NAME = "ViewLocator";
 
     public static void registerGeoBuilder(String modid, IGeoBuilder builder) {
         MODDED_GEO_BUILDERS.put(modid, builder);
@@ -64,6 +66,8 @@ public class GeoBuilder implements IGeoBuilder {
             getBoneParent(b, model.tacRifleBones);
             Collections.reverse(model.tacRifleBones);
         });
+        model.getBone(FIRST_PERSON_HEAD_NAME).ifPresent(b -> model.firstPersonHead = b);
+        model.getBone(FIRST_PERSON_VIEW_LOCATOR_NAME).ifPresent(b -> model.firstPersonViewLocator = b);
         return model;
     }
 
