@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 public class MixinTweaker implements IMixinConfigPlugin {
-
     public MixinTweaker() {
         FirstPersonCompat.init();
     }
@@ -19,7 +18,6 @@ public class MixinTweaker implements IMixinConfigPlugin {
     @Keep
     @Override
     public void onLoad(String mixinPackage) {
-
     }
 
     @Keep
@@ -37,7 +35,6 @@ public class MixinTweaker implements IMixinConfigPlugin {
     @Keep
     @Override
     public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
-
     }
 
     @Keep
@@ -53,12 +50,10 @@ public class MixinTweaker implements IMixinConfigPlugin {
     @Keep
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
     }
 
     @Keep
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
     }
 }

@@ -12,12 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ForgeWrapper.class)
 @SuppressWarnings("all")
 public class FirstPersonForgeWrapperMixin {
-
     @Keep
-    @Inject(method = "getOffset()Ljava/lang/Object;",
-    at = @At("RETURN"), remap = false, cancellable = true)
-    private void getOffset(CallbackInfoReturnable<Object> cir){
-        Vector3d current = (Vector3d)cir.getReturnValue();
+    @Inject(method = "getOffset()Ljava/lang/Object;", at = @At("RETURN"), remap = false, cancellable = true)
+    private void getOffset(CallbackInfoReturnable<Object> cir) {
+        Vector3d current = (Vector3d) cir.getReturnValue();
         cir.setReturnValue(FirstPersonCompat.transformPlayerOffset(current));
     }
 }

@@ -7,12 +7,12 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.fml.loading.LoadingModList;
 
 public class FirstPersonCompat {
-    private static final String Mod_ID = "firstpersonmod";
-    private static boolean installed;
+    private static final String MOD_ID = "firstpersonmod";
+    private static boolean INSTALLED;
 
     public static void init() {
         // Early Loading 期间不能用 ModList
-        installed = LoadingModList.get().getModFileById(Mod_ID) != null;
+        INSTALLED = LoadingModList.get().getModFileById(MOD_ID) != null;
     }
 
     public static Vector3d transformPlayerOffset(Vector3d current) {
@@ -20,7 +20,7 @@ public class FirstPersonCompat {
     }
 
     public static boolean isInstalled() {
-        return installed;
+        return INSTALLED;
     }
 
     public static void hideHead(IBone head) {
