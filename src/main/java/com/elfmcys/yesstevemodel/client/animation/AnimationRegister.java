@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
+import com.elfmcys.yesstevemodel.client.compat.FirstPersonCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
@@ -28,7 +29,6 @@ import java.util.function.BiPredicate;
 
 public class AnimationRegister {
     private static final double MIN_SPEED = 0.05;
-    private static final String FIRST_PERSON_MOD_ID = "firstpersonmod";
 
     public static void registerAnimationState() {
         register("death", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.HIGHEST, (player, event) -> player.isDeadOrDying());
@@ -232,6 +232,10 @@ public class AnimationRegister {
         parser.setValue("ysm.armor_value", player::getArmorValue);
         parser.setValue("ysm.hurt_time", () -> player.hurtTime);
         parser.setValue("ysm.food_level", () -> player.getFoodData().getFoodLevel());
+
+        if (FirstPersonCompat.isInstalled()) {
+            parser.setValue("ysm.first_person_mod_hide", () -> MolangUtils.booleanToFloat(FirstPersonCompat.isHeadHide()));
+        }
     }
 
     private static boolean hasCape(PlayerEntity player) {

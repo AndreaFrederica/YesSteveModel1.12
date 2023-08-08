@@ -2,11 +2,13 @@ package com.elfmcys.yesstevemodel.client.model;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
+import com.elfmcys.yesstevemodel.client.compat.FirstPersonCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
+import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
 import com.elfmcys.yesstevemodel.geckolib3.model.AnimatedGeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.data.EntityModelData;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
@@ -24,6 +26,7 @@ public class CustomPlayerModel extends AnimatedGeoModel {
     public static final ResourceLocation DEFAULT_MAIN_MODEL = ModelIdUtil.getMainId(new ResourceLocation(YesSteveModel.MOD_ID, "default"));
     public static final ResourceLocation DEFAULT_MAIN_ANIMATION = ModelIdUtil.getMainId(new ResourceLocation(YesSteveModel.MOD_ID, "default"));
     public static final ResourceLocation DEFAULT_TEXTURE = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
+    public static float FIRST_PERSON_HEAD_POS;
 
     @Override
     @Keep
@@ -77,9 +80,19 @@ public class CustomPlayerModel extends AnimatedGeoModel {
     private void codeAnimation(AnimationEvent animationEvent, EntityModelData data, PlayerEntity player) {
         // FIXME: 2023/6/21 这一块设计应该改成 molang 的，而且这个寻找效率低下
         IBone head = getBone("Head");
+        FIRST_PERSON_HEAD_POS = 24;
         if (head != null) {
             head.setRotationX(head.getRotationX() + (float) Math.toRadians(data.headPitch));
             head.setRotationY(head.getRotationY() + (float) Math.toRadians(data.netHeadYaw));
+            FIRST_PERSON_HEAD_POS = head.getPivotY() * ((CustomPlayerEntity) animationEvent.getAnimatable()).getHeightScale();
+        }
+        if (getCurrentModel().firstPersonViewLocator != null) {
+            float heightScale = ((CustomPlayerEntity) animationEvent.getAnimatable()).getHeightScale();
+            GeoBone locator = getCurrentModel().firstPersonViewLocator;
+            FIRST_PERSON_HEAD_POS = locator.getPivotY() * heightScale;
+        }
+        if (FirstPersonCompat.isInstalled() && getCurrentModel().firstPersonHead != null) {
+            FirstPersonCompat.hideHead(getCurrentModel().firstPersonHead);
         }
     }
 

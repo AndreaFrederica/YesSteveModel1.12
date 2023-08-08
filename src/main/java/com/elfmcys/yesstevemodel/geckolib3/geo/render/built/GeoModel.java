@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.geckolib3.geo.render.built;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ModelProperties;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,10 @@ public class GeoModel {
     public List<GeoBone> elytraBones = new ObjectArrayList<>();
     public List<GeoBone> tacPistolBones = new ObjectArrayList<>();
     public List<GeoBone> tacRifleBones = new ObjectArrayList<>();
+    @Nullable
+    public GeoBone firstPersonHead = null;
+    @Nullable
+    public GeoBone firstPersonViewLocator = null;
     public ModelProperties properties;
 
     public boolean hasTopLevelBone(String name) {

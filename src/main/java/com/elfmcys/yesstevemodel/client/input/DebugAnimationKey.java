@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.input;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.compat.FirstPersonCompat;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import com.mojang.blaze3d.matrix.MatrixStack;
@@ -177,6 +178,10 @@ public class DebugAnimationKey {
         renderText(gui, poseStack, y, "ysm.is_close_eyes", getEyeCloseState(partialTick, player));
         renderText(gui, poseStack, y, "ysm.is_riptide", player.isAutoSpinAttack());
         renderText(gui, poseStack, y, "ysm.food_level", player.getFoodData().getFoodLevel());
+
+        if (FirstPersonCompat.isInstalled()) {
+            renderText(gui, poseStack, y, "ysm.first_person_mod_hide", FirstPersonCompat.isHeadHide());
+        }
     }
 
     private static boolean hasCape(ClientPlayerEntity player) {
