@@ -16,7 +16,7 @@ public class FirstPersonCompat {
     }
 
     public static Vector3d transformPlayerOffset(Vector3d current) {
-        return new Vector3d(current.x(), 1.5 - CustomPlayerModel.FIRST_PERSON_HEAD_POS  / 16, current.z());
+        return new Vector3d(current.x(), 1.5 - CustomPlayerModel.FIRST_PERSON_HEAD_POS / 16, current.z());
     }
 
     public static boolean isInstalled() {
