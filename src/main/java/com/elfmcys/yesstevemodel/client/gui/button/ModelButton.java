@@ -43,8 +43,8 @@ public class ModelButton extends Button {
         }
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
-                cap.setModelAndTexture(modelInfo.getLeft(), modelInfo.getRight().get(0)));
-        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(modelInfo.getLeft(), modelInfo.getRight().get(0)));
+                cap.setModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
+        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ModelButton extends Button {
 
         this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, this.color, this.color);
         RenderUtil.scissor(this.x, this.y, this.width, this.height - 20);
-        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 20, 30, mc.player, modelInfo.getLeft(), modelInfo.getRight().get(0));
+        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 20, 30, mc.player, this.modelInfo.getLeft(), this.modelInfo.getRight().get(0));
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         List<String> split = font.listFormattedStringToWidth(this.displayString, 45);

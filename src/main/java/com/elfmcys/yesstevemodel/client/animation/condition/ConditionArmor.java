@@ -34,12 +34,11 @@ public class ConditionArmor {
                 return;
             }
             ResourceLocation res = new ResourceLocation(id);
-            if (idTest.containsKey(type)) {
-                idTest.get(type).add(res);
+            if (this.idTest.containsKey(type)) {
+                this.idTest.get(type).add(res);
             } else {
-                idTest.put(type, Lists.newArrayList(res));
+                this.idTest.put(type, Lists.newArrayList(res));
             }
-            return;
         }
 
 //        Matcher matcherTag = TAG_PRE_REG.matcher(name);
@@ -70,7 +69,7 @@ public class ConditionArmor {
         if (item.isEmpty()) {
             return EMPTY;
         }
-        String result = doIdTest(player, slot);
+        String result = this.doIdTest(player, slot);
 //        if (result.isEmpty()) {
 //            return doTagTest(player, slot);
 //        }
@@ -78,13 +77,13 @@ public class ConditionArmor {
     }
 
     private String doIdTest(EntityPlayer player, EntityEquipmentSlot slot) {
-        if (idTest.isEmpty()) {
+        if (this.idTest.isEmpty()) {
             return EMPTY;
         }
-        if (!idTest.containsKey(slot) || idTest.get(slot).isEmpty()) {
+        if (!this.idTest.containsKey(slot) || this.idTest.get(slot).isEmpty()) {
             return EMPTY;
         }
-        List<ResourceLocation> idListTest = idTest.get(slot);
+        List<ResourceLocation> idListTest = this.idTest.get(slot);
         ItemStack item = player.getItemStackFromSlot(slot);
         ResourceLocation registryName = item.getItem().getRegistryName();
         if (registryName == null) {

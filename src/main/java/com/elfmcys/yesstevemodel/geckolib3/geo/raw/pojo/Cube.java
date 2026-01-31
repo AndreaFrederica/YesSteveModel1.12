@@ -21,7 +21,7 @@ public class Cube implements Serializable {
     private UvUnion uv;
 
     public Double getInflate() {
-        return inflate;
+        return this.inflate;
     }
 
     public void setInflate(Double value) {
@@ -29,7 +29,7 @@ public class Cube implements Serializable {
     }
 
     public Boolean getMirror() {
-        return mirror;
+        return this.mirror;
     }
 
     public void setMirror(Boolean value) {
@@ -37,7 +37,7 @@ public class Cube implements Serializable {
     }
 
     public double[] getOrigin() {
-        return origin;
+        return this.origin;
     }
 
     public void setOrigin(double[] value) {
@@ -45,7 +45,7 @@ public class Cube implements Serializable {
     }
 
     public double[] getPivot() {
-        return pivot;
+        return this.pivot;
     }
 
     public void setPivot(double[] value) {
@@ -53,7 +53,7 @@ public class Cube implements Serializable {
     }
 
     public double[] getRotation() {
-        return rotation;
+        return this.rotation;
     }
 
     public void setRotation(double[] value) {
@@ -61,7 +61,7 @@ public class Cube implements Serializable {
     }
 
     public double[] getSize() {
-        return size;
+        return this.size;
     }
 
     public void setSize(double[] value) {
@@ -69,7 +69,7 @@ public class Cube implements Serializable {
     }
 
     public UvUnion getUv() {
-        return uv;
+        return this.uv;
     }
 
     public void setUv(UvUnion value) {

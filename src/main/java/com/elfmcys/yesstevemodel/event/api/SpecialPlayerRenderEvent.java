@@ -19,14 +19,14 @@ public class SpecialPlayerRenderEvent extends Event {
     }
 
     public EntityPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 
     public CustomPlayerEntity getCustomPlayer() {
-        return customPlayer;
+        return this.customPlayer;
     }
 
     public ResourceLocation getModelId() {
-        return modelId;
+        return this.modelId;
     }
 }

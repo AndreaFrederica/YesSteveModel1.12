@@ -25,7 +25,7 @@ public class ModelProperties implements Serializable {
     private ExtraInfo extraInfo = null;
 
     public String getIdentifier() {
-        return identifier;
+        return this.identifier;
     }
 
     public void setIdentifier(String identifier) {
@@ -33,7 +33,7 @@ public class ModelProperties implements Serializable {
     }
 
     public Double getTextureHeight() {
-        return textureHeight;
+        return this.textureHeight;
     }
 
     public void setTextureHeight(Double value) {
@@ -41,7 +41,7 @@ public class ModelProperties implements Serializable {
     }
 
     public Double getTextureWidth() {
-        return textureWidth;
+        return this.textureWidth;
     }
 
     public void setTextureWidth(Double value) {
@@ -49,7 +49,7 @@ public class ModelProperties implements Serializable {
     }
 
     public Double getVisibleBoundsHeight() {
-        return visibleBoundsHeight;
+        return this.visibleBoundsHeight;
     }
 
     public void setVisibleBoundsHeight(Double value) {
@@ -57,7 +57,7 @@ public class ModelProperties implements Serializable {
     }
 
     public Double getVisibleBoundsWidth() {
-        return visibleBoundsWidth;
+        return this.visibleBoundsWidth;
     }
 
     public void setVisibleBoundsWidth(Double value) {
@@ -65,7 +65,7 @@ public class ModelProperties implements Serializable {
     }
 
     public double[] getVisibleBoundsOffset() {
-        return visibleBoundsOffset;
+        return this.visibleBoundsOffset;
     }
 
     public void setVisibleBoundsOffset(double[] value) {
@@ -73,7 +73,7 @@ public class ModelProperties implements Serializable {
     }
 
     public double getHeightScale() {
-        return heightScale;
+        return this.heightScale;
     }
 
     public void setHeightScale(double heightScale) {
@@ -81,7 +81,7 @@ public class ModelProperties implements Serializable {
     }
 
     public double getWidthScale() {
-        return widthScale;
+        return this.widthScale;
     }
 
     public void setWidthScale(double widthScale) {
@@ -89,7 +89,7 @@ public class ModelProperties implements Serializable {
     }
 
     public ExtraInfo getExtraInfo() {
-        return extraInfo;
+        return this.extraInfo;
     }
 
     public void setExtraInfo(ExtraInfo extraInfo) {

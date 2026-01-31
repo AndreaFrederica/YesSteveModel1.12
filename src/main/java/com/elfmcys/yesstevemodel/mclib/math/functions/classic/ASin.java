@@ -15,6 +15,6 @@ public class ASin extends Function {
 
     @Override
     public double get() {
-        return Math.asin(getArg(0));
+        return Math.asin(this.getArg(0));
     }
 }

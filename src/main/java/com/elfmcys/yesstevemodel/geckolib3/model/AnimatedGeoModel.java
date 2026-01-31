@@ -31,9 +31,9 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
     }
 
     public void registerBone(GeoBone bone) {
-        registerModelRenderer(bone);
+        this.registerModelRenderer(bone);
         for (GeoBone childBone : bone.childBones) {
-            registerBone(childBone);
+            this.registerBone(childBone);
         }
     }
 
@@ -53,9 +53,9 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
         AnimationEvent<T> predicate;
         predicate = animationEvent == null ? new AnimationEvent<>(animatable, 0, 0, (float) (manager.tick - this.lastGameTickTime), false, Collections.emptyList()) : animationEvent;
         predicate.animationTick = this.seekTime;
-        getAnimationProcessor().preAnimationSetup(predicate.getAnimatable(), this.seekTime);
-        if (!getAnimationProcessor().getModelRendererList().isEmpty()) {
-            getAnimationProcessor().tickAnimation(animatable, instanceId, this.seekTime, predicate, GeckoLibCache.getInstance().parser, this.shouldCrashOnMissing);
+        this.getAnimationProcessor().preAnimationSetup(predicate.getAnimatable(), this.seekTime);
+        if (!this.getAnimationProcessor().getModelRendererList().isEmpty()) {
+            this.getAnimationProcessor().tickAnimation(animatable, instanceId, this.seekTime, predicate, GeckoLibCache.getInstance().parser, this.shouldCrashOnMissing);
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
             this.animationProcessor.clearModelRendererList();
             this.currentModel = model;
             for (GeoBone bone : model.topLevelBones) {
-                registerBone(bone);
+                this.registerBone(bone);
             }
         }
         return model;

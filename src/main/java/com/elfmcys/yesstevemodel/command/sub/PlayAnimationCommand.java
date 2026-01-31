@@ -39,9 +39,9 @@ public class PlayAnimationCommand extends CommandBase {
 
     @Override
     public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
-        if (args.length != 2) throw new WrongUsageException(getUsage(sender));
+        if (args.length != 2) throw new WrongUsageException(this.getUsage(sender));
         List<EntityPlayerMP> targets = getPlayers(server, sender, args[0]);
-        playAnimation(targets, args[1]);
+        this.playAnimation(targets, args[1]);
     }
 
     private void playAnimation(List<EntityPlayerMP> targets, String animation) throws CommandException {

@@ -15,16 +15,16 @@ public class DownloadScreen extends Screen {
 
     @Override
     public void initGui() {
-        this.x = (width - 420) / 2;
-        this.y = (height - 235) / 2;
+        this.x = (this.width - 420) / 2;
+        this.y = (this.height - 235) / 2;
 
-        addButton(new FlatColorButton(x + 5, y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> this.mc.displayGuiScreen(parent)));
+        this.addButton(new FlatColorButton(this.x + 5, this.y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> this.mc.displayGuiScreen(this.parent)));
     }
 
     @Override
     public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
         this.drawDefaultBackground();
-        this.drawCenteredString(this.fontRenderer, TextFormatting.DARK_RED + "Coming Soooooooooooooooooooooooooon™", width / 2, height / 2 - 5, 0xFFFFFFFF);
+        this.drawCenteredString(this.fontRenderer, TextFormatting.DARK_RED + "Coming Soooooooooooooooooooooooooon™", this.width / 2, this.height / 2 - 5, 0xFFFFFFFF);
         super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }
 }

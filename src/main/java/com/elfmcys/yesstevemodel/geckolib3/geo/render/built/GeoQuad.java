@@ -37,15 +37,15 @@ public class GeoQuad {
         // Sets the new normalized texture coordinates of each vertex using the
         // positions described above
         if (mirrorIn != null && mirrorIn) {
-            vertices[0] = verticesIn[0].setTextureUV(u1, v1); // Top left corner
-            vertices[1] = verticesIn[1].setTextureUV(u2, v1); // Top right corner
-            vertices[2] = verticesIn[2].setTextureUV(u2, v2); // Bottom left corner
-            vertices[3] = verticesIn[3].setTextureUV(u1, v2); // Bottom right corner
+            this.vertices[0] = verticesIn[0].setTextureUV(u1, v1); // Top left corner
+            this.vertices[1] = verticesIn[1].setTextureUV(u2, v1); // Top right corner
+            this.vertices[2] = verticesIn[2].setTextureUV(u2, v2); // Bottom left corner
+            this.vertices[3] = verticesIn[3].setTextureUV(u1, v2); // Bottom right corner
         } else {
-            vertices[0] = verticesIn[0].setTextureUV(u2, v1); // Top left corner
-            vertices[1] = verticesIn[1].setTextureUV(u1, v1); // Top right corner
-            vertices[2] = verticesIn[2].setTextureUV(u1, v2); // Bottom left corner
-            vertices[3] = verticesIn[3].setTextureUV(u2, v2); // Bottom right corner
+            this.vertices[0] = verticesIn[0].setTextureUV(u2, v1); // Top left corner
+            this.vertices[1] = verticesIn[1].setTextureUV(u1, v1); // Top right corner
+            this.vertices[2] = verticesIn[2].setTextureUV(u1, v2); // Bottom left corner
+            this.vertices[3] = verticesIn[3].setTextureUV(u2, v2); // Bottom right corner
         }
 
         // only god knows what this does, but eliot told me it generates a normal vector

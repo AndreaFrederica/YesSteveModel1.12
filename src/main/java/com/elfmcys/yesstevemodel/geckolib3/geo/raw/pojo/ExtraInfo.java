@@ -18,7 +18,7 @@ public class ExtraInfo implements Serializable {
     private String license = "All Rights Reserved";
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
@@ -26,7 +26,7 @@ public class ExtraInfo implements Serializable {
     }
 
     public String getTips() {
-        return tips;
+        return this.tips;
     }
 
     public void setTips(String tips) {
@@ -34,7 +34,7 @@ public class ExtraInfo implements Serializable {
     }
 
     public String[] getExtraAnimationNames() {
-        return extraAnimationNames;
+        return this.extraAnimationNames;
     }
 
     public void setExtraAnimationNames(String[] extraAnimationNames) {
@@ -42,7 +42,7 @@ public class ExtraInfo implements Serializable {
     }
 
     public String[] getAuthors() {
-        return authors;
+        return this.authors;
     }
 
     public void setAuthors(String[] authors) {
@@ -50,7 +50,7 @@ public class ExtraInfo implements Serializable {
     }
 
     public String getLicense() {
-        return license;
+        return this.license;
     }
 
     public void setLicense(String license) {

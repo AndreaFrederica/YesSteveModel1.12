@@ -35,26 +35,26 @@ public class AnimationProcessor<T extends IAnimatable> {
     }
 
     public void tickAnimation(IAnimatable entity, int uniqueID, double seekTime, AnimationEvent<T> event, MolangParser parser, boolean crashWhenCantFindBone) {
-        if (seekTime != lastTickValue) {
-            animatedEntities.clear();
-        } else if (animatedEntities.contains(uniqueID)) {
+        if (seekTime != this.lastTickValue) {
+            this.animatedEntities.clear();
+        } else if (this.animatedEntities.contains(uniqueID)) {
             // 如果实体已经在此 tick 上播放了
             return;
         }
 
-        lastTickValue = seekTime;
-        animatedEntities.add(uniqueID);
+        this.lastTickValue = seekTime;
+        this.animatedEntities.add(uniqueID);
         // 每一个动画都有自己的动画数据（AnimationData）
         // 这样多个动画就能互相独立了
         AnimationData manager = entity.getFactory().getOrCreateAnimationData(uniqueID);
         // 追踪哪些骨骼应用了动画，并最终将没有动画的骨骼设置为默认值
-        Map<String, DirtyTracker> modelTracker = createNewDirtyTracker();
+        Map<String, DirtyTracker> modelTracker = this.createNewDirtyTracker();
         // 存储每个骨骼的 rotation/position/scale
-        updateBoneSnapshots(manager.getBoneSnapshotCollection());
+        this.updateBoneSnapshots(manager.getBoneSnapshotCollection());
         Map<String, Pair<IBone, BoneSnapshot>> boneSnapshots = manager.getBoneSnapshotCollection();
         HashMap<String, PointData> pointDataGroup = Maps.newHashMap();
         for (AnimationController<T> controller : manager.getAnimationControllers().values()) {
-            if (reloadAnimations) {
+            if (this.reloadAnimations) {
                 controller.markNeedsReload();
                 controller.getBoneAnimationQueues().clear();
             }
@@ -62,7 +62,7 @@ public class AnimationProcessor<T extends IAnimatable> {
             // 将当前控制器设置为动画测试事件
             event.setController(controller);
             // 处理动画并向点队列添加新值
-            controller.process(seekTime, event, modelRendererList, boneSnapshots, parser, crashWhenCantFindBone);
+            controller.process(seekTime, event, this.modelRendererList, boneSnapshots, parser, crashWhenCantFindBone);
             // 遍历每个骨骼，并对属性进行插值计算
             for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
                 IBone bone = boneAnimation.bone();
@@ -217,14 +217,14 @@ public class AnimationProcessor<T extends IAnimatable> {
 
     private Map<String, DirtyTracker> createNewDirtyTracker() {
         Map<String, DirtyTracker> tracker = new Object2ObjectOpenHashMap<>();
-        for (IBone bone : modelRendererList) {
+        for (IBone bone : this.modelRendererList) {
             tracker.put(bone.getName(), new DirtyTracker(false, false, false, bone));
         }
         return tracker;
     }
 
     private void updateBoneSnapshots(Map<String, Pair<IBone, BoneSnapshot>> boneSnapshotCollection) {
-        for (IBone bone : modelRendererList) {
+        for (IBone bone : this.modelRendererList) {
             if (!boneSnapshotCollection.containsKey(bone.getName())) {
                 boneSnapshotCollection.put(bone.getName(), Pair.of(bone, new BoneSnapshot(bone.getInitialSnapshot())));
             }
@@ -242,7 +242,7 @@ public class AnimationProcessor<T extends IAnimatable> {
 
     public void registerModelRenderer(IBone modelRenderer) {
         modelRenderer.saveInitialSnapshot();
-        modelRendererList.add(modelRenderer);
+        this.modelRendererList.add(modelRenderer);
     }
 
     public void clearModelRendererList() {
@@ -250,7 +250,7 @@ public class AnimationProcessor<T extends IAnimatable> {
     }
 
     public List<IBone> getModelRendererList() {
-        return modelRendererList;
+        return this.modelRendererList;
     }
 
     public void preAnimationSetup(IAnimatable animatable, double seekTime) {

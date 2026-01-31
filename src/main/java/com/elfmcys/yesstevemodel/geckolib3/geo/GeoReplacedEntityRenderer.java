@@ -123,7 +123,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         boolean shouldSit = /* entity.isPassenger() && */ (entity.getRidingEntity() != null &&
                 entity.getRidingEntity().shouldRiderSit());
 
-        setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
+        this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
 
@@ -171,7 +171,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         entityModelData.netHeadYaw = -netHeadYaw;
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(animatable));
         AnimationEvent predicate = new AnimationEvent(animatable, limbSwing, limbSwingAmount, partialTick,
-                (limbSwingAmount <= -getSwingMotionAniMathHelperreshold() || limbSwingAmount <= getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
+                (limbSwingAmount <= -this.getSwingMotionAniMathHelperreshold() || limbSwingAmount <= this.getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
 
         this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
         //GlStateManager.pushMatrix();

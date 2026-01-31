@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.mclib.math;
 
 public class Group implements IValue {
-    private IValue value;
+    private final IValue value;
 
     public Group(IValue value) {
         this.value = value;

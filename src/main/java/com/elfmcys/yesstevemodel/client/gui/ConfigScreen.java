@@ -22,7 +22,7 @@ public class ConfigScreen extends Screen {
         int x = (this.width - 420) / 2;
         int y = (this.height - 235) / 2;
 
-        this.addButton(new FlatColorButton(x + 5, y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> this.mc.displayGuiScreen(parent)));
+        this.addButton(new FlatColorButton(x + 5, y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> this.mc.displayGuiScreen(this.parent)));
 
         this.addButton(new ConfigCheckBox(x + 5, y + 25, "disable_self_model", this.fontRenderer,
                 GeneralConfig.DISABLE_SELF_MODEL, (value) -> GeneralConfig.DISABLE_SELF_MODEL = value));

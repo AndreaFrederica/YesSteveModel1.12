@@ -15,7 +15,7 @@ public class StarModelsCapability {
     private Set<ResourceLocation> starModels = Sets.newHashSet();
 
     public void addModel(ResourceLocation modelId) {
-        starModels.add(modelId);
+        this.starModels.add(modelId);
     }
 
     public void copyFrom(StarModelsCapability source) {
@@ -23,15 +23,15 @@ public class StarModelsCapability {
     }
 
     public void removeModel(ResourceLocation modelId) {
-        starModels.remove(modelId);
+        this.starModels.remove(modelId);
     }
 
     public boolean containModel(ResourceLocation modelId) {
-        return starModels.contains(modelId);
+        return this.starModels.contains(modelId);
     }
 
     public Set<ResourceLocation> getStarModels() {
-        return starModels;
+        return this.starModels;
     }
 
     public void setStarModels(Set<ResourceLocation> starModels) {
@@ -39,12 +39,12 @@ public class StarModelsCapability {
     }
 
     public void clear() {
-        starModels.clear();
+        this.starModels.clear();
     }
 
     public NBTTagList serializeNBT() {
         NBTTagList listTag = new NBTTagList();
-        for (ResourceLocation modelId : starModels) {
+        for (ResourceLocation modelId : this.starModels) {
             listTag.appendTag(new NBTTagString(modelId.toString()));
         }
         return listTag;
@@ -54,7 +54,7 @@ public class StarModelsCapability {
         this.starModels.clear();
         for (NBTBase tag : nbt) {
             if (tag instanceof NBTTagString string) {
-                starModels.add(new ResourceLocation(string.getString()));
+                this.starModels.add(new ResourceLocation(string.getString()));
             }
         }
     }

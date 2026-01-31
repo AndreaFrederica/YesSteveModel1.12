@@ -31,7 +31,7 @@ public class MolangParser extends MathBuilder {
     public MolangParser() {
         super();
         // 将函数重新映射为 MoLang 标准名
-        doCoreRemaps();
+        this.doCoreRemaps();
     }
 
     private void doCoreRemaps() {
@@ -39,33 +39,33 @@ public class MolangParser extends MathBuilder {
         this.functions.put("cos", CosDegrees.class);
         this.functions.put("sin", SinDegrees.class);
 
-        remap("abs", "math.abs");
-        remap("acos", "math.acos");
-        remap("asin", "math.asin");
-        remap("atan", "math.atan");
-        remap("atan2", "math.atan2");
-        remap("ceil", "math.ceil");
-        remap("clamp", "math.clamp");
-        remap("cos", "math.cos");
-        remap("die_roll", "math.die_roll");
-        remap("die_roll_integer", "math.die_roll_integer");
-        remap("exp", "math.exp");
-        remap("floor", "math.floor");
-        remap("hermite_blend", "math.hermite_blend");
-        remap("lerp", "math.lerp");
-        remap("lerprotate", "math.lerprotate");
-        remap("ln", "math.ln");
-        remap("max", "math.max");
-        remap("min", "math.min");
-        remap("mod", "math.mod");
-        remap("pi", "math.pi");
-        remap("pow", "math.pow");
-        remap("random", "math.random");
-        remap("random_integer", "math.random_integer");
-        remap("round", "math.round");
-        remap("sin", "math.sin");
-        remap("sqrt", "math.sqrt");
-        remap("trunc", "math.trunc");
+        this.remap("abs", "math.abs");
+        this.remap("acos", "math.acos");
+        this.remap("asin", "math.asin");
+        this.remap("atan", "math.atan");
+        this.remap("atan2", "math.atan2");
+        this.remap("ceil", "math.ceil");
+        this.remap("clamp", "math.clamp");
+        this.remap("cos", "math.cos");
+        this.remap("die_roll", "math.die_roll");
+        this.remap("die_roll_integer", "math.die_roll_integer");
+        this.remap("exp", "math.exp");
+        this.remap("floor", "math.floor");
+        this.remap("hermite_blend", "math.hermite_blend");
+        this.remap("lerp", "math.lerp");
+        this.remap("lerprotate", "math.lerprotate");
+        this.remap("ln", "math.ln");
+        this.remap("max", "math.max");
+        this.remap("min", "math.min");
+        this.remap("mod", "math.mod");
+        this.remap("pi", "math.pi");
+        this.remap("pow", "math.pow");
+        this.remap("random", "math.random");
+        this.remap("random_integer", "math.random_integer");
+        this.remap("round", "math.round");
+        this.remap("sin", "math.sin");
+        this.remap("sqrt", "math.sqrt");
+        this.remap("trunc", "math.trunc");
     }
 
     @Override
@@ -85,11 +85,11 @@ public class MolangParser extends MathBuilder {
 
     @Deprecated
     public void setValue(String name, double value) {
-        setValue(name, () -> value);
+        this.setValue(name, () -> value);
     }
 
     public void setValue(String name, DoubleSupplier value) {
-        LazyVariable variable = getVariable(name);
+        LazyVariable variable = this.getVariable(name);
         if (variable != null) {
             variable.set(value);
         }
@@ -108,7 +108,7 @@ public class MolangParser extends MathBuilder {
                 return variable;
             }
         }
-        return getVariable(name);
+        return this.getVariable(name);
     }
 
     public MolangExpression parseJson(JsonElement element) throws MolangException {
@@ -124,7 +124,7 @@ public class MolangParser extends MathBuilder {
             try {
                 return new MolangValue(this, new Constant(Double.parseDouble(string)));
             } catch (NumberFormatException ex) {
-                return parseExpression(string);
+                return this.parseExpression(string);
             }
         }
         return ZERO;
@@ -141,7 +141,7 @@ public class MolangParser extends MathBuilder {
                 if (result == null) {
                     result = new MolangMultiStatement(this);
                 }
-                result.expressions.add(parseOneLine(trimmed, result));
+                result.expressions.add(this.parseOneLine(trimmed, result));
             }
         }
         if (result == null) {
@@ -156,7 +156,7 @@ public class MolangParser extends MathBuilder {
     protected MolangExpression parseOneLine(String expression, MolangMultiStatement currentStatement) throws MolangException {
         if (expression.startsWith(RETURN)) {
             try {
-                return new MolangValue(this, parse(expression.substring(RETURN.length()))).addReturn();
+                return new MolangValue(this, this.parse(expression.substring(RETURN.length()))).addReturn();
             } catch (Exception e) {
                 throw new MolangException("Couldn't parse return '" + expression + "' expression!");
             }
@@ -164,21 +164,20 @@ public class MolangParser extends MathBuilder {
 
         try {
             // 将表达式拆分
-            List<Object> symbols = breakdownChars(this.breakdown(expression));
+            List<Object> symbols = this.breakdownChars(this.breakdown(expression));
             // 如果是赋值表达式
-            if (symbols.size() >= 3 && (symbols.get(0) instanceof String) && isVariable(symbols.get(0)) && symbols.get(1).equals("=")) {
-                String name = (String) symbols.get(0);
+            if (symbols.size() >= 3 && (symbols.get(0) instanceof String name) && this.isVariable(symbols.get(0)) && symbols.get(1).equals("=")) {
                 symbols = symbols.subList(2, symbols.size());
                 LazyVariable variable;
                 if (!VARIABLES.containsKey(name) && !currentStatement.locals.containsKey(name)) {
                     currentStatement.locals.put(name, (variable = new LazyVariable(name, 0)));
                 } else {
-                    variable = getVariable(name, currentStatement);
+                    variable = this.getVariable(name, currentStatement);
                 }
-                return new MolangAssignment(this, variable, parseSymbolsMolang(symbols));
+                return new MolangAssignment(this, variable, this.parseSymbolsMolang(symbols));
             }
             // 如果是其他表达式
-            return new MolangValue(this, parseSymbolsMolang(symbols));
+            return new MolangValue(this, this.parseSymbolsMolang(symbols));
         } catch (Exception e) {
             throw new MolangException("Couldn't parse '" + expression + "' expression!");
         }

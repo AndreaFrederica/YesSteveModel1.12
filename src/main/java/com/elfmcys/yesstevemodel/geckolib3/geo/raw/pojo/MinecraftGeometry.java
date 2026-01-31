@@ -13,7 +13,7 @@ public class MinecraftGeometry implements Serializable {
     private ModelProperties modelProperties;
 
     public Bone[] getBones() {
-        return bones;
+        return this.bones;
     }
 
     public void setBones(Bone[] value) {
@@ -21,7 +21,7 @@ public class MinecraftGeometry implements Serializable {
     }
 
     public String getCape() {
-        return cape;
+        return this.cape;
     }
 
     public void setCape(String value) {
@@ -29,7 +29,7 @@ public class MinecraftGeometry implements Serializable {
     }
 
     public ModelProperties getProperties() {
-        return modelProperties;
+        return this.modelProperties;
     }
 
     public void setProperties(ModelProperties value) {

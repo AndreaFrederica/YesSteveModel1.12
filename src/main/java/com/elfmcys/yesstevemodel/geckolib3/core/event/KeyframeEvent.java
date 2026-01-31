@@ -20,14 +20,14 @@ public abstract class KeyframeEvent<T> {
     }
 
     public double getAnimationTick() {
-        return animationTick;
+        return this.animationTick;
     }
 
     public T getEntity() {
-        return entity;
+        return this.entity;
     }
 
     public AnimationController getController() {
-        return controller;
+        return this.controller;
     }
 }

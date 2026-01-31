@@ -157,7 +157,7 @@ public class AnimationController<T extends IAnimatable> {
      * 此外，它还可以在动画状态之间平滑过渡
      */
     public void setAnimation(AnimationBuilder builder) {
-        IAnimatableModel<T> model = getModel(this.animatable);
+        IAnimatableModel<T> model = this.getModel(this.animatable);
         if (model != null) {
             if (builder == null || builder.getRawAnimationList().size() == 0) {
                 this.animationState = AnimationState.STOPPED;
@@ -165,7 +165,7 @@ public class AnimationController<T extends IAnimatable> {
                 AtomicBoolean encounteredError = new AtomicBoolean(false);
                 // 将动画名称列表转换为实际列表，并在此过程中跟踪循环布尔值
                 LinkedList<Animation> animations = builder.getRawAnimationList().stream().map((rawAnimation) -> {
-                    Animation animation = model.getAnimation(rawAnimation.animationName, animatable);
+                    Animation animation = model.getAnimation(rawAnimation.animationName, this.animatable);
                     if (animation == null) {
                         YesSteveModel.LOGGER.warn("Could not load animation: {}. Is it missing?", rawAnimation.animationName);
                         encounteredError.set(true);
@@ -252,9 +252,9 @@ public class AnimationController<T extends IAnimatable> {
                         boolean crashWhenCantFindBone) {
         parser.setValue("query.life_time", () -> tick / 20);
         if (this.currentAnimation != null) {
-            IAnimatableModel<T> model = getModel(this.animatable);
+            IAnimatableModel<T> model = this.getModel(this.animatable);
             if (model != null) {
-                Animation animation = model.getAnimation(currentAnimation.animationName, this.animatable);
+                Animation animation = model.getAnimation(this.currentAnimation.animationName, this.animatable);
                 if (animation != null) {
                     ILoopType loop = this.currentAnimation.loop;
                     this.currentAnimation = animation;
@@ -262,14 +262,14 @@ public class AnimationController<T extends IAnimatable> {
                 }
             }
         }
-        createInitialQueues(modelRendererList);
+        this.createInitialQueues(modelRendererList);
 
-        double adjustedTick = adjustTick(tick);
+        double adjustedTick = this.adjustTick(tick);
         // 过渡结束，重置 tick 并将动画设置为运行
-        if (animationState == AnimationState.TRANSITIONING && adjustedTick >= this.transitionLengthTicks) {
+        if (this.animationState == AnimationState.TRANSITIONING && adjustedTick >= this.transitionLengthTicks) {
             this.shouldResetTick = true;
             this.animationState = AnimationState.RUNNING;
-            adjustedTick = adjustTick(tick);
+            adjustedTick = this.adjustTick(tick);
         }
         assert adjustedTick >= 0 : "GeckoLib: Tick was less than zero";
 
@@ -284,13 +284,13 @@ public class AnimationController<T extends IAnimatable> {
 
         if (this.justStartedTransition && (this.shouldResetTick || this.justStopped)) {
             this.justStopped = false;
-            adjustedTick = adjustTick(tick);
+            adjustedTick = this.adjustTick(tick);
         } else if (this.currentAnimation == null && this.animationQueue.size() != 0) {
             this.shouldResetTick = true;
             this.animationState = AnimationState.TRANSITIONING;
             this.justStartedTransition = true;
             this.needsAnimationReload = false;
-            adjustedTick = adjustTick(tick);
+            adjustedTick = this.adjustTick(tick);
         } else if (this.animationState != AnimationState.TRANSITIONING) {
             this.animationState = AnimationState.RUNNING;
         }
@@ -300,12 +300,12 @@ public class AnimationController<T extends IAnimatable> {
             // 刚开始过渡，所以将当前动画设置为第一个
             if (adjustedTick == 0 || this.isJustStarting) {
                 this.justStartedTransition = false;
-                this.currentAnimation = animationQueue.poll();
-                resetEventKeyFrames();
-                saveSnapshotsForAnimation(this.currentAnimation, boneSnapshotCollection);
+                this.currentAnimation = this.animationQueue.poll();
+                this.resetEventKeyFrames();
+                this.saveSnapshotsForAnimation(this.currentAnimation, boneSnapshotCollection);
             }
             if (this.currentAnimation != null) {
-                setAnimTime(parser, 0);
+                this.setAnimTime(parser, 0);
                 for (BoneAnimation boneAnimation : this.currentAnimation.boneAnimations) {
                     BoneAnimationQueue boneAnimationQueue = this.boneAnimationQueues.get(boneAnimation.boneName);
                     BoneSnapshot boneSnapshot = this.boneSnapshots.get(boneAnimation.boneName);
@@ -335,9 +335,9 @@ public class AnimationController<T extends IAnimatable> {
 
                     // 添加即将出现的动画的初始位置，以便模型转换到新动画的初始状态
                     if (!rotationKeyFrames.xKeyFrames.isEmpty()) {
-                        AnimationPoint xPoint = getAnimationPointAtTick(rotationKeyFrames.xKeyFrames, 0, true, Axis.X);
-                        AnimationPoint yPoint = getAnimationPointAtTick(rotationKeyFrames.yKeyFrames, 0, true, Axis.Y);
-                        AnimationPoint zPoint = getAnimationPointAtTick(rotationKeyFrames.zKeyFrames, 0, true, Axis.Z);
+                        AnimationPoint xPoint = this.getAnimationPointAtTick(rotationKeyFrames.xKeyFrames, 0, true, Axis.X);
+                        AnimationPoint yPoint = this.getAnimationPointAtTick(rotationKeyFrames.yKeyFrames, 0, true, Axis.Y);
+                        AnimationPoint zPoint = this.getAnimationPointAtTick(rotationKeyFrames.zKeyFrames, 0, true, Axis.Z);
                         boneAnimationQueue.rotationXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.rotationValueX - initialSnapshot.rotationValueX,
                                 xPoint.animationStartValue()));
@@ -350,9 +350,9 @@ public class AnimationController<T extends IAnimatable> {
                     }
 
                     if (!positionKeyFrames.xKeyFrames.isEmpty()) {
-                        AnimationPoint xPoint = getAnimationPointAtTick(positionKeyFrames.xKeyFrames, 0, false, Axis.X);
-                        AnimationPoint yPoint = getAnimationPointAtTick(positionKeyFrames.yKeyFrames, 0, false, Axis.Y);
-                        AnimationPoint zPoint = getAnimationPointAtTick(positionKeyFrames.zKeyFrames, 0, false, Axis.Z);
+                        AnimationPoint xPoint = this.getAnimationPointAtTick(positionKeyFrames.xKeyFrames, 0, false, Axis.X);
+                        AnimationPoint yPoint = this.getAnimationPointAtTick(positionKeyFrames.yKeyFrames, 0, false, Axis.Y);
+                        AnimationPoint zPoint = this.getAnimationPointAtTick(positionKeyFrames.zKeyFrames, 0, false, Axis.Z);
                         boneAnimationQueue.positionXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.positionOffsetX, xPoint.animationStartValue()));
                         boneAnimationQueue.positionYQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
@@ -362,9 +362,9 @@ public class AnimationController<T extends IAnimatable> {
                     }
 
                     if (!scaleKeyFrames.xKeyFrames.isEmpty()) {
-                        AnimationPoint xPoint = getAnimationPointAtTick(scaleKeyFrames.xKeyFrames, 0, false, Axis.X);
-                        AnimationPoint yPoint = getAnimationPointAtTick(scaleKeyFrames.yKeyFrames, 0, false, Axis.Y);
-                        AnimationPoint zPoint = getAnimationPointAtTick(scaleKeyFrames.zKeyFrames, 0, false, Axis.Z);
+                        AnimationPoint xPoint = this.getAnimationPointAtTick(scaleKeyFrames.xKeyFrames, 0, false, Axis.X);
+                        AnimationPoint yPoint = this.getAnimationPointAtTick(scaleKeyFrames.yKeyFrames, 0, false, Axis.Y);
+                        AnimationPoint zPoint = this.getAnimationPointAtTick(scaleKeyFrames.zKeyFrames, 0, false, Axis.Z);
                         boneAnimationQueue.scaleXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.scaleValueX, xPoint.animationStartValue()));
                         boneAnimationQueue.scaleYQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
@@ -374,9 +374,9 @@ public class AnimationController<T extends IAnimatable> {
                     }
                 }
             }
-        } else if (getAnimationState() == AnimationState.RUNNING) {
+        } else if (this.getAnimationState() == AnimationState.RUNNING) {
             // 开始运行动画
-            processCurrentAnimation(adjustedTick, tick, parser, crashWhenCantFindBone);
+            this.processCurrentAnimation(adjustedTick, tick, parser, crashWhenCantFindBone);
         }
     }
 
@@ -415,10 +415,10 @@ public class AnimationController<T extends IAnimatable> {
     }
 
     private void processCurrentAnimation(double tick, double actualTick, MolangParser parser, boolean crashWhenCantFindBone) {
-        assert currentAnimation != null;
+        assert this.currentAnimation != null;
         // 如果动画已经结束了
         if (tick >= this.currentAnimation.animationLength) {
-            resetEventKeyFrames();
+            this.resetEventKeyFrames();
             // 如果动画为循环播放，继续重头播放
             if (!this.currentAnimation.loop.isRepeatingAfterEnd()) {
                 // 从队列中提取下一个动画
@@ -436,15 +436,15 @@ public class AnimationController<T extends IAnimatable> {
             } else {
                 // 重置 tick，以便下一个动画从刻度 0 开始
                 this.shouldResetTick = true;
-                tick = adjustTick(actualTick);
+                tick = this.adjustTick(actualTick);
             }
         }
-        setAnimTime(parser, tick);
+        this.setAnimTime(parser, tick);
 
         // 循环遍历当前动画中的每个骨骼动画并处理值
-        List<BoneAnimation> boneAnimations = currentAnimation.boneAnimations;
+        List<BoneAnimation> boneAnimations = this.currentAnimation.boneAnimations;
         for (BoneAnimation boneAnimation : boneAnimations) {
-            BoneAnimationQueue boneAnimationQueue = boneAnimationQueues.get(boneAnimation.boneName);
+            BoneAnimationQueue boneAnimationQueue = this.boneAnimationQueues.get(boneAnimation.boneName);
             if (boneAnimationQueue == null) {
                 if (crashWhenCantFindBone) {
                     throw new RuntimeException("Could not find bone: " + boneAnimation.boneName);
@@ -458,29 +458,29 @@ public class AnimationController<T extends IAnimatable> {
 
             if (!rotationKeyFrames.xKeyFrames.isEmpty()) {
                 boneAnimationQueue.rotationXQueue()
-                        .add(getAnimationPointAtTick(rotationKeyFrames.xKeyFrames, tick, true, Axis.X));
+                        .add(this.getAnimationPointAtTick(rotationKeyFrames.xKeyFrames, tick, true, Axis.X));
                 boneAnimationQueue.rotationYQueue()
-                        .add(getAnimationPointAtTick(rotationKeyFrames.yKeyFrames, tick, true, Axis.Y));
+                        .add(this.getAnimationPointAtTick(rotationKeyFrames.yKeyFrames, tick, true, Axis.Y));
                 boneAnimationQueue.rotationZQueue()
-                        .add(getAnimationPointAtTick(rotationKeyFrames.zKeyFrames, tick, true, Axis.Z));
+                        .add(this.getAnimationPointAtTick(rotationKeyFrames.zKeyFrames, tick, true, Axis.Z));
             }
 
             if (!positionKeyFrames.xKeyFrames.isEmpty()) {
                 boneAnimationQueue.positionXQueue()
-                        .add(getAnimationPointAtTick(positionKeyFrames.xKeyFrames, tick, false, Axis.X));
+                        .add(this.getAnimationPointAtTick(positionKeyFrames.xKeyFrames, tick, false, Axis.X));
                 boneAnimationQueue.positionYQueue()
-                        .add(getAnimationPointAtTick(positionKeyFrames.yKeyFrames, tick, false, Axis.Y));
+                        .add(this.getAnimationPointAtTick(positionKeyFrames.yKeyFrames, tick, false, Axis.Y));
                 boneAnimationQueue.positionZQueue()
-                        .add(getAnimationPointAtTick(positionKeyFrames.zKeyFrames, tick, false, Axis.Z));
+                        .add(this.getAnimationPointAtTick(positionKeyFrames.zKeyFrames, tick, false, Axis.Z));
             }
 
             if (!scaleKeyFrames.xKeyFrames.isEmpty()) {
                 boneAnimationQueue.scaleXQueue()
-                        .add(getAnimationPointAtTick(scaleKeyFrames.xKeyFrames, tick, false, Axis.X));
+                        .add(this.getAnimationPointAtTick(scaleKeyFrames.xKeyFrames, tick, false, Axis.X));
                 boneAnimationQueue.scaleYQueue()
-                        .add(getAnimationPointAtTick(scaleKeyFrames.yKeyFrames, tick, false, Axis.Y));
+                        .add(this.getAnimationPointAtTick(scaleKeyFrames.yKeyFrames, tick, false, Axis.Y));
                 boneAnimationQueue.scaleZQueue()
-                        .add(getAnimationPointAtTick(scaleKeyFrames.zKeyFrames, tick, false, Axis.Z));
+                        .add(this.getAnimationPointAtTick(scaleKeyFrames.zKeyFrames, tick, false, Axis.Z));
             }
         }
 
@@ -499,7 +499,7 @@ public class AnimationController<T extends IAnimatable> {
                     this.executedKeyFrames.add(particleEventKeyFrame);
                 }
             }
-            for (EventKeyFrame<String> customInstructionKeyFrame : currentAnimation.customInstructionKeyframes) {
+            for (EventKeyFrame<String> customInstructionKeyFrame : this.currentAnimation.customInstructionKeyframes) {
                 if (!this.executedKeyFrames.contains(customInstructionKeyFrame) && tick >= customInstructionKeyFrame.getStartTick()) {
                     CustomInstructionKeyframeEvent<T> event = new CustomInstructionKeyframeEvent<>(this.animatable, tick, customInstructionKeyFrame.getEventData(), this);
                     this.customInstructionListener.executeInstruction(event);
@@ -508,8 +508,8 @@ public class AnimationController<T extends IAnimatable> {
             }
         }
 
-        if (this.transitionLengthTicks == 0 && shouldResetTick && this.animationState == AnimationState.TRANSITIONING) {
-            this.currentAnimation = animationQueue.poll();
+        if (this.transitionLengthTicks == 0 && this.shouldResetTick && this.animationState == AnimationState.TRANSITIONING) {
+            this.currentAnimation = this.animationQueue.poll();
         }
     }
 
@@ -524,9 +524,9 @@ public class AnimationController<T extends IAnimatable> {
     // 在新动画开始、过渡开始或者其他情况下重置 tick
     public double adjustTick(double tick) {
         if (this.shouldResetTick) {
-            if (getAnimationState() == AnimationState.TRANSITIONING) {
+            if (this.getAnimationState() == AnimationState.TRANSITIONING) {
                 this.tickOffset = tick;
-            } else if (getAnimationState() == AnimationState.RUNNING) {
+            } else if (this.getAnimationState() == AnimationState.RUNNING) {
                 this.tickOffset = tick;
             }
             this.shouldResetTick = false;
@@ -538,7 +538,7 @@ public class AnimationController<T extends IAnimatable> {
 
     // 将关键帧位置转换为动画点
     private AnimationPoint getAnimationPointAtTick(List<KeyFrame<IValue>> frames, double tick, boolean isRotation, Axis axis) {
-        KeyFrameLocation<KeyFrame<IValue>> location = getCurrentKeyFrameLocation(frames, tick);
+        KeyFrameLocation<KeyFrame<IValue>> location = this.getCurrentKeyFrameLocation(frames, tick);
         KeyFrame<IValue> currentFrame = location.currentFrame;
         double startValue = currentFrame.getStartValue().get();
         double endValue = currentFrame.getEndValue().get();

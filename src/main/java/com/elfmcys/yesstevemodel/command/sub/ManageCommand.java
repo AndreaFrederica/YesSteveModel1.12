@@ -38,12 +38,12 @@ public class ManageCommand extends CommandBase {
 
     @Override
     public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
-        if (args.length != 0) throw new WrongUsageException(getUsage(sender));
-        exportModel(sender);
+        if (args.length != 0) throw new WrongUsageException(this.getUsage(sender));
+        this.exportModel(sender);
     }
 
     private void exportModel(ICommandSender sender) throws CommandException {
-        if (sender.canUseCommand(4, getName())) {
+        if (sender.canUseCommand(4, this.getName())) {
             EntityPlayerMP player = getCommandSenderAsPlayer(sender);
             List<RequestServerModelInfo.Info> customInfo = getFilesInfo(ServerModelManager.CUSTOM);
             List<RequestServerModelInfo.Info> authInfo = getFilesInfo(ServerModelManager.AUTH);

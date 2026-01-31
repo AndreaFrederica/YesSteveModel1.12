@@ -99,23 +99,23 @@ public final class Color {
     }
 
     public int getColor() {
-        return color;
+        return this.color;
     }
 
     public int getAlpha() {
-        return color >> 24 & 0xFF;
+        return this.color >> 24 & 0xFF;
     }
 
     public int getRed() {
-        return color >> 16 & 0xFF;
+        return this.color >> 16 & 0xFF;
     }
 
     public int getGreen() {
-        return color >> 8 & 0xFF;
+        return this.color >> 8 & 0xFF;
     }
 
     public int getBlue() {
-        return color & 0xFF;
+        return this.color & 0xFF;
     }
 
     /**
@@ -125,10 +125,10 @@ public final class Color {
      * @return 更加明亮的颜色
      */
     public Color brighter(double factor) {
-        int r = getRed(), g = getGreen(), b = getBlue();
+        int r = this.getRed(), g = this.getGreen(), b = this.getBlue();
         int i = (int) (1.0 / (1.0 - (1 / factor)));
         if (r == 0 && g == 0 && b == 0) {
-            return ofRGBA(i, i, i, getAlpha());
+            return ofRGBA(i, i, i, this.getAlpha());
         }
         if (r > 0 && r < i) {
             r = i;
@@ -139,7 +139,7 @@ public final class Color {
         if (b > 0 && b < i) {
             b = i;
         }
-        return ofRGBA(Math.min((int) (r / (1 / factor)), 255), Math.min((int) (g / (1 / factor)), 255), Math.min((int) (b / (1 / factor)), 255), getAlpha());
+        return ofRGBA(Math.min((int) (r / (1 / factor)), 255), Math.min((int) (g / (1 / factor)), 255), Math.min((int) (b / (1 / factor)), 255), this.getAlpha());
     }
 
     /**
@@ -149,7 +149,7 @@ public final class Color {
      * @return 更加深暗的颜色
      */
     public Color darker(double factor) {
-        return ofRGBA(Math.max((int) (getRed() * (1 / factor)), 0), Math.max((int) (getGreen() * (1 / factor)), 0), Math.max((int) (getBlue() * (1 / factor)), 0), getAlpha());
+        return ofRGBA(Math.max((int) (this.getRed() * (1 / factor)), 0), Math.max((int) (this.getGreen() * (1 / factor)), 0), Math.max((int) (this.getBlue() * (1 / factor)), 0), this.getAlpha());
     }
 
     @Override
@@ -157,19 +157,19 @@ public final class Color {
         if (this == other) {
             return true;
         }
-        if (other == null || getClass() != other.getClass()) {
+        if (other == null || this.getClass() != other.getClass()) {
             return false;
         }
-        return color == ((Color) other).color;
+        return this.color == ((Color) other).color;
     }
 
     @Override
     public int hashCode() {
-        return color;
+        return this.color;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(color);
+        return String.valueOf(this.color);
     }
 }

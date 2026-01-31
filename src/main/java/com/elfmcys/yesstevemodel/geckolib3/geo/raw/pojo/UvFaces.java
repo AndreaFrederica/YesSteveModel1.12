@@ -19,7 +19,7 @@ public class UvFaces implements Serializable {
     private FaceUv west;
 
     public FaceUv getDown() {
-        return down;
+        return this.down;
     }
 
     public void setDown(FaceUv value) {
@@ -27,7 +27,7 @@ public class UvFaces implements Serializable {
     }
 
     public FaceUv getEast() {
-        return east;
+        return this.east;
     }
 
     public void setEast(FaceUv value) {
@@ -35,7 +35,7 @@ public class UvFaces implements Serializable {
     }
 
     public FaceUv getNorth() {
-        return north;
+        return this.north;
     }
 
     public void setNorth(FaceUv value) {
@@ -43,7 +43,7 @@ public class UvFaces implements Serializable {
     }
 
     public FaceUv getSouth() {
-        return south;
+        return this.south;
     }
 
     public void setSouth(FaceUv value) {
@@ -51,7 +51,7 @@ public class UvFaces implements Serializable {
     }
 
     public FaceUv getUp() {
-        return up;
+        return this.up;
     }
 
     public void setUp(FaceUv value) {
@@ -59,7 +59,7 @@ public class UvFaces implements Serializable {
     }
 
     public FaceUv getWest() {
-        return west;
+        return this.west;
     }
 
     public void setWest(FaceUv value) {

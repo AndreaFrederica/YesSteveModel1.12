@@ -23,10 +23,10 @@ public class GeckoLibCache {
     }
 
     public Map<ResourceLocation, AnimationFile> getAnimations() {
-        return animations;
+        return this.animations;
     }
 
     public Map<ResourceLocation, GeoModel> getGeoModels() {
-        return geoModels;
+        return this.geoModels;
     }
 }

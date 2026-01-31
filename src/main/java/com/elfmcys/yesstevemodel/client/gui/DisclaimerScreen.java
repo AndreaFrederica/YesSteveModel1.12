@@ -27,8 +27,8 @@ public class DisclaimerScreen extends Screen {
         String readCheckboxText = I18n.format("gui.yes_steve_model.disclaimer.read");
         int readTextWidth = this.fontRenderer.getStringWidth(readCheckboxText);
         this.readCheckbox = new Checkbox((this.width - readTextWidth) / 2, this.y + totalHeight - 50, readCheckboxText, this.fontRenderer, !GeneralConfig.DISCLAIMER_SHOW);
-        addButton(this.readCheckbox);
-        addButton(new Button((this.width - 300) / 2, this.y + totalHeight - 20, 300, 20, I18n.format("gui.yes_steve_model.disclaimer.close"), b -> {
+        this.addButton(this.readCheckbox);
+        this.addButton(new Button((this.width - 300) / 2, this.y + totalHeight - 20, 300, 20, I18n.format("gui.yes_steve_model.disclaimer.close"), b -> {
             if (this.readCheckbox.selected()) {
                 GeneralConfig.DISCLAIMER_SHOW = false;
                 Config.save();

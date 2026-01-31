@@ -45,23 +45,23 @@ public class GeoBuilder implements IGeoBuilder {
             model.topLevelBones.add(this.constructBone(rawBone, geometryTree.properties, null));
         }
         model.getBone(LEFT_HAND_LOCATOR).ifPresent(b -> {
-            getBoneParent(b, model.leftHandBones);
+            this.getBoneParent(b, model.leftHandBones);
             Collections.reverse(model.leftHandBones);
         });
         model.getBone(RIGHT_HAND_LOCATOR).ifPresent(b -> {
-            getBoneParent(b, model.rightHandBones);
+            this.getBoneParent(b, model.rightHandBones);
             Collections.reverse(model.rightHandBones);
         });
         model.getBone(ELYTRA_LOCATOR_NAME).ifPresent(b -> {
-            getBoneParent(b, model.elytraBones);
+            this.getBoneParent(b, model.elytraBones);
             Collections.reverse(model.elytraBones);
         });
         model.getBone(TAC_PISTOL_LOCATOR_NAME).ifPresent(b -> {
-            getBoneParent(b, model.tacPistolBones);
+            this.getBoneParent(b, model.tacPistolBones);
             Collections.reverse(model.tacPistolBones);
         });
         model.getBone(TAC_RIFLE_LOCATOR_NAME).ifPresent(b -> {
-            getBoneParent(b, model.tacRifleBones);
+            this.getBoneParent(b, model.tacRifleBones);
             Collections.reverse(model.tacRifleBones);
         });
         model.getBone(FIRST_PERSON_HEAD_NAME).ifPresent(b -> model.firstPersonHead = b);
@@ -102,7 +102,7 @@ public class GeoBuilder implements IGeoBuilder {
         }
 
         for (RawBoneGroup child : bone.children.values()) {
-            geoBone.childBones.add(constructBone(child, properties, geoBone));
+            geoBone.childBones.add(this.constructBone(child, properties, geoBone));
         }
 
         return geoBone;
@@ -111,7 +111,7 @@ public class GeoBuilder implements IGeoBuilder {
     private void getBoneParent(GeoBone bone, List<GeoBone> boneList) {
         boneList.add(bone);
         if (bone.parent != null) {
-            getBoneParent(bone.parent, boneList);
+            this.getBoneParent(bone.parent, boneList);
         }
     }
 }

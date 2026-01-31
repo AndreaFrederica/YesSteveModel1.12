@@ -25,25 +25,25 @@ public class ConditionalUse {
 
     public ConditionalUse(EnumHand hand) {
         if (hand == EnumHand.MAIN_HAND) {
-            idPre = "use_mainhand$";
+            this.idPre = "use_mainhand$";
             //tagPre = "use_mainhand#";
-            extraPre = "use_mainhand:";
-            preSize = 13;
+            this.extraPre = "use_mainhand:";
+            this.preSize = 13;
         } else {
-            idPre = "use_offhand$";
+            this.idPre = "use_offhand$";
             //tagPre = "use_offhand#";
-            extraPre = "use_offhand:";
-            preSize = 12;
+            this.extraPre = "use_offhand:";
+            this.preSize = 12;
         }
     }
 
     public void addTest(String name) {
-        if (name.length() <= preSize) {
+        if (name.length() <= this.preSize) {
             return;
         }
-        String substring = name.substring(preSize);
-        if (name.startsWith(idPre) && ResourceUtil.isValidResourceLocation(substring)) {
-            idTest.add(new ResourceLocation(substring));
+        String substring = name.substring(this.preSize);
+        if (name.startsWith(this.idPre) && ResourceUtil.isValidResourceLocation(substring)) {
+            this.idTest.add(new ResourceLocation(substring));
         }
 //        if (name.startsWith(tagPre) && ResourceUtil.isValidResourceLocation(substring)) {
 //            ResourceLocation res = new ResourceLocation(substring);
@@ -53,11 +53,11 @@ public class ConditionalUse {
 //            }
 //            tagTest.add(res);
 //        }
-        if (name.startsWith(extraPre)) {
+        if (name.startsWith(this.extraPre)) {
             if (substring.equals(EnumAction.NONE.name().toLowerCase(Locale.US))) {
                 return;
             }
-            Arrays.stream(EnumAction.values()).filter(a -> a.name().toLowerCase(Locale.US).equals(substring)).findFirst().ifPresent(extraTest::add);
+            Arrays.stream(EnumAction.values()).filter(a -> a.name().toLowerCase(Locale.US).equals(substring)).findFirst().ifPresent(this.extraTest::add);
         }
     }
 
@@ -65,11 +65,11 @@ public class ConditionalUse {
         if (player.getHeldItem(hand).isEmpty()) {
             return EMPTY;
         }
-        String result = doIdTest(player, hand);
+        String result = this.doIdTest(player, hand);
         if (result.isEmpty()) {
             //result = doTagTest(player, hand);
             if (result.isEmpty()) {
-                return doExtraTest(player, hand);
+                return this.doExtraTest(player, hand);
             }
             return result;
         }
@@ -77,7 +77,7 @@ public class ConditionalUse {
     }
 
     private String doIdTest(EntityPlayer player, EnumHand hand) {
-        if (idTest.isEmpty()) {
+        if (this.idTest.isEmpty()) {
             return EMPTY;
         }
         ItemStack itemInHand = player.getHeldItem(hand);
@@ -85,8 +85,8 @@ public class ConditionalUse {
         if (registryName == null) {
             return EMPTY;
         }
-        if (idTest.contains(registryName)) {
-            return idPre + registryName;
+        if (this.idTest.contains(registryName)) {
+            return this.idPre + registryName;
         }
         return EMPTY;
     }
@@ -106,12 +106,12 @@ public class ConditionalUse {
 //    }
 
     private String doExtraTest(EntityPlayer player, EnumHand hand) {
-        if (extraTest.isEmpty()) {
+        if (this.extraTest.isEmpty()) {
             return EMPTY;
         }
         EnumAction anim = player.getHeldItem(hand).getItemUseAction();
         if (this.extraTest.contains(anim)) {
-            return extraPre + anim.name().toLowerCase(Locale.US);
+            return this.extraPre + anim.name().toLowerCase(Locale.US);
         }
         return EMPTY;
     }

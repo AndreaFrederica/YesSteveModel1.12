@@ -18,6 +18,6 @@ public class AnimationFactory {
             this.animatable.registerControllers(data);
             this.animationDataMap.put(uniqueID, data);
         }
-        return animationDataMap.get(uniqueID);
+        return this.animationDataMap.get(uniqueID);
     }
 }

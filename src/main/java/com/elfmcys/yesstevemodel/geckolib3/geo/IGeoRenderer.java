@@ -144,9 +144,9 @@ public interface IGeoRenderer<T> {
     }
 
     default void renderEarly(T animatable, float ticks, float red, float green, float blue, float partialTicks) {
-        if (getCurrentModelRenderCycle() == EModelRenderCycle.INITIAL) {
-            float width = getWidthScale(animatable);
-            float height = getHeightScale(animatable);
+        if (this.getCurrentModelRenderCycle() == EModelRenderCycle.INITIAL) {
+            float width = this.getWidthScale(animatable);
+            float height = this.getHeightScale(animatable);
             GlStateManager.scale(width, height, width);
         }
     }

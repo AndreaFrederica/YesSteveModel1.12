@@ -46,7 +46,7 @@ public class PlayerModelScreen extends Screen {
     }
 
     private void calculateModelList() {
-        models = Maps.newHashMap();
+        this.models = Maps.newHashMap();
         if (this.category == Category.ALL) {
             this.models.putAll(ClientModelManager.MODELS);
         }
@@ -73,36 +73,36 @@ public class PlayerModelScreen extends Screen {
             }
         }
 
-        if (textField != null) {
+        if (this.textField != null) {
             String search = this.textField.getText().toLowerCase(Locale.US);
-            models.entrySet().removeIf(next -> !next.getKey().getPath().contains(search));
+            this.models.entrySet().removeIf(next -> !next.getKey().getPath().contains(search));
         }
-        this.modelOrderList = Lists.newArrayList(models.keySet());
+        this.modelOrderList = Lists.newArrayList(this.models.keySet());
         this.modelOrderList.sort(ResourceLocation::compareTo);
-        this.maxPage = (models.size() - 1) / 10;
+        this.maxPage = (this.models.size() - 1) / 10;
     }
 
     @Override
     public void initGui() {
         this.calculateModelList();
 
-        this.x = (width - 420) / 2;
-        this.y = (height - 235) / 2;
+        this.x = (this.width - 420) / 2;
+        this.y = (this.height - 235) / 2;
 
         String perText = "";
         boolean focus = false;
-        if (textField != null) {
-            perText = textField.getText();
-            focus = textField.isFocused();
+        if (this.textField != null) {
+            perText = this.textField.getText();
+            focus = this.textField.isFocused();
         }
-        textField = new GuiTextField(0, this.fontRenderer, x + 144, y + 6, 140, 16);
-        textField.setText(perText);
-        textField.setTextColor(0xF3EFE0);
-        textField.setFocused(focus);
-        textField.setCursorPositionEnd();
+        this.textField = new GuiTextField(0, this.fontRenderer, this.x + 144, this.y + 6, 140, 16);
+        this.textField.setText(perText);
+        this.textField.setTextColor(0xF3EFE0);
+        this.textField.setFocused(focus);
+        this.textField.setCursorPositionEnd();
 
-        addButton(new TextureCountButton(x + 5, y + 5));
-        addButton(new FlatIconButton(x + 28, y + 5, 79, 20, 32, 16, (b) -> {
+        this.addButton(new TextureCountButton(this.x + 5, this.y + 5));
+        this.addButton(new FlatIconButton(this.x + 28, this.y + 5, 79, 20, 32, 16, (b) -> {
             if (this.mc.player != null) {
                 EntityPlayerSP player = this.mc.player;
                 CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
@@ -113,46 +113,46 @@ public class PlayerModelScreen extends Screen {
                 });
             }
         }).setTooltips("gui.yes_steve_model.model.texture"));
-        addButton(new StarButton(x + 110, y + 5));
+        this.addButton(new StarButton(this.x + 110, this.y + 5));
 
-        addButton(new FlatIconButton(x + 328, y + 5, 18, 18, 32, 0, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 328, this.y + 5, 18, 18, 32, 0, (b) -> {
             if (this.category != Category.ALL) {
                 this.category = Category.ALL;
                 this.page = 0;
                 this.refreshGui();
             }
         }).setTooltips("gui.yes_steve_model.all_models"));
-        addButton(new FlatIconButton(x + 308, y + 5, 18, 18, 48, 0, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 308, this.y + 5, 18, 18, 48, 0, (b) -> {
             if (this.category != Category.AUTH) {
                 this.category = Category.AUTH;
                 this.page = 0;
                 this.refreshGui();
             }
         }).setTooltips("gui.yes_steve_model.auth_models"));
-        addButton(new FlatIconButton(x + 288, y + 5, 18, 18, 0, 0, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 288, this.y + 5, 18, 18, 0, 0, (b) -> {
             if (this.category != Category.STAR) {
                 this.category = Category.STAR;
                 this.page = 0;
                 this.refreshGui();
             }
         }).setTooltips("gui.yes_steve_model.star_models"));
-        addButton(new FlatIconButton(x + 397, y + 5, 18, 18, 16, 16, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 397, this.y + 5, 18, 18, 16, 16, (b) -> {
             this.mc.displayGuiScreen(new ConfigScreen(this));
         }).setTooltips("gui.yes_steve_model.config"));
-        addButton(new FlatIconButton(x + 377, y + 5, 18, 18, 0, 16, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 377, this.y + 5, 18, 18, 0, 16, (b) -> {
             this.mc.displayGuiScreen(new DownloadScreen(this));
         }).setTooltips("gui.yes_steve_model.download"));
-        addButton(new FlatIconButton(x + 357, y + 5, 18, 18, 80, 0, (b) -> {
+        this.addButton(new FlatIconButton(this.x + 357, this.y + 5, 18, 18, 80, 0, (b) -> {
             this.mc.displayGuiScreen(new OpenModelFolderScreen(this));
         }).setTooltips("gui.yes_steve_model.open_model_folder.open"));
 
-        addButton(new FlatColorButton(x + 198, y + 215, 52, 14, I18n.format("gui.yes_steve_model.pre_page"), (b) -> {
+        this.addButton(new FlatColorButton(this.x + 198, this.y + 215, 52, 14, I18n.format("gui.yes_steve_model.pre_page"), (b) -> {
             if (this.page > 0) {
                 this.page--;
                 this.refreshGui();
             }
         }));
-        addButton(new FlatColorButton(x + 308, y + 215, 52, 14, I18n.format("gui.yes_steve_model.next_page"), (b) -> {
+        this.addButton(new FlatColorButton(this.x + 308, this.y + 215, 52, 14, I18n.format("gui.yes_steve_model.next_page"), (b) -> {
             if (this.page < this.maxPage) {
                 this.page++;
                 this.refreshGui();
@@ -165,18 +165,18 @@ public class PlayerModelScreen extends Screen {
 
         for (int i = 0; i < 10; i++) {
             int modelIndex = i + this.page * 10;
-            if (modelIndex >= models.size()) {
+            if (modelIndex >= this.models.size()) {
                 break;
             }
-            ResourceLocation id = modelOrderList.get(modelIndex);
-            int xStart = x + 143 + 55 * (i % 5);
-            int yStart = y + 28 + 93 * (i / 5);
+            ResourceLocation id = this.modelOrderList.get(modelIndex);
+            int xStart = this.x + 143 + 55 * (i % 5);
+            int yStart = this.y + 28 + 93 * (i / 5);
             if (this.mc != null && this.mc.player != null) {
                 CapabilityEvent.getCapability(this.mc.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
                     if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
-                        addButton(new ModelButton(xStart, yStart, true, Pair.of(id, models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
+                        this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
                     } else {
-                        addButton(new ModelButton(xStart, yStart, false, Pair.of(id, models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
+                        this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
                     }
                 });
             }
@@ -268,16 +268,16 @@ public class PlayerModelScreen extends Screen {
         if (this.mc == null) {
             return;
         }
-        if (delta != 0 && inRange(mouseX, mouseY)) {
-            scrollPage(delta);
+        if (delta != 0 && this.inRange(mouseX, mouseY)) {
+            this.scrollPage(delta);
             return;
         }
         super.mouseScrolled(mouseX, mouseY, delta);
     }
 
     private boolean inRange(int mouseX, int mouseY) {
-        boolean isInWidthRange = (x + 143) < mouseX && mouseX < (x + 430);
-        boolean isInHeightRange = (y + 25) < mouseY && mouseY < (y + 235);
+        boolean isInWidthRange = (this.x + 143) < mouseX && mouseX < (this.x + 430);
+        boolean isInHeightRange = (this.y + 25) < mouseY && mouseY < (this.y + 235);
         return isInWidthRange && isInHeightRange;
     }
 

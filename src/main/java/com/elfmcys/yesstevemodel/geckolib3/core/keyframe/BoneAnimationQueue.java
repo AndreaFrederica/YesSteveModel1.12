@@ -24,42 +24,42 @@ public class BoneAnimationQueue {
     }
 
     public IBone bone() {
-        return bone;
+        return this.bone;
     }
 
     public AnimationPointQueue rotationXQueue() {
-        return rotationXQueue;
+        return this.rotationXQueue;
     }
 
     public AnimationPointQueue rotationYQueue() {
-        return rotationYQueue;
+        return this.rotationYQueue;
     }
 
     public AnimationPointQueue rotationZQueue() {
-        return rotationZQueue;
+        return this.rotationZQueue;
     }
 
     public AnimationPointQueue positionXQueue() {
-        return positionXQueue;
+        return this.positionXQueue;
     }
 
     public AnimationPointQueue positionYQueue() {
-        return positionYQueue;
+        return this.positionYQueue;
     }
 
     public AnimationPointQueue positionZQueue() {
-        return positionZQueue;
+        return this.positionZQueue;
     }
 
     public AnimationPointQueue scaleXQueue() {
-        return scaleXQueue;
+        return this.scaleXQueue;
     }
 
     public AnimationPointQueue scaleYQueue() {
-        return scaleYQueue;
+        return this.scaleYQueue;
     }
 
     public AnimationPointQueue scaleZQueue() {
-        return scaleZQueue;
+        return this.scaleZQueue;
     }
 }

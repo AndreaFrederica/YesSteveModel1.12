@@ -37,8 +37,8 @@ public class AnimationRouletteScreen extends Screen {
 
     @Override
     public void initGui() {
-        this.x = width / 2;
-        this.y = height / 2 - 8;
+        this.x = this.width / 2;
+        this.y = this.height / 2 - 8;
 
         if (this.mc != null && this.mc.player != null) {
             CapabilityEvent.getCapability(this.mc.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
@@ -52,19 +52,19 @@ public class AnimationRouletteScreen extends Screen {
 
     @Override
     public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
-        drawRoulette(pMouseX, pMouseY);
-        drawRouletteText();
+        this.drawRoulette(pMouseX, pMouseY);
+        this.drawRouletteText();
     }
 
     @Override
     public void mouseClicked(int pMouseX, int pMouseY, int pButton) throws IOException {
-        if (-1 < selectId && selectId < 8 && mc != null) {
-            mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            NetworkHandler.CHANNEL.sendToServer(new SetPlayAnimation(selectId));
-            if (mc.player != null && GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG) {
-                mc.player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.animation_roulette.play", selectId));
+        if (-1 < this.selectId && this.selectId < 8 && this.mc != null) {
+            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            NetworkHandler.CHANNEL.sendToServer(new SetPlayAnimation(this.selectId));
+            if (this.mc.player != null && GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG) {
+                this.mc.player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.animation_roulette.play", this.selectId));
             }
-            mc.displayGuiScreen(null);
+            this.mc.displayGuiScreen(null);
         }
         super.mouseClicked(pMouseX, pMouseY, pButton);
     }
@@ -88,11 +88,11 @@ public class AnimationRouletteScreen extends Screen {
             }
             keyText += " ]";
             if (this.names != null && this.names.length > i && StringUtils.isNoneBlank(this.names[i])) {
-                drawCenteredString(this.fontRenderer, this.names[i], (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
+                this.drawCenteredString(this.fontRenderer, this.names[i], (int) (this.x + r * MathHelper.cos(startDeg)), (int) (this.y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
             } else {
-                drawCenteredString(this.fontRenderer, String.valueOf(i), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
+                this.drawCenteredString(this.fontRenderer, String.valueOf(i), (int) (this.x + r * MathHelper.cos(startDeg)), (int) (this.y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
             }
-            drawCenteredString(this.fontRenderer, keyText, (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 + 4), 0xF3EFE0);
+            this.drawCenteredString(this.fontRenderer, keyText, (int) (this.x + r * MathHelper.cos(startDeg)), (int) (this.y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 + 4), 0xF3EFE0);
             startDeg = startDeg + 2 * (float) Math.PI / count;
         }
     }
@@ -107,12 +107,12 @@ public class AnimationRouletteScreen extends Screen {
         bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
         int count = 8;
-        float theta = (float) MathHelper.atan2(mouseY - y, mouseX - x);
+        float theta = (float) MathHelper.atan2(mouseY - this.y, mouseX - this.x);
         if (theta < 0) {
             theta = (float) Math.PI * 2 + theta;
         }
-        float dx = mouseX - x;
-        float dy = mouseY - y;
+        float dx = mouseX - this.x;
+        float dy = mouseY - this.y;
         float distance = MathHelper.sqrt(dx * dx + dy * dy);
         boolean isSelected = false;
         for (int i = 0; i < count; i++) {
@@ -120,11 +120,11 @@ public class AnimationRouletteScreen extends Screen {
             float startDeg = (2 * (float) Math.PI / count) * i + spacingDeg;
             float endDeg = (2 * (float) Math.PI / count) * (i + 1) - spacingDeg;
             if (startDeg < theta && theta < endDeg && 50 < distance && distance < 100) {
-                drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0xf0FFB100);
+                this.drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0xf0FFB100);
                 isSelected = true;
                 this.selectId = i;
             } else {
-                drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0x90000000);
+                this.drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0x90000000);
             }
         }
         if (!isSelected) {
@@ -141,9 +141,9 @@ public class AnimationRouletteScreen extends Screen {
         float red = (color >> 16 & 255) / 255.0F;
         float green = (color >> 8 & 255) / 255.0F;
         float blue = (color & 255) / 255.0F;
-        builder.pos(x + rOut * MathHelper.cos(startDeg), y + rOut * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
-        builder.pos(x + rIn * MathHelper.cos(startDeg), y + rIn * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
-        builder.pos(x + rIn * MathHelper.cos(endDeg), y + rIn * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
-        builder.pos(x + rOut * MathHelper.cos(endDeg), y + rOut * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(this.x + rOut * MathHelper.cos(startDeg), this.y + rOut * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(this.x + rIn * MathHelper.cos(startDeg), this.y + rIn * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(this.x + rIn * MathHelper.cos(endDeg), this.y + rIn * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(this.x + rOut * MathHelper.cos(endDeg), this.y + rOut * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
     }
 }

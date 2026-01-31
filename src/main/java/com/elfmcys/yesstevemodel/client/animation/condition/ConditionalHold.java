@@ -19,23 +19,23 @@ public class ConditionalHold {
 
     public ConditionalHold(EnumHand hand) {
         if (hand == EnumHand.MAIN_HAND) {
-            idPre = "hold_mainhand$";
+            this.idPre = "hold_mainhand$";
             //tagPre = "hold_mainhand#";
-            preSize = 14;
+            this.preSize = 14;
         } else {
-            idPre = "hold_offhand$";
+            this.idPre = "hold_offhand$";
             //tagPre = "hold_offhand#";
-            preSize = 13;
+            this.preSize = 13;
         }
     }
 
     public void addTest(String name) {
-        if (name.length() <= preSize) {
+        if (name.length() <= this.preSize) {
             return;
         }
-        String substring = name.substring(preSize);
-        if (name.startsWith(idPre) && ResourceUtil.isValidResourceLocation(substring)) {
-            idTest.add(new ResourceLocation(substring));
+        String substring = name.substring(this.preSize);
+        if (name.startsWith(this.idPre) && ResourceUtil.isValidResourceLocation(substring)) {
+            this.idTest.add(new ResourceLocation(substring));
         }
         // TODO: Tag 转矿词系统，道阻且长
 //        if (name.startsWith(tagPre) && ResourceUtil.isValidResourceLocation(substring)) {
@@ -52,7 +52,7 @@ public class ConditionalHold {
         if (player.getHeldItem(hand).isEmpty()) {
             return EMPTY;
         }
-        String result = doIdTest(player, hand);
+        String result = this.doIdTest(player, hand);
 //        if (result.isEmpty()) {
 //            return doTagTest(player, hand);
 //        }
@@ -60,7 +60,7 @@ public class ConditionalHold {
     }
 
     private String doIdTest(EntityPlayer player, EnumHand hand) {
-        if (idTest.isEmpty()) {
+        if (this.idTest.isEmpty()) {
             return EMPTY;
         }
         ItemStack itemInHand = player.getHeldItem(hand);
@@ -68,8 +68,8 @@ public class ConditionalHold {
         if (registryName == null) {
             return EMPTY;
         }
-        if (idTest.contains(registryName)) {
-            return idPre + registryName;
+        if (this.idTest.contains(registryName)) {
+            return this.idPre + registryName;
         }
         return EMPTY;
     }

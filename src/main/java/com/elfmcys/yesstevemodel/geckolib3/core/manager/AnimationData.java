@@ -26,7 +26,7 @@ public class AnimationData {
     private double resetTickLength = 1;
 
     public AnimationData() {
-        boneSnapshotCollection = new Object2ObjectOpenHashMap<>();
+        this.boneSnapshotCollection = new Object2ObjectOpenHashMap<>();
     }
 
     public AnimationController addAnimationController(AnimationController value) {
@@ -34,7 +34,7 @@ public class AnimationData {
     }
 
     public Map<String, Pair<IBone, BoneSnapshot>> getBoneSnapshotCollection() {
-        return boneSnapshotCollection;
+        return this.boneSnapshotCollection;
     }
 
     public void setBoneSnapshotCollection(HashMap<String, Pair<IBone, BoneSnapshot>> boneSnapshotCollection) {
@@ -46,7 +46,7 @@ public class AnimationData {
     }
 
     public double getResetSpeed() {
-        return resetTickLength;
+        return this.resetTickLength;
     }
 
     /**
@@ -59,6 +59,6 @@ public class AnimationData {
     }
 
     public Map<String, AnimationController> getAnimationControllers() {
-        return animationControllers;
+        return this.animationControllers;
     }
 }

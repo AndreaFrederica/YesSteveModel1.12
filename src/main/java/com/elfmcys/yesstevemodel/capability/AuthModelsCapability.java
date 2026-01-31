@@ -15,7 +15,7 @@ public class AuthModelsCapability {
     private Set<ResourceLocation> authModels = Sets.newHashSet();
 
     public void addModel(ResourceLocation modelId) {
-        authModels.add(modelId);
+        this.authModels.add(modelId);
     }
 
     public void copyFrom(AuthModelsCapability source) {
@@ -23,15 +23,15 @@ public class AuthModelsCapability {
     }
 
     public void removeModel(ResourceLocation modelId) {
-        authModels.remove(modelId);
+        this.authModels.remove(modelId);
     }
 
     public boolean containModel(ResourceLocation modelId) {
-        return authModels.contains(modelId);
+        return this.authModels.contains(modelId);
     }
 
     public Set<ResourceLocation> getAuthModels() {
-        return authModels;
+        return this.authModels;
     }
 
     public void setAuthModels(Set<ResourceLocation> authModels) {
@@ -39,12 +39,12 @@ public class AuthModelsCapability {
     }
 
     public void clear() {
-        authModels.clear();
+        this.authModels.clear();
     }
 
     public NBTTagList serializeNBT() {
         NBTTagList listTag = new NBTTagList();
-        for (ResourceLocation modelId : authModels) {
+        for (ResourceLocation modelId : this.authModels) {
             listTag.appendTag(new NBTTagString(modelId.toString()));
         }
         return listTag;
@@ -54,7 +54,7 @@ public class AuthModelsCapability {
         this.authModels.clear();
         for (NBTBase tag : nbt) {
             if (tag instanceof NBTTagString string) {
-                authModels.add(new ResourceLocation(string.getString()));
+                this.authModels.add(new ResourceLocation(string.getString()));
             }
         }
     }

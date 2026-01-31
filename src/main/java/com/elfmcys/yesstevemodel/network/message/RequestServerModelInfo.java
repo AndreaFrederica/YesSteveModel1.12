@@ -90,7 +90,7 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
         }
 
         public String getFileName() {
-            return fileName;
+            return this.fileName;
         }
 
         public void setFileName(String fileName) {
@@ -98,7 +98,7 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
         }
 
         public Type getType() {
-            return type;
+            return this.type;
         }
 
         public void setType(Type type) {
@@ -106,7 +106,7 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
         }
 
         public long getSize() {
-            return size;
+            return this.size;
         }
 
         public void setSize(long size) {

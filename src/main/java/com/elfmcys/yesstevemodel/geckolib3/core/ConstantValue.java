@@ -31,6 +31,6 @@ public class ConstantValue implements IValue {
 
     @Override
     public double get() {
-        return value;
+        return this.value;
     }
 }

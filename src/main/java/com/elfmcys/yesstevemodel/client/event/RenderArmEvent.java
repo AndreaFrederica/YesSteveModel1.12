@@ -47,13 +47,13 @@ public class RenderArmEvent extends Event {
      * @return The arm being rendered.
      */
     public EnumHandSide getArm() {
-        return arm;
+        return this.arm;
     }
 
     /**
      * @return the client player that is having their arm rendered. In general this will be the same as {@link net.minecraft.client.Minecraft#player}.
      */
     public AbstractClientPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 }

@@ -17,7 +17,7 @@ public class TextureMesh implements Serializable {
     private String texture;
 
     public double[] getLocalPivot() {
-        return localPivot;
+        return this.localPivot;
     }
 
     public void setLocalPivot(double[] value) {
@@ -25,7 +25,7 @@ public class TextureMesh implements Serializable {
     }
 
     public double[] getPosition() {
-        return position;
+        return this.position;
     }
 
     public void setPosition(double[] value) {
@@ -33,7 +33,7 @@ public class TextureMesh implements Serializable {
     }
 
     public double[] getRotation() {
-        return rotation;
+        return this.rotation;
     }
 
     public void setRotation(double[] value) {
@@ -41,7 +41,7 @@ public class TextureMesh implements Serializable {
     }
 
     public double[] getScale() {
-        return scale;
+        return this.scale;
     }
 
     public void setScale(double[] value) {
@@ -49,7 +49,7 @@ public class TextureMesh implements Serializable {
     }
 
     public String getTexture() {
-        return texture;
+        return this.texture;
     }
 
     public void setTexture(String value) {

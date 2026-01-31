@@ -25,7 +25,7 @@ public record AnimationPoint(
 ) {
     @Override
     public String toString() {
-        return "Tick: " + currentTick + " | End Tick: " + animationEndTick + " | Start Value: " + animationStartValue
-                + " | End Value: " + animationEndValue;
+        return "Tick: " + this.currentTick + " | End Tick: " + this.animationEndTick + " | Start Value: " + this.animationStartValue
+                + " | End Value: " + this.animationEndValue;
     }
 }

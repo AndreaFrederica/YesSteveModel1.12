@@ -38,7 +38,7 @@ public class Bone implements Serializable {
     private TextureMesh[] textureMeshes;
 
     public double[] getBindPoseRotation() {
-        return bindPoseRotation;
+        return this.bindPoseRotation;
     }
 
     public void setBindPoseRotation(double[] value) {
@@ -46,7 +46,7 @@ public class Bone implements Serializable {
     }
 
     public Cube[] getCubes() {
-        return cubes;
+        return this.cubes;
     }
 
     public void setCubes(Cube[] value) {
@@ -54,7 +54,7 @@ public class Bone implements Serializable {
     }
 
     public Boolean getDebug() {
-        return debug;
+        return this.debug;
     }
 
     public void setDebug(Boolean value) {
@@ -62,7 +62,7 @@ public class Bone implements Serializable {
     }
 
     public Double getInflate() {
-        return inflate;
+        return this.inflate;
     }
 
     public void setInflate(Double value) {
@@ -70,7 +70,7 @@ public class Bone implements Serializable {
     }
 
     public Map<String, LocatorValue> getLocators() {
-        return locators;
+        return this.locators;
     }
 
     public void setLocators(Map<String, LocatorValue> value) {
@@ -78,7 +78,7 @@ public class Bone implements Serializable {
     }
 
     public Boolean getMirror() {
-        return mirror;
+        return this.mirror;
     }
 
     public void setMirror(Boolean value) {
@@ -86,7 +86,7 @@ public class Bone implements Serializable {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String value) {
@@ -94,7 +94,7 @@ public class Bone implements Serializable {
     }
 
     public Boolean getNeverRender() {
-        return neverRender;
+        return this.neverRender;
     }
 
     public void setNeverRender(Boolean value) {
@@ -102,7 +102,7 @@ public class Bone implements Serializable {
     }
 
     public String getParent() {
-        return parent;
+        return this.parent;
     }
 
     public void setParent(String value) {
@@ -110,7 +110,7 @@ public class Bone implements Serializable {
     }
 
     public double[] getPivot() {
-        return pivot;
+        return this.pivot;
     }
 
     public void setPivot(double[] value) {
@@ -118,7 +118,7 @@ public class Bone implements Serializable {
     }
 
     public PolyMesh getPolyMesh() {
-        return polyMesh;
+        return this.polyMesh;
     }
 
     public void setPolyMesh(PolyMesh value) {
@@ -126,7 +126,7 @@ public class Bone implements Serializable {
     }
 
     public Long getRenderGroupID() {
-        return renderGroupID;
+        return this.renderGroupID;
     }
 
     public void setRenderGroupID(Long value) {
@@ -134,7 +134,7 @@ public class Bone implements Serializable {
     }
 
     public Boolean getReset() {
-        return reset;
+        return this.reset;
     }
 
     public void setReset(Boolean value) {
@@ -142,7 +142,7 @@ public class Bone implements Serializable {
     }
 
     public double[] getRotation() {
-        return rotation;
+        return this.rotation;
     }
 
     public void setRotation(double[] value) {
@@ -150,7 +150,7 @@ public class Bone implements Serializable {
     }
 
     public TextureMesh[] getTextureMeshes() {
-        return textureMeshes;
+        return this.textureMeshes;
     }
 
     public void setTextureMeshes(TextureMesh[] value) {

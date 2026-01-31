@@ -49,26 +49,26 @@ public class AuthCommand extends CommandBase {
 
     @Override
     public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
-        if (args.length < 2) throw new WrongUsageException(getUsage(sender));
+        if (args.length < 2) throw new WrongUsageException(this.getUsage(sender));
         List<EntityPlayerMP> targets = getPlayers(server, sender, args[0]);
         switch (args[1].toLowerCase()) {
             case ADD_NAME -> {
-                if (args.length != 3) throw new WrongUsageException(getUsage(sender));
-                addAuthModel(sender, targets, args[2]);
+                if (args.length != 3) throw new WrongUsageException(this.getUsage(sender));
+                this.addAuthModel(sender, targets, args[2]);
             }
             case REMOVE_NAME -> {
-                if (args.length != 3) throw new WrongUsageException(getUsage(sender));
-                removeAuthModel(sender, targets, args[2]);
+                if (args.length != 3) throw new WrongUsageException(this.getUsage(sender));
+                this.removeAuthModel(sender, targets, args[2]);
             }
             case ALL_NAME -> {
-                if (args.length != 2) throw new WrongUsageException(getUsage(sender));
-                addAllAuthModel(sender, targets);
+                if (args.length != 2) throw new WrongUsageException(this.getUsage(sender));
+                this.addAllAuthModel(sender, targets);
             }
             case CLEAR_NAME -> {
-                if (args.length != 2) throw new WrongUsageException(getUsage(sender));
-                clearAuthModel(sender, targets);
+                if (args.length != 2) throw new WrongUsageException(this.getUsage(sender));
+                this.clearAuthModel(sender, targets);
             }
-            default -> throw new WrongUsageException(getUsage(sender));
+            default -> throw new WrongUsageException(this.getUsage(sender));
         }
     }
 

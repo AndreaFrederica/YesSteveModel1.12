@@ -23,7 +23,7 @@ public interface IAnimatableModel<E> {
      * @param instanceId 实例 ID
      */
     default void setCustomAnimations(E animatable, int instanceId) {
-        setCustomAnimations(animatable, instanceId, null);
+        this.setCustomAnimations(animatable, instanceId, null);
     }
 
     /**
@@ -59,7 +59,7 @@ public interface IAnimatableModel<E> {
      * @return IBone
      */
     default IBone getBone(String boneName) {
-        IBone bone = getAnimationProcessor().getBone(boneName);
+        IBone bone = this.getAnimationProcessor().getBone(boneName);
         if (bone == null) {
             throw new RuntimeException("Could not find bone: " + boneName);
         }

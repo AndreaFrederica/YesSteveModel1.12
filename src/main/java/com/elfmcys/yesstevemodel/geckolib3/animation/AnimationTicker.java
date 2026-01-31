@@ -14,12 +14,12 @@ public class AnimationTicker {
 
     @SubscribeEvent
     public void tickEvent(TickEvent.ClientTickEvent event) {
-        if (Minecraft.getMinecraft().isGamePaused() && !data.shouldPlayWhilePaused) {
+        if (Minecraft.getMinecraft().isGamePaused() && !this.data.shouldPlayWhilePaused) {
             return;
         }
 
         if (event.phase == TickEvent.Phase.END) {
-            data.tick++;
+            this.data.tick++;
         }
     }
 }

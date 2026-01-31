@@ -99,7 +99,7 @@ public class CustomPlayerEntity implements IAnimatable {
     }
 
     public EntityPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 
     public void setPlayer(EntityPlayer player) {
@@ -120,7 +120,7 @@ public class CustomPlayerEntity implements IAnimatable {
     }
 
     public String getPreviewAnimation() {
-        return previewAnimation;
+        return this.previewAnimation;
     }
 
     public void setPreviewAnimation(String previewAnimation) {
@@ -136,6 +136,6 @@ public class CustomPlayerEntity implements IAnimatable {
     }
 
     public boolean hasPreviewAnimation(String previewAnimation) {
-        return hasPreviewAnimation() && previewAnimation.equals(this.previewAnimation);
+        return this.hasPreviewAnimation() && previewAnimation.equals(this.previewAnimation);
     }
 }

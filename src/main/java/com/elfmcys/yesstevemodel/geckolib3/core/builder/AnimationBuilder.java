@@ -13,19 +13,19 @@ public class AnimationBuilder {
     private final List<RawAnimation> animationList = new ObjectArrayList<>();
 
     public AnimationBuilder addAnimation(String animationName, ILoopType loopType) {
-        animationList.add(new RawAnimation(animationName, loopType));
+        this.animationList.add(new RawAnimation(animationName, loopType));
         return this;
     }
 
     public AnimationBuilder addAnimation(String animationName) {
-        animationList.add(new RawAnimation(animationName, null));
+        this.animationList.add(new RawAnimation(animationName, null));
         return this;
     }
 
     public AnimationBuilder addRepeatingAnimation(String animationName, int timesToRepeat) {
         assert timesToRepeat > 0;
         for (int i = 0; i < timesToRepeat; i++) {
-            addAnimation(animationName, EDefaultLoopTypes.PLAY_ONCE);
+            this.addAnimation(animationName, EDefaultLoopTypes.PLAY_ONCE);
         }
         return this;
     }
@@ -43,11 +43,11 @@ public class AnimationBuilder {
     }
 
     public AnimationBuilder clearAnimations() {
-        animationList.clear();
+        this.animationList.clear();
         return this;
     }
 
     public List<RawAnimation> getRawAnimationList() {
-        return animationList;
+        return this.animationList;
     }
 }

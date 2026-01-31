@@ -15,6 +15,6 @@ public class ACos extends Function {
 
     @Override
     public double get() {
-        return Math.acos(getArg(0));
+        return Math.acos(this.getArg(0));
     }
 }

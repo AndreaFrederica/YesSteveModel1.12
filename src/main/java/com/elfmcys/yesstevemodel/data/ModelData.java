@@ -21,19 +21,19 @@ public final class ModelData {
     }
 
     public String getModelId() {
-        return modelId;
+        return this.modelId;
     }
 
     public Map<String, byte[]> getModel() {
-        return model;
+        return this.model;
     }
 
     public Map<String, byte[]> getTexture() {
-        return texture;
+        return this.texture;
     }
 
     public Map<String, byte[]> getAnimation() {
-        return animation;
+        return this.animation;
     }
 
     public boolean isAuth() {
@@ -45,6 +45,6 @@ public final class ModelData {
     }
 
     public ServerModelInfo getInfo() {
-        return info;
+        return this.info;
     }
 }

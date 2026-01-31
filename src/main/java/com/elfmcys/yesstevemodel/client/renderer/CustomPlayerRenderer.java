@@ -42,7 +42,7 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
                 return;
             }
         }
-        ResourceLocation location = this.modelProvider.getModelLocation(animatable);
+        ResourceLocation location = this.modelProvider.getModelLocation(this.animatable);
         GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(location);
         if (geoModel != null) {
             this.geoModel = geoModel;
@@ -72,6 +72,6 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
 
     @Nullable
     public GeoModel getGeoModel() {
-        return geoModel;
+        return this.geoModel;
     }
 }

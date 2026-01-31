@@ -20,7 +20,7 @@ public class ModelInfoCapability {
     public void setModelAndTexture(ResourceLocation modelId, ResourceLocation selectTexture) {
         this.modelId = modelId;
         this.selectTexture = selectTexture;
-        markDirty();
+        this.markDirty();
     }
 
     public void copyFrom(ModelInfoCapability source) {
@@ -28,47 +28,47 @@ public class ModelInfoCapability {
         this.selectTexture = source.selectTexture;
         this.animation = source.animation;
         this.playAnimation = source.playAnimation;
-        markDirty();
+        this.markDirty();
     }
 
     public ResourceLocation getModelId() {
-        return modelId;
+        return this.modelId;
     }
 
     public ResourceLocation getSelectTexture() {
-        return selectTexture;
+        return this.selectTexture;
     }
 
     public void setSelectTexture(ResourceLocation selectTexture) {
         this.selectTexture = selectTexture;
-        markDirty();
+        this.markDirty();
     }
 
     public void playAnimation(String animation) {
         this.animation = animation;
         this.playAnimation = true;
-        markDirty();
+        this.markDirty();
     }
 
     public void stopAnimation() {
         this.playAnimation = false;
-        markDirty();
+        this.markDirty();
     }
 
     public String getAnimation() {
-        return animation;
+        return this.animation;
     }
 
     public boolean isPlayAnimation() {
-        return playAnimation;
+        return this.playAnimation;
     }
 
     public void markDirty() {
-        dirty = true;
+        this.dirty = true;
     }
 
     public boolean isDirty() {
-        return dirty;
+        return this.dirty;
     }
 
     public void setDirty(boolean dirty) {

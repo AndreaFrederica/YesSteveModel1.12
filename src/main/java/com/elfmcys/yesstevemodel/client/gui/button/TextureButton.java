@@ -32,8 +32,8 @@ public class TextureButton extends Button {
     public void onPress() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
-                cap.setModelAndTexture(modelId, textureId));
-        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(modelId, textureId));
+                cap.setModelAndTexture(this.modelId, this.textureId));
+        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelId, this.textureId));
     }
 
     @Override
@@ -42,7 +42,7 @@ public class TextureButton extends Button {
 
         this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xFF_434242, 0xFF_434242);
         RenderUtil.scissor(this.x, this.y, this.width, this.height - 20);
-        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 24, 35, mc.player, modelId, textureId);
+        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 24, 35, mc.player, this.modelId, this.textureId);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         List<String> split = font.listFormattedStringToWidth(this.name, 50);

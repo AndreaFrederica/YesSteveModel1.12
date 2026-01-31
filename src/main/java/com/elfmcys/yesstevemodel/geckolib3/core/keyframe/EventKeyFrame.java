@@ -15,10 +15,10 @@ public class EventKeyFrame<T> {
     }
 
     public T getEventData() {
-        return eventData;
+        return this.eventData;
     }
 
     public double getStartTick() {
-        return startTick;
+        return this.startTick;
     }
 }

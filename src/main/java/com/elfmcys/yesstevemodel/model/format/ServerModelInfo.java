@@ -25,23 +25,23 @@ public class ServerModelInfo {
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 
     public Set<String> getTextures() {
-        return textures;
+        return this.textures;
     }
 
     public Optional<String> getTexture() {
-        return textures.stream().findFirst();
+        return this.textures.stream().findFirst();
     }
 
     public boolean isNeedAuth() {
-        return needAuth;
+        return this.needAuth;
     }
 
     public String getMd5() {
-        return md5;
+        return this.md5;
     }
 
     public void setMd5(String md5) {

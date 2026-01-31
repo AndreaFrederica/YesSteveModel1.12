@@ -22,27 +22,27 @@ public class ModelInfoCapabilityProvider implements ICapabilitySerializable<NBTT
     @Nullable
     @Override
     public <T> T getCapability(@Nonnull Capability<T> cap, @Nullable EnumFacing side) {
-        if (hasCapability(cap, side)) {
-            return MODEL_INFO_CAP.cast(createCapability());
+        if (this.hasCapability(cap, side)) {
+            return MODEL_INFO_CAP.cast(this.createCapability());
         }
         return null;
     }
 
     @Nonnull
     private ModelInfoCapability createCapability() {
-        if (instance == null) {
+        if (this.instance == null) {
             this.instance = new ModelInfoCapability();
         }
-        return instance;
+        return this.instance;
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        createCapability().deserializeNBT(nbt);
+        this.createCapability().deserializeNBT(nbt);
     }
 
     @Override
     public NBTTagCompound serializeNBT() {
-        return createCapability().serializeNBT();
+        return this.createCapability().serializeNBT();
     }
 }

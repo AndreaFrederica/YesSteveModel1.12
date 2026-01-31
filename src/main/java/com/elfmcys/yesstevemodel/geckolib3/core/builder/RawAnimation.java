@@ -24,10 +24,9 @@ public class RawAnimation {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof RawAnimation)) {
+        if (!(obj instanceof RawAnimation animation)) {
             return false;
         }
-        RawAnimation animation = (RawAnimation) obj;
         return animation.loopType == this.loopType && animation.animationName.equals(this.animationName);
     }
 

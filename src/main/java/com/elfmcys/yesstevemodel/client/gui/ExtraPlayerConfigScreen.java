@@ -33,13 +33,13 @@ public class ExtraPlayerConfigScreen extends Screen {
         int endX = (int) (startX + this.scale * 1);
         int endY = (int) (startY + this.scale * 2);
 
-        this.drawVerticalLine(width / 2 - 1, -2, height + 2, 0x9fffffff);
-        this.drawHorizontalLine(-2, width + 2, height / 2 - 1, 0x9fffffff);
+        this.drawVerticalLine(this.width / 2 - 1, -2, this.height + 2, 0x9fffffff);
+        this.drawHorizontalLine(-2, this.width + 2, this.height / 2 - 1, 0x9fffffff);
 
-        this.drawVerticalLine(10, -2, height + 2, 0x9fffffff);
-        this.drawVerticalLine(width - 10, -2, height + 2, 0x9fffffff);
-        this.drawHorizontalLine(-2, width + 2, 10, 0x9fffffff);
-        this.drawHorizontalLine(-2, width + 2, height - 10, 0x9fffffff);
+        this.drawVerticalLine(10, -2, this.height + 2, 0x9fffffff);
+        this.drawVerticalLine(this.width - 10, -2, this.height + 2, 0x9fffffff);
+        this.drawHorizontalLine(-2, this.width + 2, 10, 0x9fffffff);
+        this.drawHorizontalLine(-2, this.width + 2, this.height - 10, 0x9fffffff);
 
         this.drawVerticalLine(startX, startY, endY, 0xffff0000);
         this.drawVerticalLine(endX, startY, endY, 0xffff0000);
@@ -56,7 +56,7 @@ public class ExtraPlayerConfigScreen extends Screen {
         List<String> split = this.listLineBreakStringToWidth(component, 500);
         for (String charSequence : split) {
             int w = this.fontRenderer.getStringWidth(charSequence);
-            this.drawString(this.fontRenderer, charSequence, width - 15 - w, y, 0xFFFFFF);
+            this.drawString(this.fontRenderer, charSequence, this.width - 15 - w, y, 0xFFFFFF);
             y += 10;
         }
 
@@ -91,13 +91,13 @@ public class ExtraPlayerConfigScreen extends Screen {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int button, int deltaX, int deltaY) {
-        if (isChangeScale) {
+        if (this.isChangeScale) {
             double scale1 = mouseX - this.posX;
             double scale2 = (double) (mouseY - this.posY) / 2;
             this.scale = (float) Math.min(scale1, scale2);
             return;
         }
-        if (isChangePos) {
+        if (this.isChangePos) {
             this.posX = mouseX;
             this.posY = mouseY;
             return;

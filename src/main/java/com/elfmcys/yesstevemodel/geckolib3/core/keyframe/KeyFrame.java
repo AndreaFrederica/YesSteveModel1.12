@@ -40,7 +40,7 @@ public class KeyFrame<T> {
     }
 
     public Double getLength() {
-        return length;
+        return this.length;
     }
 
     public void setLength(Double length) {
@@ -48,7 +48,7 @@ public class KeyFrame<T> {
     }
 
     public T getStartValue() {
-        return startValue;
+        return this.startValue;
     }
 
     public void setStartValue(T startValue) {
@@ -56,7 +56,7 @@ public class KeyFrame<T> {
     }
 
     public T getEndValue() {
-        return endValue;
+        return this.endValue;
     }
 
     public void setEndValue(T endValue) {
@@ -65,11 +65,11 @@ public class KeyFrame<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(length, startValue, endValue);
+        return Objects.hash(this.length, this.startValue, this.endValue);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof KeyFrame && hashCode() == obj.hashCode();
+        return obj instanceof KeyFrame && this.hashCode() == obj.hashCode();
     }
 }

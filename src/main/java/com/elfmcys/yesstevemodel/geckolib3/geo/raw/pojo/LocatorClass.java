@@ -13,7 +13,7 @@ public class LocatorClass implements Serializable {
     private double[] rotation;
 
     public Boolean getIgnoreInheritedScale() {
-        return ignoreInheritedScale;
+        return this.ignoreInheritedScale;
     }
 
     public void setIgnoreInheritedScale(Boolean value) {
@@ -21,7 +21,7 @@ public class LocatorClass implements Serializable {
     }
 
     public double[] getOffset() {
-        return offset;
+        return this.offset;
     }
 
     public void setOffset(double[] value) {
@@ -29,7 +29,7 @@ public class LocatorClass implements Serializable {
     }
 
     public double[] getRotation() {
-        return rotation;
+        return this.rotation;
     }
 
     public void setRotation(double[] value) {

@@ -14,7 +14,7 @@ public class FaceUv implements Serializable {
     private double[] uvSize;
 
     public String getMaterialInstance() {
-        return materialInstance;
+        return this.materialInstance;
     }
 
     public void setMaterialInstance(String value) {
@@ -22,7 +22,7 @@ public class FaceUv implements Serializable {
     }
 
     public double[] getUv() {
-        return uv;
+        return this.uv;
     }
 
     public void setUv(double[] value) {
@@ -30,7 +30,7 @@ public class FaceUv implements Serializable {
     }
 
     public double[] getUvSize() {
-        return uvSize;
+        return this.uvSize;
     }
 
     public void setUvSize(double[] value) {

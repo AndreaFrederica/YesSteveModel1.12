@@ -68,24 +68,24 @@ public class ModelCommand extends CommandBase {
 
     @Override
     public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
-        if (args.length == 0) throw new WrongUsageException(getUsage(sender));
+        if (args.length == 0) throw new WrongUsageException(this.getUsage(sender));
         switch (args[0].toLowerCase()) {
             case RELOAD_NAME -> {
-                if (args.length != 1) throw new WrongUsageException(getUsage(sender));
-                reloadAllPack(server, sender);
+                if (args.length != 1) throw new WrongUsageException(this.getUsage(sender));
+                this.reloadAllPack(server, sender);
             }
             case EXPORT_NAME -> {
-                if (args.length != 1) throw new WrongUsageException(getUsage(sender));
-                exportAllPackInfo(sender);
+                if (args.length != 1) throw new WrongUsageException(this.getUsage(sender));
+                this.exportAllPackInfo(sender);
             }
             case SET_NAME -> {
                 switch (args.length) {
-                    case 4 -> setModel(server, sender, args[1], args[2], args[3], false);
-                    case 5 -> setModel(server, sender, args[1], args[2], args[3], parseBoolean(args[4]));
+                    case 4 -> this.setModel(server, sender, args[1], args[2], args[3], false);
+                    case 5 -> this.setModel(server, sender, args[1], args[2], args[3], parseBoolean(args[4]));
                     default -> throw new WrongUsageException("commands.yes_steve_model.model.set.usage");
                 }
             }
-            default -> throw new WrongUsageException(getUsage(sender));
+            default -> throw new WrongUsageException(this.getUsage(sender));
         }
     }
 
@@ -133,8 +133,8 @@ public class ModelCommand extends CommandBase {
 
     private void reloadAllPack(MinecraftServer server, ICommandSender sender) {
         StopWatch watch = StopWatch.createStarted();
-        checkModelFiles(sender, CUSTOM);
-        checkModelFiles(sender, AUTH);
+        this.checkModelFiles(sender, CUSTOM);
+        this.checkModelFiles(sender, AUTH);
         ServerModelManager.reloadPacks();
         if (FMLCommonHandler.instance().getSide().isClient()) {
             ServerModelManager.sendRequestSyncModelMessage();

@@ -16,8 +16,8 @@ public class OpenModelFolderScreen extends Screen {
 
     @Override
     public void initGui() {
-        int x = (width - 310) / 2;
-        int y = height / 2 + 60;
+        int x = (this.width - 310) / 2;
+        int y = this.height / 2 + 60;
         this.addButton(new Button(x, y, 150, 20, I18n.format("gui.yes_steve_model.open_model_folder.open"), b -> {
             try {
                 Class<?> oclass = Class.forName("java.awt.Desktop");
@@ -36,7 +36,7 @@ public class OpenModelFolderScreen extends Screen {
     public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
         this.drawDefaultBackground();
         this.drawWordWrap(I18n.format("gui.yes_steve_model.open_model_folder.tips"),
-                (width - 400) / 2, height / 2 - 80, 400, 0XFFFFFF);
+                (this.width - 400) / 2, this.height / 2 - 80, 400, 0XFFFFFF);
         super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }
 }

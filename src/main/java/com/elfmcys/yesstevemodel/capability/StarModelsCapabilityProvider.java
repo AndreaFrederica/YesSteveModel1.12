@@ -22,27 +22,27 @@ public class StarModelsCapabilityProvider implements ICapabilitySerializable<NBT
     @Nullable
     @Override
     public <T> T getCapability(@Nonnull Capability<T> cap, @Nullable EnumFacing side) {
-        if (hasCapability(cap, side)) {
-            return STAR_MODELS_CAP.cast(createCapability());
+        if (this.hasCapability(cap, side)) {
+            return STAR_MODELS_CAP.cast(this.createCapability());
         }
         return null;
     }
 
     @Nonnull
     private StarModelsCapability createCapability() {
-        if (instance == null) {
+        if (this.instance == null) {
             this.instance = new StarModelsCapability();
         }
-        return instance;
+        return this.instance;
     }
 
     @Override
     public void deserializeNBT(NBTTagList nbt) {
-        createCapability().deserializeNBT(nbt);
+        this.createCapability().deserializeNBT(nbt);
     }
 
     @Override
     public NBTTagList serializeNBT() {
-        return createCapability().serializeNBT();
+        return this.createCapability().serializeNBT();
     }
 }

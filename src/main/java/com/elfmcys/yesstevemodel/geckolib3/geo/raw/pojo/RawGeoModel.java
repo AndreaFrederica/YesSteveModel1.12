@@ -11,7 +11,7 @@ public class RawGeoModel implements Serializable {
     private MinecraftGeometry[] minecraftGeometry;
 
     public FormatVersion getFormatVersion() {
-        return formatVersion;
+        return this.formatVersion;
     }
 
     public void setFormatVersion(FormatVersion value) {
@@ -19,7 +19,7 @@ public class RawGeoModel implements Serializable {
     }
 
     public MinecraftGeometry[] getMinecraftGeometry() {
-        return minecraftGeometry;
+        return this.minecraftGeometry;
     }
 
     public void setMinecraftGeometry(MinecraftGeometry[] value) {

@@ -23,7 +23,7 @@ public class ConditionalSwing {
         }
         String substring = name.substring(PRE_SIZE);
         if (name.startsWith(ID_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
-            idTest.add(new ResourceLocation(name.substring(PRE_SIZE)));
+            this.idTest.add(new ResourceLocation(name.substring(PRE_SIZE)));
         }
 //        if (name.startsWith(TAG_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
 //            ResourceLocation res = new ResourceLocation(substring);
@@ -39,7 +39,7 @@ public class ConditionalSwing {
         if (player.getHeldItem(hand).isEmpty()) {
             return EMPTY;
         }
-        String result = doIdTest(player, hand);
+        String result = this.doIdTest(player, hand);
 //        if (result.isEmpty()) {
 //            return doTagTest(player, hand);
 //        }
@@ -47,7 +47,7 @@ public class ConditionalSwing {
     }
 
     private String doIdTest(EntityPlayer player, EnumHand hand) {
-        if (idTest.isEmpty()) {
+        if (this.idTest.isEmpty()) {
             return EMPTY;
         }
         ItemStack itemInHand = player.getHeldItem(hand);
@@ -55,7 +55,7 @@ public class ConditionalSwing {
         if (registryName == null) {
             return EMPTY;
         }
-        if (idTest.contains(registryName)) {
+        if (this.idTest.contains(registryName)) {
             return ID_PRE + registryName;
         }
         return EMPTY;

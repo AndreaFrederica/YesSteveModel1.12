@@ -30,31 +30,31 @@ public class AnimationEvent<T extends IAnimatable> {
      * 以动画控制的状态，获取当前动画时间，或者过渡动画时间
      */
     public double getAnimationTick() {
-        return animationTick;
+        return this.animationTick;
     }
 
     public T getAnimatable() {
-        return animatable;
+        return this.animatable;
     }
 
     public float getLimbSwing() {
-        return limbSwing;
+        return this.limbSwing;
     }
 
     public float getLimbSwingAmount() {
-        return limbSwingAmount;
+        return this.limbSwingAmount;
     }
 
     public float getPartialTick() {
-        return partialTick;
+        return this.partialTick;
     }
 
     public boolean isMoving() {
-        return isMoving;
+        return this.isMoving;
     }
 
     public AnimationController<T> getController() {
-        return controller;
+        return this.controller;
     }
 
     public void setController(AnimationController<T> controller) {
@@ -62,7 +62,7 @@ public class AnimationEvent<T extends IAnimatable> {
     }
 
     public List<Object> getExtraData() {
-        return extraData;
+        return this.extraData;
     }
 
     public <D> List<D> getExtraDataOfType(Class<D> type) {

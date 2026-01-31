@@ -15,6 +15,6 @@ public class Memoizer<T, U> {
     }
 
     private Function<T, U> doMemoize(final Function<T, U> function) {
-        return input -> cache.computeIfAbsent(input, function);
+        return input -> this.cache.computeIfAbsent(input, function);
     }
 }

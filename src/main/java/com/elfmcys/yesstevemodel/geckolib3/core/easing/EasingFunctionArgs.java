@@ -11,10 +11,10 @@ public record EasingFunctionArgs(EasingType easingType, Double arg0) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
         EasingFunctionArgs that = (EasingFunctionArgs) o;
-        return easingType == that.easingType && Objects.equals(arg0, that.arg0);
+        return this.easingType == that.easingType && Objects.equals(this.arg0, that.arg0);
     }
 }

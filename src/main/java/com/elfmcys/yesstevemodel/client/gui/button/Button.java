@@ -65,7 +65,7 @@ public class Button extends GuiButton {
         if (i > k) {
             int l = i - k;
             double d0 = (double) System.currentTimeMillis() / (double) 1000.0F;
-            double d1 = Math.max((double) l * (double) 0.5F, (double) 3.0F);
+            double d1 = Math.max((double) l * (double) 0.5F, 3.0F);
             double d2 = Math.sin((Math.PI / 2D) * Math.cos((Math.PI * 2D) * d0 / d1)) / (double) 2.0F + (double) 0.5F;
             double d3 = Interpolations.lerp(0.0F, l, d2);
             RenderUtil.scissor(minX, minY, maxX - minX, maxY - minY);

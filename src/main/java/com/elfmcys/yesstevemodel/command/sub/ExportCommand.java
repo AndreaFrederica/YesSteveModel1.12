@@ -41,8 +41,8 @@ public class ExportCommand extends CommandBase {
 
     @Override
     public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
-        if (args.length != 1) throw new WrongUsageException(getUsage(sender));
-        exportModel(sender, args[0]);
+        if (args.length != 1) throw new WrongUsageException(this.getUsage(sender));
+        this.exportModel(sender, args[0]);
     }
 
     private void exportModel(ICommandSender sender, String modelName) {

@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.mclib.math;
 
 public class Variable implements IValue {
-    private String name;
+    private final String name;
     private double value;
 
     public Variable(String name, double value) {
@@ -19,7 +19,7 @@ public class Variable implements IValue {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     @Override

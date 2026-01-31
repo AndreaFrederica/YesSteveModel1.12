@@ -70,12 +70,12 @@ public final class AnimationManager {
     }
 
     public void register(AnimationState state) {
-        if (data.containsKey(state.priority())) {
-            data.get(state.priority()).add(state);
+        if (this.data.containsKey(state.priority())) {
+            this.data.get(state.priority()).add(state);
         } else {
             LinkedList<AnimationState> states = Lists.newLinkedList();
             states.add(state);
-            data.put(state.priority(), states);
+            this.data.put(state.priority(), states);
         }
     }
 
@@ -111,10 +111,10 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
         for (int i = Priority.HIGHEST; i <= Priority.LOWEST; i++) {
-            if (!data.containsKey(i)) {
+            if (!this.data.containsKey(i)) {
                 continue;
             }
-            LinkedList<AnimationState> states = data.get(i);
+            LinkedList<AnimationState> states = this.data.get(i);
             for (AnimationState state : states) {
                 if (state.predicate().test(player, event)) {
                     String animationName = state.animationName();
@@ -134,7 +134,7 @@ public final class AnimationManager {
         if (player == null) {
             return PlayState.STOP;
         }
-        if (!player.getHeldItemOffhand().isEmpty() && checkSwingAndUse(player, EnumHand.OFF_HAND)) {
+        if (!player.getHeldItemOffhand().isEmpty() && this.checkSwingAndUse(player, EnumHand.OFF_HAND)) {
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
             if (conditionalHold != null) {
@@ -170,7 +170,7 @@ public final class AnimationManager {
             }
         }
 
-        if (!player.getHeldItemMainhand().isEmpty() && checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
+        if (!player.getHeldItemMainhand().isEmpty() && this.checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
             if (conditionalHold != null) {

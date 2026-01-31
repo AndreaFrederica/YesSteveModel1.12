@@ -15,6 +15,6 @@ public class ATan extends Function {
 
     @Override
     public double get() {
-        return Math.atan(getArg(0));
+        return Math.atan(this.getArg(0));
     }
 }
