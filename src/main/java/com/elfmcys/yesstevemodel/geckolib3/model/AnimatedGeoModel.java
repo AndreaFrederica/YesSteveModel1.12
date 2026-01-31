@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.geckolib3.model;
 
-import com.elfmcys.yesstevemodel.geckolib3.animation.AnimationTicker;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatableModel;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
@@ -16,8 +15,10 @@ import com.elfmcys.yesstevemodel.geckolib3.model.provider.GeoModelProvider;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.IAnimatableModelProvider;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 
 import java.util.Collections;
 
@@ -39,24 +40,41 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
 
     @Override
     public void setCustomAnimations(T animatable, int instanceId, AnimationEvent animationEvent) {
-        AnimationData manager = animatable.getFactory().getOrCreateAnimationData(instanceId);
-        if (manager.ticker == null) {
-            AnimationTicker ticker = new AnimationTicker(manager);
-            manager.ticker = ticker;
-            MinecraftForge.EVENT_BUS.register(ticker);
-        }
         Minecraft mc = Minecraft.getMinecraft();
-        this.seekTime = !mc.isGamePaused() || manager.shouldPlayWhilePaused ?
-                manager.tick + mc.getRenderPartialTicks() :
-                manager.tick;
-
+        AnimationData manager = animatable.getFactory().getOrCreateAnimationData(instanceId);
         AnimationEvent<T> predicate;
+        double currentTick = animatable instanceof Entity ? ((EntityLivingBase) animatable).ticksExisted : this.getCurrentTick();
+
+        if (manager.startTick == -1) {
+            manager.startTick = currentTick + mc.getRenderPartialTicks();
+        }
+
+        if (!mc.isGamePaused() || manager.shouldPlayWhilePaused) {
+            if (animatable instanceof EntityLivingBase) {
+                manager.tick = currentTick + mc.getRenderPartialTicks();
+                double gameTick = manager.tick;
+                double deltaTicks = gameTick - this.lastGameTickTime;
+                this.seekTime += deltaTicks;
+                this.lastGameTickTime = gameTick;
+                this.codeAnimations(animatable, instanceId, animationEvent);
+            } else {
+                manager.tick = currentTick - manager.startTick;
+                double gameTick = manager.tick;
+                double deltaTicks = gameTick - this.lastGameTickTime;
+                this.seekTime += deltaTicks;
+                this.lastGameTickTime = gameTick;
+            }
+        }
+
         predicate = animationEvent == null ? new AnimationEvent<>(animatable, 0, 0, (float) (manager.tick - this.lastGameTickTime), false, Collections.emptyList()) : animationEvent;
         predicate.animationTick = this.seekTime;
         this.getAnimationProcessor().preAnimationSetup(predicate.getAnimatable(), this.seekTime);
         if (!this.getAnimationProcessor().getModelRendererList().isEmpty()) {
             this.getAnimationProcessor().tickAnimation(animatable, instanceId, this.seekTime, predicate, GeckoLibCache.getInstance().parser, this.shouldCrashOnMissing);
         }
+    }
+
+    public void codeAnimations(T entity, Integer uniqueID, AnimationEvent<?> customPredicate) {
     }
 
     @Override

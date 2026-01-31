@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
@@ -86,6 +87,9 @@ public class DebugAnimationKey {
             return;
         }
 
+        /*
+        这一段计算模拟的是 GeoReplacedEntityRenderer，需保持对等，以便于调试
+         */
         float lerpBodyRot = Interpolations.lerpYaw(player.prevRenderYawOffset, player.renderYawOffset, partialTick);
         float lerpHeadRot = Interpolations.lerpYaw(player.prevRotationYawHead, player.rotationYawHead, partialTick);
         float netHeadYaw = lerpHeadRot - lerpBodyRot;
@@ -103,7 +107,7 @@ public class DebugAnimationKey {
         }
         float headPitch = Interpolations.lerp(player.prevRotationPitch, player.rotationPitch, partialTick);
         final float outputHeadPitch = -headPitch;
-        final float outputNetHeadYaw = -netHeadYaw;
+        final float outputNetHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
 
         int[] y = {5};
 
@@ -116,6 +120,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "query.body_x_rotation", () -> player.rotationPitch);
         renderText(gui, y, "query.body_y_rotation", () -> MathHelper.wrapDegrees(player.rotationYaw));
         renderText(gui, y, "query.cardinal_facing_2d", player.getHorizontalFacing().getHorizontalIndex());
+        // TODO
         renderText(gui, y, "query.distance_from_camera", () -> Objects.requireNonNull(mc.getRenderViewEntity()).getDistance(player));
         renderText(gui, y, "query.equipment_count", getEquipmentCount(player));
         renderText(gui, y, "query.eye_target_x_rotation", () -> player.rotationPitch);

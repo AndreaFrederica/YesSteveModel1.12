@@ -11,6 +11,7 @@ public class Interpolations {
 
     /**
      * 用于插值 yaw 的特殊插值方法
+     * 坑：lerp 后相减记得 wrap 防止跳变
      */
     public static float lerpYaw(float a, float b, float position) {
         a = MathHelper.wrapDegrees(a);

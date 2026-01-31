@@ -304,6 +304,7 @@ public final class RenderUtil {
         GlStateManager.popMatrix();
     }
 
+    //TODO：光照
     public static void renderPlayerEntity(EntityPlayerSP player, double posX, double posY, float scale, float yawOffset, int z) {
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);

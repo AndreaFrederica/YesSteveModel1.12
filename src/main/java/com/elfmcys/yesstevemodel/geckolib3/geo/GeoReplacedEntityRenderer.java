@@ -118,14 +118,23 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
             double x, double y, double z,
             float entityYaw, float partialTick
     ) {
+        /*
+        LivingEntity -> EntityLivingBase
+        MobEntity -> EntityLiving
+         */
         this.currentAnimatable = animatable;
-        // TODO: entity.isPassenger() looks redundant here
-        boolean shouldSit = /* entity.isPassenger() && */ (entity.getRidingEntity() != null &&
-                entity.getRidingEntity().shouldRiderSit());
+        boolean shouldSit = entity.isRiding() && (entity.getRidingEntity() != null && entity.getRidingEntity().shouldRiderSit());
 
         this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
+
+        if (entity instanceof EntityLiving mob) {
+            Entity leashHolder = mob.getLeashHolder();
+            if (leashHolder != null) {
+                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
+            }
+        }
 
         EntityModelData entityModelData = new EntityModelData();
         entityModelData.isSitting = shouldSit;
@@ -168,7 +177,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         }
         float headPitch = Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick);
         entityModelData.headPitch = -headPitch;
-        entityModelData.netHeadYaw = -netHeadYaw;
+        entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(animatable));
         AnimationEvent predicate = new AnimationEvent(animatable, limbSwing, limbSwingAmount, partialTick,
                 (limbSwingAmount <= -this.getSwingMotionAniMathHelperreshold() || limbSwingAmount <= this.getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
@@ -190,12 +199,6 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
             for (GeoLayerRenderer layerRenderer : this.layerRenderers) {
                 layerRenderer.render(entity, limbSwing, limbSwingAmount, partialTick,
                         lerpedAge, netHeadYaw, headPitch, renderColor);
-            }
-        }
-        if (entity instanceof EntityLiving entityLiving) {
-            Entity leashHolder = entityLiving.getLeashHolder();
-            if (leashHolder != null) {
-                this.renderLeash(entityLiving, x, y, z, entityYaw, partialTick);
             }
         }
         //GlStateManager.popMatrix();
@@ -290,114 +293,111 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         return (float) livingBase.ticksExisted + partialTicks;
     }
 
-    protected void renderLeash(
-            EntityLiving entityLivingIn,
+    protected <E extends Entity> void renderLeash(
+            EntityLiving entity,
             double x, double y, double z,
-            float entityYaw, float partialTicks
+            float entityYaw, float partialTicks,
+            @Nonnull E leashHolder
     ) {
-        @Nullable Entity entity = entityLivingIn.getLeashHolder();
+        y = y - (1.6D - (double) entity.height) * 0.5D;
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuffer();
+        double d0 = Interpolations.lerp(leashHolder.prevRotationYaw, leashHolder.rotationYaw, partialTicks * 0.5F)
+                * 0.01745329238474369D;
+        double d1 = Interpolations.lerp(leashHolder.prevRotationPitch, leashHolder.rotationPitch, partialTicks * 0.5F)
+                * 0.01745329238474369D;
+        double d2 = Math.cos(d0);
+        double d3 = Math.sin(d0);
+        double d4 = Math.sin(d1);
 
-        if (entity != null) {
-            y = y - (1.6D - (double) entityLivingIn.height) * 0.5D;
-            Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder bufferbuilder = tessellator.getBuffer();
-            double d0 = Interpolations.lerp(entity.prevRotationYaw, entity.rotationYaw, partialTicks * 0.5F)
-                    * 0.01745329238474369D;
-            double d1 = Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTicks * 0.5F)
-                    * 0.01745329238474369D;
-            double d2 = Math.cos(d0);
-            double d3 = Math.sin(d0);
-            double d4 = Math.sin(d1);
-
-            if (entity instanceof EntityHanging) {
-                d2 = 0.0D;
-                d3 = 0.0D;
-                d4 = -1.0D;
-            }
-
-            double d5 = Math.cos(d1);
-            double d6 = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks) - d2 * 0.7D
-                    - d3 * 0.5D * d5;
-            double d7 = Interpolations.lerp(entity.prevPosY + (double) entity.getEyeHeight() * 0.7D,
-                    entity.posY + (double) entity.getEyeHeight() * 0.7D, partialTicks) - d4 * 0.5D - 0.25D;
-            double d8 = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks) - d3 * 0.7D
-                    + d2 * 0.5D * d5;
-            double d9 = Interpolations.lerp(entityLivingIn.prevRenderYawOffset,
-                    entityLivingIn.renderYawOffset, partialTicks) * 0.01745329238474369D
-                    + (Math.PI / 2D);
-            d2 = Math.cos(d9) * (double) entityLivingIn.width * 0.4D;
-            d3 = Math.sin(d9) * (double) entityLivingIn.width * 0.4D;
-            double d10 = Interpolations.lerp(entityLivingIn.prevPosX, entityLivingIn.posX, partialTicks)
-                    + d2;
-            double d11 = Interpolations.lerp(entityLivingIn.prevPosY, entityLivingIn.posY, partialTicks);
-            double d12 = Interpolations.lerp(entityLivingIn.prevPosZ, entityLivingIn.posZ, partialTicks)
-                    + d3;
-            x = x + d2;
-            z = z + d3;
-            double d13 = (float) (d6 - d10);
-            double d14 = (float) (d7 - d11);
-            double d15 = (float) (d8 - d12);
-            GlStateManager.disableTexture2D();
-            GlStateManager.disableLighting();
-            GlStateManager.disableCull();
-            bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-            for (int j = 0; j <= 24; ++j) {
-                float f = 0.5F;
-                float f1 = 0.4F;
-                float f2 = 0.3F;
-
-                if (j % 2 == 0) {
-                    f *= 0.7F;
-                    f1 *= 0.7F;
-                    f2 *= 0.7F;
-                }
-
-                float f3 = (float) j / 24.0F;
-                bufferbuilder
-                        .pos(x + d13 * (double) f3 + 0.0D,
-                                y + d14 * (double) (f3 * f3 + f3) * 0.5D
-                                        + (double) ((24.0F - (float) j) / 18.0F + 0.125F),
-                                z + d15 * (double) f3)
-                        .color(f, f1, f2, 1.0F).endVertex();
-                bufferbuilder
-                        .pos(x + d13 * (double) f3 + 0.025D,
-                                y + d14 * (double) (f3 * f3 + f3) * 0.5D
-                                        + (double) ((24.0F - (float) j) / 18.0F + 0.125F) + 0.025D,
-                                z + d15 * (double) f3)
-                        .color(f, f1, f2, 1.0F).endVertex();
-            }
-
-            tessellator.draw();
-            bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-            for (int k = 0; k <= 24; ++k) {
-                float f4 = 0.5F;
-                float f5 = 0.4F;
-                float f6 = 0.3F;
-
-                if (k % 2 == 0) {
-                    f4 *= 0.7F;
-                    f5 *= 0.7F;
-                    f6 *= 0.7F;
-                }
-
-                float f7 = (float) k / 24.0F;
-                bufferbuilder
-                        .pos(x + d13 * (double) f7 + 0.0D,
-                                y + d14 * (double) (f7 * f7 + f7) * 0.5D
-                                        + (double) ((24.0F - (float) k) / 18.0F + 0.125F) + 0.025D,
-                                z + d15 * (double) f7)
-                        .color(f4, f5, f6, 1.0F).endVertex();
-                bufferbuilder.pos(x + d13 * (double) f7 + 0.025D,
-                        y + d14 * (double) (f7 * f7 + f7) * 0.5D + (double) ((24.0F - (float) k) / 18.0F + 0.125F),
-                        z + d15 * (double) f7 + 0.025D).color(f4, f5, f6, 1.0F).endVertex();
-            }
-
-            tessellator.draw();
-            GlStateManager.enableLighting();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableCull();
+        if (leashHolder instanceof EntityHanging) {
+            d2 = 0.0D;
+            d3 = 0.0D;
+            d4 = -1.0D;
         }
+
+        double d5 = Math.cos(d1);
+        double d6 = Interpolations.lerp(leashHolder.prevPosX, leashHolder.posX, partialTicks) - d2 * 0.7D
+                - d3 * 0.5D * d5;
+        double d7 = Interpolations.lerp(leashHolder.prevPosY + (double) leashHolder.getEyeHeight() * 0.7D,
+                leashHolder.posY + (double) leashHolder.getEyeHeight() * 0.7D, partialTicks) - d4 * 0.5D - 0.25D;
+        double d8 = Interpolations.lerp(leashHolder.prevPosZ, leashHolder.posZ, partialTicks) - d3 * 0.7D
+                + d2 * 0.5D * d5;
+        double d9 = Interpolations.lerp(entity.prevRenderYawOffset,
+                entity.renderYawOffset, partialTicks) * 0.01745329238474369D
+                + (Math.PI / 2D);
+        d2 = Math.cos(d9) * (double) entity.width * 0.4D;
+        d3 = Math.sin(d9) * (double) entity.width * 0.4D;
+        double d10 = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks)
+                + d2;
+        double d11 = Interpolations.lerp(entity.prevPosY, entity.posY, partialTicks);
+        double d12 = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks)
+                + d3;
+        x = x + d2;
+        z = z + d3;
+        double d13 = (float) (d6 - d10);
+        double d14 = (float) (d7 - d11);
+        double d15 = (float) (d8 - d12);
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GlStateManager.disableCull();
+        bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
+
+        for (int j = 0; j <= 24; ++j) {
+            float f = 0.5F;
+            float f1 = 0.4F;
+            float f2 = 0.3F;
+
+            if (j % 2 == 0) {
+                f *= 0.7F;
+                f1 *= 0.7F;
+                f2 *= 0.7F;
+            }
+
+            float f3 = (float) j / 24.0F;
+            bufferbuilder
+                    .pos(x + d13 * (double) f3 + 0.0D,
+                            y + d14 * (double) (f3 * f3 + f3) * 0.5D
+                                    + (double) ((24.0F - (float) j) / 18.0F + 0.125F),
+                            z + d15 * (double) f3)
+                    .color(f, f1, f2, 1.0F).endVertex();
+            bufferbuilder
+                    .pos(x + d13 * (double) f3 + 0.025D,
+                            y + d14 * (double) (f3 * f3 + f3) * 0.5D
+                                    + (double) ((24.0F - (float) j) / 18.0F + 0.125F) + 0.025D,
+                            z + d15 * (double) f3)
+                    .color(f, f1, f2, 1.0F).endVertex();
+        }
+
+        tessellator.draw();
+        bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
+
+        for (int k = 0; k <= 24; ++k) {
+            float f4 = 0.5F;
+            float f5 = 0.4F;
+            float f6 = 0.3F;
+
+            if (k % 2 == 0) {
+                f4 *= 0.7F;
+                f5 *= 0.7F;
+                f6 *= 0.7F;
+            }
+
+            float f7 = (float) k / 24.0F;
+            bufferbuilder
+                    .pos(x + d13 * (double) f7 + 0.0D,
+                            y + d14 * (double) (f7 * f7 + f7) * 0.5D
+                                    + (double) ((24.0F - (float) k) / 18.0F + 0.125F) + 0.025D,
+                            z + d15 * (double) f7)
+                    .color(f4, f5, f6, 1.0F).endVertex();
+            bufferbuilder.pos(x + d13 * (double) f7 + 0.025D,
+                    y + d14 * (double) (f7 * f7 + f7) * 0.5D + (double) ((24.0F - (float) k) / 18.0F + 0.125F),
+                    z + d15 * (double) f7 + 0.025D).color(f4, f5, f6, 1.0F).endVertex();
+        }
+
+        tessellator.draw();
+        GlStateManager.enableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableCull();
     }
 }
