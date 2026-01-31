@@ -2,36 +2,38 @@ package com.elfmcys.yesstevemodel.client.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
+import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.event.api.SpecialPlayerRenderEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
+import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import com.elfmcys.yesstevemodel.util.AnimatableCacheUtil;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.ExecutionException;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = YesSteveModel.MOD_ID)
+// TODO：测试
+@Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
 public class RenderFirstPlayerBackground {
     private static final String NAME = "Background";
     /**
@@ -46,27 +48,27 @@ public class RenderFirstPlayerBackground {
 
     @SubscribeEvent
     public static void onRenderHand(RenderHandEvent event) {
-        if (GeneralConfig.DISABLE_SELF_MODEL.get()) {
+        if (true) return;
+        if (GeneralConfig.DISABLE_SELF_MODEL) {
             return;
         }
-        if (GeneralConfig.DISABLE_SELF_HANDS.get()) {
+        if (GeneralConfig.DISABLE_SELF_HANDS) {
             return;
         }
-        ClientPlayerEntity player = Minecraft.getInstance().player;
+        EntityPlayerSP player = Minecraft.getMinecraft().player;
         if (player == null || ALREADY_RENDERED) {
             return;
         }
         ALREADY_RENDERED = true;
-        player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
             GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(ModelIdUtil.getArmId(cap.getModelId()));
             if (geoModel == null || !geoModel.hasTopLevelBone(NAME)) {
                 return;
             }
-            CustomPlayerRenderer instance = RegisterEntityRenderersEvent.getInstance();
-            MatrixStack poseStack = event.getMatrixStack();
-            IRenderTypeBuffer multiBufferSource = event.getBuffers();
-            IVertexBuilder buffer;
+            CustomPlayerRenderer instance = ClientProxy.getInstance();
+            Tessellator tess = Tessellator.getInstance();
+            BufferBuilder buffer = tess.getBuffer();
             IAnimatable animatable;
 
             try {
@@ -79,33 +81,31 @@ public class RenderFirstPlayerBackground {
                 throw new RuntimeException(e);
             }
 
-            if (animatable instanceof CustomPlayerEntity) {
-                CustomPlayerEntity customPlayer = (CustomPlayerEntity) animatable;
+            if (animatable instanceof CustomPlayerEntity customPlayer) {
                 customPlayer.setTexture(cap.getSelectTexture());
                 if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(player, customPlayer, modelId))) {
                     return;
                 }
-                buffer = multiBufferSource.getBuffer(RenderType.entityTranslucent(customPlayer.getTexture()));
-                int packedLight = event.getLight();
+                buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
                 if (instance != null) {
-                    poseStack.pushPose();
-                    if (Minecraft.getInstance().options.bobView) {
-                        bobView(poseStack, event.getPartialTicks(), player);
+                    GlStateManager.pushMatrix();
+                    if (Minecraft.getMinecraft().gameSettings.viewBobbing) {
+                        bobView(event.getPartialTicks(), player);
                     }
-                    poseStack.translate(0, -1.5, 0);
-                    geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(bone, poseStack, buffer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1));
-                    poseStack.popPose();
+                    GlStateManager.translate(0, -1.5, 0);
+                    geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(buffer, bone, 1.0F, 1.0F, 1.0F, 1.0F));
+                    GlStateManager.popMatrix();
                 }
             }
         });
     }
 
-    private static void bobView(MatrixStack pMatrixStack, float pPartialTicks, PlayerEntity player) {
-        float walk = player.walkDist - player.walkDistO;
-        float walk2 = -(player.walkDist + walk * pPartialTicks);
-        float lerp = MathHelper.lerp(pPartialTicks, player.oBob, player.bob);
-        pMatrixStack.translate(-MathHelper.sin(walk2 * (float) Math.PI) * lerp * 0.5F, Math.abs(MathHelper.cos(walk2 * (float) Math.PI) * lerp), 0.0D);
-        pMatrixStack.mulPose(Vector3f.ZN.rotationDegrees(MathHelper.sin(walk2 * (float) Math.PI) * lerp * 3.0F));
-        pMatrixStack.mulPose(Vector3f.XN.rotationDegrees(Math.abs(MathHelper.cos(walk2 * (float) Math.PI - 0.2F) * lerp) * 5.0F));
+    private static void bobView(float pPartialTicks, EntityPlayerSP player) {
+        float walk = player.distanceWalkedModified - player.prevDistanceWalkedModified;
+        float walk2 = -(player.distanceWalkedModified + walk * pPartialTicks);
+        float lerp = Interpolations.lerp(player.prevCameraYaw, player.cameraYaw, pPartialTicks);
+        GlStateManager.translate(-MathHelper.sin(walk2 * (float) Math.PI) * lerp * 0.5F, Math.abs(MathHelper.cos(walk2 * (float) Math.PI) * lerp), 0.0D);
+        GlStateManager.rotate(MathHelper.sin(walk2 * (float) Math.PI) * lerp * 3.0F, 0, 0, 1);
+        GlStateManager.rotate(Math.abs(MathHelper.cos(walk2 * (float) Math.PI - 0.2F) * lerp) * 5.0F, 1, 0, 0);
     }
 }

@@ -4,30 +4,27 @@ import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.input.ExtraAnimationKey;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetPlayAnimation;
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.util.InputMappings;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+
+import java.io.IOException;
 
 public class AnimationRouletteScreen extends Screen {
     private int x;
@@ -36,17 +33,15 @@ public class AnimationRouletteScreen extends Screen {
     private String[] names;
 
     public AnimationRouletteScreen() {
-        super(new StringTextComponent("Animation Roulette GUI"));
     }
 
     @Override
-    @Keep
-    protected void init() {
+    public void initGui() {
         this.x = width / 2;
         this.y = height / 2 - 8;
 
-        if (minecraft != null && minecraft.player != null) {
-            minecraft.player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        if (this.mc != null && this.mc.player != null) {
+            CapabilityEvent.getCapability(this.mc.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
                 ResourceLocation modelId = cap.getModelId();
                 if (ClientModelManager.EXTRA_ANIMATION_NAME.containsKey(ModelIdUtil.getMainId(modelId))) {
                     this.names = ClientModelManager.EXTRA_ANIMATION_NAME.get(ModelIdUtil.getMainId(modelId));
@@ -56,101 +51,99 @@ public class AnimationRouletteScreen extends Screen {
     }
 
     @Override
-    @Keep
-    public void render(MatrixStack poseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        drawRoulette(poseStack, pMouseX, pMouseY);
-        drawRouletteText(poseStack);
+    public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
+        drawRoulette(pMouseX, pMouseY);
+        drawRouletteText();
     }
 
     @Override
-    @Keep
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (-1 < selectId && selectId < 8 && minecraft != null) {
-            minecraft.getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    public void mouseClicked(int pMouseX, int pMouseY, int pButton) throws IOException {
+        if (-1 < selectId && selectId < 8 && mc != null) {
+            mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             NetworkHandler.CHANNEL.sendToServer(new SetPlayAnimation(selectId));
-            if (minecraft.player != null && GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG.get()) {
-                minecraft.player.sendMessage(new TranslationTextComponent("message.yes_steve_model.model.animation_roulette.play", selectId), Util.NIL_UUID);
+            if (mc.player != null && GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG) {
+                mc.player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.animation_roulette.play", selectId));
             }
-            minecraft.setScreen(null);
+            mc.displayGuiScreen(null);
         }
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+        super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 
     @Override
-    @Keep
-    public boolean isPauseScreen() {
+    public boolean doesGuiPauseGame() {
         return false;
     }
 
-    private void drawRouletteText(MatrixStack poseStack) {
+    private void drawRouletteText() {
         int count = 8;
         float startDeg = (float) Math.PI / count;
         for (int i = 0; i < count; i++) {
             int r = 65;
-            IFormattableTextComponent keyText = new StringTextComponent("[ ").withStyle(TextFormatting.YELLOW);
+            String keyText = TextFormatting.YELLOW + "[ ";
             KeyBinding keyMapping = ExtraAnimationKey.EXTRA_ANIMATION_KEYS.get(i);
-            if (keyMapping.getKey() == InputMappings.UNKNOWN) {
-                keyText.append(new TranslationTextComponent("key.yes_steve_model.extra_animation.none"));
+            if (keyMapping.getKeyCode() == Keyboard.KEY_NONE) {
+                keyText += I18n.format("key.yes_steve_model.extra_animation.none");
             } else {
-                keyText.append(keyMapping.getTranslatedKeyMessage());
+                keyText += keyMapping.getDisplayName();
             }
-            keyText.append(" ]");
+            keyText += " ]";
             if (this.names != null && this.names.length > i && StringUtils.isNoneBlank(this.names[i])) {
-                drawCenteredString(poseStack, font, new StringTextComponent(this.names[i]), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 - 8), 0xF3EFE0);
+                drawCenteredString(this.fontRenderer, this.names[i], (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
             } else {
-                drawCenteredString(poseStack, font, String.valueOf(i), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 - 8), 0xF3EFE0);
+                drawCenteredString(this.fontRenderer, String.valueOf(i), (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 - 8), 0xF3EFE0);
             }
-            drawCenteredString(poseStack, font, keyText, (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - font.lineHeight / 2 + 4), 0xF3EFE0);
+            drawCenteredString(this.fontRenderer, keyText, (int) (x + r * MathHelper.cos(startDeg)), (int) (y + r * MathHelper.sin(startDeg) - (float) this.fontRenderer.FONT_HEIGHT / 2 + 4), 0xF3EFE0);
             startDeg = startDeg + 2 * (float) Math.PI / count;
         }
     }
 
-    private void drawRoulette(MatrixStack pMatrixStack, int mouseX, int mouseY) {
-        RenderSystem.disableTexture();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    private void drawRoulette(int mouseX, int mouseY) {
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         Tessellator tesselator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tesselator.getBuilder();
+        BufferBuilder bufferbuilder = tesselator.getBuffer();
         bufferbuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        Matrix4f pMatrix = pMatrixStack.last().pose();
 
         int count = 8;
         float theta = (float) MathHelper.atan2(mouseY - y, mouseX - x);
         if (theta < 0) {
             theta = (float) Math.PI * 2 + theta;
         }
-        float distance = MathHelper.sqrt(MathHelper.square(mouseY - y) + MathHelper.square(mouseX - x));
+        float dx = mouseX - x;
+        float dy = mouseY - y;
+        float distance = MathHelper.sqrt(dx * dx + dy * dy);
         boolean isSelected = false;
         for (int i = 0; i < count; i++) {
             float spacingDeg = (float) Math.PI / 90;
             float startDeg = (2 * (float) Math.PI / count) * i + spacingDeg;
             float endDeg = (2 * (float) Math.PI / count) * (i + 1) - spacingDeg;
             if (startDeg < theta && theta < endDeg && 50 < distance && distance < 100) {
-                drawFan(bufferbuilder, pMatrix, 25, 105, startDeg, endDeg, 0xf0FFB100);
+                drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0xf0FFB100);
                 isSelected = true;
                 this.selectId = i;
             } else {
-                drawFan(bufferbuilder, pMatrix, 25, 105, startDeg, endDeg, 0x90000000);
+                drawFan(bufferbuilder, 25, 105, startDeg, endDeg, 0x90000000);
             }
         }
         if (!isSelected) {
             this.selectId = -1;
         }
 
-        tesselator.end();
-        RenderSystem.disableBlend();
-        RenderSystem.enableTexture();
+        tesselator.draw();
+        GlStateManager.disableBlend();
+        GlStateManager.enableTexture2D();
     }
 
-    private void drawFan(BufferBuilder builder, Matrix4f matrix4f, float rIn, float rOut, float startDeg, float endDeg, int color) {
+    private void drawFan(BufferBuilder builder, float rIn, float rOut, float startDeg, float endDeg, int color) {
         float alpha = (color >> 24 & 255) / 255.0F;
         float red = (color >> 16 & 255) / 255.0F;
         float green = (color >> 8 & 255) / 255.0F;
         float blue = (color & 255) / 255.0F;
-        builder.vertex(matrix4f, x + rOut * MathHelper.cos(startDeg), y + rOut * MathHelper.sin(startDeg), this.getBlitOffset()).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix4f, x + rIn * MathHelper.cos(startDeg), y + rIn * MathHelper.sin(startDeg), this.getBlitOffset()).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix4f, x + rIn * MathHelper.cos(endDeg), y + rIn * MathHelper.sin(endDeg), this.getBlitOffset()).color(red, green, blue, alpha).endVertex();
-        builder.vertex(matrix4f, x + rOut * MathHelper.cos(endDeg), y + rOut * MathHelper.sin(endDeg), this.getBlitOffset()).color(red, green, blue, alpha).endVertex();
+        builder.pos(x + rOut * MathHelper.cos(startDeg), y + rOut * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(x + rIn * MathHelper.cos(startDeg), y + rIn * MathHelper.sin(startDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(x + rIn * MathHelper.cos(endDeg), y + rIn * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
+        builder.pos(x + rOut * MathHelper.cos(endDeg), y + rOut * MathHelper.sin(endDeg), this.zLevel).color(red, green, blue, alpha).endVertex();
     }
 }

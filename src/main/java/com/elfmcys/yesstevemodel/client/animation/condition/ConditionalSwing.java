@@ -1,58 +1,56 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
+import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ITag;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Hand;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.List;
 
 public class ConditionalSwing {
     private static final String ID_PRE = "swing$";
-    private static final String TAG_PRE = "swing#";
+    //private static final String TAG_PRE = "swing#";
     private static final String EMPTY = "";
     private static final int PRE_SIZE = 6;
     private final List<ResourceLocation> idTest = Lists.newArrayList();
-    private final List<ResourceLocation> tagTest = Lists.newArrayList();
+    //private final List<ResourceLocation> tagTest = Lists.newArrayList();
 
     public void addTest(String name) {
         if (name.length() <= PRE_SIZE) {
             return;
         }
         String substring = name.substring(PRE_SIZE);
-        if (name.startsWith(ID_PRE) && ResourceLocation.isValidResourceLocation(substring)) {
+        if (name.startsWith(ID_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
             idTest.add(new ResourceLocation(name.substring(PRE_SIZE)));
         }
-        if (name.startsWith(TAG_PRE) && ResourceLocation.isValidResourceLocation(substring)) {
-            ResourceLocation res = new ResourceLocation(substring);
-            ITag<Item> tag = ItemTags.getAllTags().getTag(res);
-            if (tag == null) {
-                return;
-            }
-            tagTest.add(res);
-        }
+//        if (name.startsWith(TAG_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
+//            ResourceLocation res = new ResourceLocation(substring);
+//            ITag<Item> tag = ItemTags.getAllTags().getTag(res);
+//            if (tag == null) {
+//                return;
+//            }
+//            tagTest.add(res);
+//        }
     }
 
-    public String doTest(PlayerEntity player, Hand hand) {
-        if (player.getItemInHand(hand).isEmpty()) {
+    public String doTest(EntityPlayer player, EnumHand hand) {
+        if (player.getHeldItem(hand).isEmpty()) {
             return EMPTY;
         }
         String result = doIdTest(player, hand);
-        if (result.isEmpty()) {
-            return doTagTest(player, hand);
-        }
+//        if (result.isEmpty()) {
+//            return doTagTest(player, hand);
+//        }
         return result;
     }
 
-    private String doIdTest(PlayerEntity player, Hand hand) {
+    private String doIdTest(EntityPlayer player, EnumHand hand) {
         if (idTest.isEmpty()) {
             return EMPTY;
         }
-        ItemStack itemInHand = player.getItemInHand(hand);
+        ItemStack itemInHand = player.getHeldItem(hand);
         ResourceLocation registryName = itemInHand.getItem().getRegistryName();
         if (registryName == null) {
             return EMPTY;
@@ -63,17 +61,17 @@ public class ConditionalSwing {
         return EMPTY;
     }
 
-    private String doTagTest(PlayerEntity player, Hand hand) {
-        if (tagTest.isEmpty()) {
-            return EMPTY;
-        }
-        Item itemInHand = player.getItemInHand(hand).getItem();
-        return tagTest.stream().filter(itemTagKey -> {
-            ITag<Item> tag = ItemTags.getAllTags().getTag(itemTagKey);
-            if (tag != null) {
-                return tag.contains(itemInHand);
-            }
-            return false;
-        }).findFirst().map(itemTagKey -> TAG_PRE + itemTagKey).orElse(EMPTY);
-    }
+//    private String doTagTest(EntityPlayer player, EnumHand hand) {
+//        if (tagTest.isEmpty()) {
+//            return EMPTY;
+//        }
+//        Item itemInHand = player.getHeldItem(hand).getItem();
+//        return tagTest.stream().filter(itemTagKey -> {
+//            ITag<Item> tag = ItemTags.getAllTags().getTag(itemTagKey);
+//            if (tag != null) {
+//                return tag.contains(itemInHand);
+//            }
+//            return false;
+//        }).findFirst().map(itemTagKey -> TAG_PRE + itemTagKey).orElse(EMPTY);
+//    }
 }

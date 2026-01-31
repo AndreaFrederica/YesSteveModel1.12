@@ -1,24 +1,24 @@
 package com.elfmcys.yesstevemodel.event.api;
 
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.fml.common.eventhandler.Cancelable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 
 @Cancelable
 public class SpecialPlayerRenderEvent extends Event {
-    private final PlayerEntity player;
+    private final EntityPlayer player;
     private final CustomPlayerEntity customPlayer;
     private final ResourceLocation modelId;
 
-    public SpecialPlayerRenderEvent(PlayerEntity player, CustomPlayerEntity customPlayer, ResourceLocation modelId) {
+    public SpecialPlayerRenderEvent(EntityPlayer player, CustomPlayerEntity customPlayer, ResourceLocation modelId) {
         this.player = player;
         this.customPlayer = customPlayer;
         this.modelId = modelId;
     }
 
-    public PlayerEntity getPlayer() {
+    public EntityPlayer getPlayer() {
         return player;
     }
 

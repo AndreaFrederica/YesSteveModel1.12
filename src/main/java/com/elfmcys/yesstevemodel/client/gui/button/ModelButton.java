@@ -3,24 +3,21 @@ package com.elfmcys.yesstevemodel.client.gui.button;
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetModelAndTexture;
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.IReorderingProcessor;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class ModelButton extends Button {
@@ -28,10 +25,10 @@ public class ModelButton extends Button {
     private final Pair<ResourceLocation, List<ResourceLocation>> modelInfo;
     private final boolean needAuth;
     private final int color;
-    private final List<ITextComponent> tooltips;
+    private final @Nullable List<String> tooltips;
 
-    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo, List<ITextComponent> tooltips) {
-        super(pX, pY, 52, 90, new StringTextComponent(modelInfo.getLeft().getPath()), (b) -> {
+    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo, @Nullable List<String> tooltips) {
+        super(pX, pY, 52, 90, modelInfo.getLeft().getPath(), (b) -> {
         });
         this.modelInfo = modelInfo;
         this.needAuth = needAuth;
@@ -40,82 +37,63 @@ public class ModelButton extends Button {
     }
 
     @Override
-    @Keep
     public void onPress() {
-        if (needAuth) {
+        if (this.needAuth) {
             return;
         }
-        ClientPlayerEntity player = Minecraft.getInstance().player;
-        if (player != null) {
-            player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
-                    cap.setModelAndTexture(modelInfo.getLeft(), modelInfo.getRight().get(0)));
-        }
+        EntityPlayerSP player = Minecraft.getMinecraft().player;
+        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+                cap.setModelAndTexture(modelInfo.getLeft(), modelInfo.getRight().get(0)));
         NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(modelInfo.getLeft(), modelInfo.getRight().get(0)));
     }
 
     @Override
-    @Keep
-    public void renderButton(MatrixStack poseStack, int mouseX, int mouseY, float partialTick) {
-        Minecraft minecraft = Minecraft.getInstance();
-        FontRenderer font = minecraft.font;
+    public void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTick) {
+        FontRenderer font = mc.fontRenderer;
 
-        fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, this.color, this.color);
-        MainWindow window = Minecraft.getInstance().getWindow();
-        double scale = window.getGuiScale();
-        int scissorX = (int) (this.x * scale);
-        int scissorY = (int) (window.getHeight() - ((this.y + this.height - 20) * scale));
-        int scissorW = (int) (this.width * scale);
-        int scissorH = (int) ((this.height - 20) * scale);
-        RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
-        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 20, 30, minecraft.player, modelInfo.getLeft(), modelInfo.getRight().get(0));
-        RenderSystem.disableScissor();
+        this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, this.color, this.color);
+        RenderUtil.scissor(this.x, this.y, this.width, this.height - 20);
+        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 20, 30, mc.player, modelInfo.getLeft(), modelInfo.getRight().get(0));
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-        ITextComponent message = this.getMessage();
-        List<IReorderingProcessor> split = font.split(message, 45);
+        List<String> split = font.listFormattedStringToWidth(this.displayString, 45);
         if (split.size() > 1) {
-            drawCenteredString(poseStack, font, split.get(0), this.x + this.width / 2, this.y + this.height - 19, 0xF3EFE0);
-            drawCenteredString(poseStack, font, split.get(1), this.x + this.width / 2, this.y + this.height - 10, 0xF3EFE0);
+            this.drawCenteredString(font, split.get(0), this.x + this.width / 2, this.y + this.height - 19, 0xF3EFE0);
+            this.drawCenteredString(font, split.get(1), this.x + this.width / 2, this.y + this.height - 10, 0xF3EFE0);
         } else {
-            drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + this.height - 15, 0xF3EFE0);
+            this.drawCenteredString(font, this.displayString, this.x + this.width / 2, this.y + this.height - 15, 0xF3EFE0);
         }
-        if (!this.needAuth && this.isHovered()) {
-            fillGradient(poseStack, this.x, this.y + 1, this.x + 1, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
-            fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + 1, 0xff_F3EFE0, 0xff_F3EFE0);
-            fillGradient(poseStack, this.x + this.width - 1, this.y + 1, this.x + this.width, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
-            fillGradient(poseStack, this.x, this.y + this.height - 1, this.x + this.width, this.y + this.height, 0xff_F3EFE0, 0xff_F3EFE0);
-        }
-
-        if (minecraft.player != null) {
-            minecraft.player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
-                if (cap.containModel(modelInfo.getLeft())) {
-                    minecraft.getTextureManager().bind(ICON);
-                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-                    RenderSystem.enableBlend();
-                    RenderSystem.defaultBlendFunc();
-                    RenderSystem.enableDepthTest();
-                    blit(poseStack, this.x + this.width - 14, this.y, 16, 16, 16, 0, 16, 16, 256, 256);
-                }
-            });
+        if (!this.needAuth && this.isMouseOver()) {
+            this.drawGradientRect(this.x, this.y + 1, this.x + 1, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
+            this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + 1, 0xff_F3EFE0, 0xff_F3EFE0);
+            this.drawGradientRect(this.x + this.width - 1, this.y + 1, this.x + this.width, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
+            this.drawGradientRect(this.x, this.y + this.height - 1, this.x + this.width, this.y + this.height, 0xff_F3EFE0, 0xff_F3EFE0);
         }
 
-        if (needAuth) {
-            fillGradient(poseStack, this.x, this.y, this.x + this.width, this.y + this.height, 0x9f_222222, 0x9f_222222);
+        CapabilityEvent.getCapability(mc.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+            if (cap.containModel(this.modelInfo.getLeft())) {
+                mc.getTextureManager().bindTexture(ICON);
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                GlStateManager.enableBlend();
+                GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                GlStateManager.enableDepth();
+                this.drawTexturedModalRect(this.x + this.width - 14, this.y, 16, 0, 16, 16);
+            }
+        });
+
+        if (this.needAuth) {
+            this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0x9f_222222, 0x9f_222222);
         }
     }
 
-    public void renderComponentTooltip(Screen screen, MatrixStack pPoseStack, int pMouseX, int pMouseY) {
-        if (this.isHovered && tooltips != null) {
-            screen.renderComponentTooltip(pPoseStack, tooltips, pMouseX, pMouseY);
+    public void renderComponentTooltip(GuiScreen screen, int pMouseX, int pMouseY) {
+        if (this.isMouseOver() && this.tooltips != null) {
+            screen.drawHoveringText(this.tooltips, pMouseX, pMouseY);
         }
     }
 
     @Override
-    @Keep
-    protected boolean clicked(double pMouseX, double pMouseY) {
-        return !this.needAuth && super.clicked(pMouseX, pMouseY);
-    }
-
-    private static void drawCenteredString(MatrixStack poseStack, FontRenderer pFont, IReorderingProcessor processor, int pX, int pY, int color) {
-        pFont.drawShadow(poseStack, processor, (float) (pX - pFont.width(processor) / 2), (float) pY, color);
+    public boolean mousePressed(@Nonnull Minecraft mc, int mouseX, int mouseY) {
+        return !this.needAuth && super.mousePressed(mc, mouseX, mouseY);
     }
 }

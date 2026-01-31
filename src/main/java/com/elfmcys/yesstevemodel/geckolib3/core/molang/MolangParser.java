@@ -10,7 +10,6 @@ import com.elfmcys.yesstevemodel.mclib.math.Constant;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.MathBuilder;
 import com.elfmcys.yesstevemodel.mclib.math.Variable;
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -70,7 +69,6 @@ public class MolangParser extends MathBuilder {
     }
 
     @Override
-    @Keep
     public void register(Variable variable) {
         if (!(variable instanceof LazyVariable)) {
             variable = LazyVariable.from(variable);
@@ -98,7 +96,6 @@ public class MolangParser extends MathBuilder {
     }
 
     @Override
-    @Keep
     protected LazyVariable getVariable(String name) {
         return VARIABLES.computeIfAbsent(name, key -> new LazyVariable(key, 0));
     }
@@ -204,7 +201,6 @@ public class MolangParser extends MathBuilder {
      * 这样就能更加轻松解析赋值表达式
      */
     @Override
-    @Keep
     protected boolean isOperator(String s) {
         return super.isOperator(s) || s.equals("=");
     }

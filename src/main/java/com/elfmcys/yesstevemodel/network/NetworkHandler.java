@@ -2,55 +2,52 @@ package com.elfmcys.yesstevemodel.network;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.network.message.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.fml.common.network.NetworkCheckHandler;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.relauncher.Side;
 
-import java.util.Optional;
+import javax.annotation.Nonnull;
+import java.util.Map;
 
 public final class NetworkHandler {
     private static final String VERSION = "1.0.0";
-    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(YesSteveModel.MOD_ID, "network"),
-            () -> VERSION, it -> it.equals(VERSION), it -> it.equals(VERSION));
+    public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(YesSteveModel.MOD_ID + ":" + "network");
 
     public static void init() {
-        CHANNEL.registerMessage(0, SyncModelFiles.class, SyncModelFiles::encode, SyncModelFiles::decode, SyncModelFiles::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(1, SendModelFile.class, SendModelFile::encode, SendModelFile::decode, SendModelFile::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(2, RequestSyncModel.class, RequestSyncModel::encode, RequestSyncModel::decode, RequestSyncModel::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(3, RequestLoadModel.class, RequestLoadModel::encode, RequestLoadModel::decode, RequestLoadModel::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(4, SyncModelInfo.class, SyncModelInfo::encode, SyncModelInfo::decode, SyncModelInfo::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(5, SetModelAndTexture.class, SetModelAndTexture::encode, SetModelAndTexture::decode, SetModelAndTexture::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(6, SyncAuthModels.class, SyncAuthModels::encode, SyncAuthModels::decode, SyncAuthModels::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(7, SetPlayAnimation.class, SetPlayAnimation::encode, SetPlayAnimation::decode, SetPlayAnimation::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(8, SyncStarModels.class, SyncStarModels::encode, SyncStarModels::decode, SyncStarModels::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(9, SetStarModel.class, SetStarModel::encode, SetStarModel::decode, SetStarModel::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(10, RequestServerModelInfo.class, RequestServerModelInfo::encode, RequestServerModelInfo::decode, RequestServerModelInfo::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(11, UploadFile.class, UploadFile::encode, UploadFile::decode, UploadFile::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(12, CompleteFeedback.class, CompleteFeedback::encode, CompleteFeedback::decode, CompleteFeedback::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(13, RefreshModelManage.class, RefreshModelManage::encode, RefreshModelManage::decode, RefreshModelManage::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(14, HandleFile.class, HandleFile::encode, HandleFile::decode, HandleFile::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(SyncModelFiles.Handler.class, SyncModelFiles.class, 0, Side.SERVER);
+        CHANNEL.registerMessage(SendModelFile.Handler.class, SendModelFile.class, 1, Side.CLIENT);
+        CHANNEL.registerMessage(RequestSyncModel.Handler.class, RequestSyncModel.class, 2, Side.CLIENT);
+        CHANNEL.registerMessage(RequestLoadModel.Handler.class, RequestLoadModel.class, 3, Side.CLIENT);
+        CHANNEL.registerMessage(SyncModelInfo.Handler.class, SyncModelInfo.class, 4, Side.CLIENT);
+        CHANNEL.registerMessage(SetModelAndTexture.Handler.class, SetModelAndTexture.class, 5, Side.SERVER);
+        CHANNEL.registerMessage(SyncAuthModels.Handler.class, SyncAuthModels.class, 6, Side.CLIENT);
+        CHANNEL.registerMessage(SetPlayAnimation.Handler.class, SetPlayAnimation.class, 7, Side.SERVER);
+        CHANNEL.registerMessage(SyncStarModels.Handler.class, SyncStarModels.class, 8, Side.CLIENT);
+        CHANNEL.registerMessage(SetStarModel.Handler.class, SetStarModel.class, 9, Side.SERVER);
+        CHANNEL.registerMessage(RequestServerModelInfo.Handler.class, RequestServerModelInfo.class, 10, Side.CLIENT);
+        CHANNEL.registerMessage(UploadFile.Handler.class, UploadFile.class, 11, Side.SERVER);
+        CHANNEL.registerMessage(CompleteFeedback.Handler.class, CompleteFeedback.class, 12, Side.CLIENT);
+        CHANNEL.registerMessage(RefreshModelManage.Handler.class, RefreshModelManage.class, 13, Side.SERVER);
+        CHANNEL.registerMessage(HandleFile.Handler.class, HandleFile.class, 14, Side.SERVER);
     }
 
-    public static void sendToClientPlayer(Object message, PlayerEntity player) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+    public static void sendToClientPlayer(IMessage message, EntityPlayer player) {
+        if (player instanceof EntityPlayerMP playerMP) {
+            CHANNEL.sendTo(message, playerMP);
+        }
+    }
+
+    @NetworkCheckHandler
+    @SuppressWarnings("unused")
+    public boolean checkVersion(@Nonnull Map<String, String> mods, Side side) {
+        if (mods.containsKey(YesSteveModel.MOD_ID)) {
+            String remoteVersion = mods.get(YesSteveModel.MOD_ID);
+            return VERSION.equals(remoteVersion);
+        }
+        return false; // 客户端必装
     }
 }

@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 
@@ -40,7 +39,6 @@ public enum FormatVersion {
 
     protected static class Serializer implements JsonSerializer<FormatVersion>, JsonDeserializer<FormatVersion> {
         @Override
-        @Keep
         public FormatVersion deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             try {
                 return FormatVersion.forValue(json.getAsString());
@@ -50,7 +48,6 @@ public enum FormatVersion {
         }
 
         @Override
-        @Keep
         public JsonElement serialize(FormatVersion src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(src.toValue());
         }

@@ -5,69 +5,77 @@ import com.elfmcys.yesstevemodel.model.format.Type;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class RequestServerModelInfo {
-    private final List<Info> customModels;
-    private final List<Info> authModels;
+public class RequestServerModelInfo implements IPacketBufferMessage {
+    private List<Info> customModels;
+    private List<Info> authModels;
+
+    public RequestServerModelInfo() {
+    }
 
     public RequestServerModelInfo(List<Info> customModels, List<Info> authModels) {
         this.customModels = customModels;
         this.authModels = authModels;
     }
 
-    public static void encode(RequestServerModelInfo message, PacketBuffer buf) {
-        buf.writeVarInt(message.customModels.size());
-        for (Info info : message.customModels) {
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeVarInt(this.customModels.size());
+        for (Info info : this.customModels) {
             infoToBuffer(buf, info);
         }
-        buf.writeVarInt(message.authModels.size());
-        for (Info info : message.authModels) {
+        buf.writeVarInt(this.authModels.size());
+        for (Info info : this.authModels) {
             infoToBuffer(buf, info);
         }
     }
 
-    public static RequestServerModelInfo decode(PacketBuffer buf) {
-        List<Info> outCustomModels = Lists.newArrayList();
-        List<Info> outAuthModels = Lists.newArrayList();
-        int customModelsSize = buf.readVarInt();
-        for (int i = 0; i < customModelsSize; i++) {
-            outCustomModels.add(bufferToInfo(buf));
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.customModels = Lists.newArrayList();
+        int customSize = buf.readVarInt();
+        for (int i = 0; i < customSize; i++) {
+            this.customModels.add(bufferToInfo(buf));
         }
-        int authModelsSize = buf.readVarInt();
-        for (int i = 0; i < authModelsSize; i++) {
-            outAuthModels.add(bufferToInfo(buf));
+        this.authModels = Lists.newArrayList();
+        int authSize = buf.readVarInt();
+        for (int i = 0; i < authSize; i++) {
+            this.authModels.add(bufferToInfo(buf));
         }
-        return new RequestServerModelInfo(outCustomModels, outAuthModels);
     }
 
-    public static void handle(RequestServerModelInfo message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isClient()) {
-            context.enqueueWork(() -> openGui(message));
+    public static class Handler implements IMessageHandler<RequestServerModelInfo, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(RequestServerModelInfo message, MessageContext ctx) {
+            if (ctx.side.isClient()) {
+                handleClient(message);
+            }
+            return null;
         }
-        context.setPacketHandled(true);
-    }
 
-    @OnlyIn(Dist.CLIENT)
-    private static void openGui(RequestServerModelInfo message) {
-        Minecraft mc = Minecraft.getInstance();
-        mc.setScreen(new ModelManageScreen(message.customModels, message.authModels));
+        @SideOnly(Side.CLIENT)
+        private static void handleClient(RequestServerModelInfo message) {
+            Minecraft.getMinecraft().addScheduledTask(() -> Minecraft.getMinecraft().displayGuiScreen(new ModelManageScreen(message.customModels, message.authModels)));
+        }
     }
 
     private static void infoToBuffer(PacketBuffer buf, Info info) {
-        buf.writeUtf(info.fileName);
-        buf.writeEnum(info.type);
+        buf.writeString(info.fileName);
+        buf.writeEnumValue(info.type);
         buf.writeLong(info.size);
     }
 
     private static Info bufferToInfo(PacketBuffer buf) {
-        return new Info(buf.readUtf(), buf.readEnum(Type.class), buf.readLong());
+        return new Info(buf.readString(Short.MAX_VALUE), buf.readEnumValue(Type.class), buf.readLong());
     }
 
     public static class Info {

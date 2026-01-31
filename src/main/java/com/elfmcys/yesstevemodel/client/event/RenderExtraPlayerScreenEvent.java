@@ -5,33 +5,33 @@ import com.elfmcys.yesstevemodel.client.gui.ExtraPlayerConfigScreen;
 import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraftforge.api.distmarker.Dist;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = YesSteveModel.MOD_ID)
+@Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
 public class RenderExtraPlayerScreenEvent {
     @SubscribeEvent
     public static void render(RenderGameOverlayEvent.Text event) {
-        if (ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER.get()) {
+        if (ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER) {
             return;
         }
 
-        Minecraft mc = Minecraft.getInstance();
-        ClientPlayerEntity player = mc.player;
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayerSP player = mc.player;
         if (player == null) {
             return;
         }
-        if (mc.screen instanceof ExtraPlayerConfigScreen) {
+        if (mc.currentScreen instanceof ExtraPlayerConfigScreen) {
             return;
         }
 
-        double posX = ExtraPlayerScreenConfig.PLAYER_POS_X.get();
-        double posY = ExtraPlayerScreenConfig.PLAYER_POS_Y.get();
-        float scale = ExtraPlayerScreenConfig.PLAYER_SCALE.get().floatValue();
-        float yawOffset = ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET.get().floatValue();
+        double posX = ExtraPlayerScreenConfig.PLAYER_POS_X;
+        double posY = ExtraPlayerScreenConfig.PLAYER_POS_Y;
+        float scale = ExtraPlayerScreenConfig.PLAYER_SCALE;
+        float yawOffset = ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET;
 
         RenderUtil.renderPlayerEntity(player, posX, posY, scale, yawOffset, -500);
     }

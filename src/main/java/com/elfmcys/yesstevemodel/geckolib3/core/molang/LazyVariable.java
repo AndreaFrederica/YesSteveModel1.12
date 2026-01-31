@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang;
 
 import com.elfmcys.yesstevemodel.mclib.math.Variable;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 import java.util.function.DoubleSupplier;
 
@@ -27,7 +26,6 @@ public class LazyVariable extends Variable {
     }
 
     @Override
-    @Keep
     public void set(double value) {
         this.valueSupplier = () -> value;
     }
@@ -37,7 +35,6 @@ public class LazyVariable extends Variable {
     }
 
     @Override
-    @Keep
     public double get() {
         return this.valueSupplier.getAsDouble();
     }

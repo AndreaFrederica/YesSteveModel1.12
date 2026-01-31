@@ -20,7 +20,7 @@ public class AnimationData {
     private final Map<String, AnimationController> animationControllers = new Object2ObjectLinkedOpenHashMap<>();
     public double tick;
     public boolean isFirstTick = true;
-    public double startTick = -1;
+    public Object ticker;
     public boolean shouldPlayWhilePaused = false;
     private Map<String, Pair<IBone, BoneSnapshot>> boneSnapshotCollection;
     private double resetTickLength = 1;

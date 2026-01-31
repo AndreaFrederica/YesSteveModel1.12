@@ -4,7 +4,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.AnimationProcessor;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 @SuppressWarnings("rawtypes")
 public interface IAnimatableModel<E> {
@@ -13,7 +12,6 @@ public interface IAnimatableModel<E> {
      *
      * @return 当前的 tick
      */
-    @Keep
     default double getCurrentTick() {
         return System.nanoTime() / 1000000.0 / 50.0;
     }
@@ -24,7 +22,6 @@ public interface IAnimatableModel<E> {
      * @param animatable 对象
      * @param instanceId 实例 ID
      */
-    @Keep
     default void setCustomAnimations(E animatable, int instanceId) {
         setCustomAnimations(animatable, instanceId, null);
     }
@@ -36,7 +33,6 @@ public interface IAnimatableModel<E> {
      * @param instanceId     实例 ID
      * @param animationEvent 动画事件
      */
-    @Keep
     default void setCustomAnimations(E animatable, int instanceId, AnimationEvent animationEvent) {
     }
 
@@ -45,7 +41,6 @@ public interface IAnimatableModel<E> {
      *
      * @return AnimationProcessor
      */
-    @Keep
     AnimationProcessor getAnimationProcessor();
 
     /**
@@ -55,7 +50,6 @@ public interface IAnimatableModel<E> {
      * @param animatable 对象
      * @return 动画
      */
-    @Keep
     Animation getAnimation(String name, IAnimatable animatable);
 
     /**
@@ -64,7 +58,6 @@ public interface IAnimatableModel<E> {
      * @param boneName 骨骼名
      * @return IBone
      */
-    @Keep
     default IBone getBone(String boneName) {
         IBone bone = getAnimationProcessor().getBone(boneName);
         if (bone == null) {
@@ -79,6 +72,5 @@ public interface IAnimatableModel<E> {
      * @param animatable 对象
      * @param seekTime   动画时间？？
      */
-    @Keep
     void setMolangQueries(IAnimatable animatable, double seekTime);
 }

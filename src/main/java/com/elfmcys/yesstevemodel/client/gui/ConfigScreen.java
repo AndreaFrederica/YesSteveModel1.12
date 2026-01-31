@@ -2,41 +2,55 @@ package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.gui.button.ConfigCheckBox;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatColorButton;
+import com.elfmcys.yesstevemodel.config.Config;
 import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
-import com.elfmcys.yesstevemodel.util.Keep;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+
+import javax.annotation.Nonnull;
 
 public class ConfigScreen extends Screen {
     private final PlayerModelScreen parent;
 
     public ConfigScreen(PlayerModelScreen parent) {
-        super(new StringTextComponent("YSM Config GUI"));
         this.parent = parent;
     }
 
     @Override
-    @Keep
-    protected void init() {
-        int x = (width - 420) / 2;
-        int y = (height - 235) / 2;
+    public void initGui() {
+        int x = (this.width - 420) / 2;
+        int y = (this.height - 235) / 2;
 
-        addButton(new FlatColorButton(x + 5, y, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model.return"), (b) -> this.getMinecraft().setScreen(parent)));
+        this.addButton(new FlatColorButton(x + 5, y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> this.mc.displayGuiScreen(parent)));
 
-        addButton(new ConfigCheckBox(x + 5, y + 25, "disable_self_model", GeneralConfig.DISABLE_SELF_MODEL));
-        addButton(new ConfigCheckBox(x + 5, y + 47, "disable_other_model", GeneralConfig.DISABLE_OTHER_MODEL));
-        addButton(new ConfigCheckBox(x + 5, y + 69, "print_animation_roulette_msg", GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG));
-        addButton(new ConfigCheckBox(x + 5, y + 91, "disable_self_hands", GeneralConfig.DISABLE_SELF_HANDS));
-        addButton(new ConfigCheckBox(x + 5, y + 112, "disable_player_render", ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER));
+        this.addButton(new ConfigCheckBox(x + 5, y + 25, "disable_self_model", this.fontRenderer,
+                GeneralConfig.DISABLE_SELF_MODEL, (value) -> GeneralConfig.DISABLE_SELF_MODEL = value));
+        this.addButton(new ConfigCheckBox(x + 5, y + 47, "disable_other_model", this.fontRenderer,
+                GeneralConfig.DISABLE_OTHER_MODEL, (value) -> GeneralConfig.DISABLE_OTHER_MODEL = value));
+        this.addButton(new ConfigCheckBox(x + 5, y + 69, "print_animation_roulette_msg", this.fontRenderer,
+                GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG, (value) -> GeneralConfig.PRINT_ANIMATION_ROULETTE_MSG = value));
+        this.addButton(new ConfigCheckBox(x + 5, y + 91, "disable_self_hands", this.fontRenderer,
+                GeneralConfig.DISABLE_SELF_HANDS, (value) -> GeneralConfig.DISABLE_SELF_HANDS = value));
+        this.addButton(new ConfigCheckBox(x + 5, y + 112, "disable_player_render", this.fontRenderer,
+                ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER, (value) -> ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER = value));
     }
 
     @Override
-    @Keep
-    public void render(MatrixStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pPoseStack);
-        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+    public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
+        this.drawDefaultBackground();
+        super.drawScreen(pMouseX, pMouseY, pPartialTick);
+    }
+
+    @Override
+    public void onGuiClosed() {
+        Config.save();
+        super.onGuiClosed();
+    }
+
+    @Override
+    public void onResize(@Nonnull Minecraft mc, int width, int height) {
+        Config.save();
+        super.onResize(mc, width, height);
     }
 }

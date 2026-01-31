@@ -13,9 +13,8 @@ import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationFactory;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.GeckoLibUtil;
-import com.elfmcys.yesstevemodel.util.Keep;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +27,7 @@ public class CustomPlayerEntity implements IAnimatable {
     private ResourceLocation mainModel = CustomPlayerModel.DEFAULT_MAIN_MODEL;
     private ResourceLocation texture = CustomPlayerModel.DEFAULT_TEXTURE;
     private String previewAnimation = "";
-    private PlayerEntity player = null;
+    private EntityPlayer player = null;
 
     @Nonnull
     private static <P extends IAnimatable> PlayState playLoopAnimation(AnimationEvent<P> event, String animationName) {
@@ -40,7 +39,6 @@ public class CustomPlayerEntity implements IAnimatable {
      * 越往后优先级越高
      */
     @Override
-    @Keep
     @SuppressWarnings("all")
     public void registerControllers(AnimationData data) {
         AnimationManager manager = AnimationManager.getInstance();
@@ -59,8 +57,8 @@ public class CustomPlayerEntity implements IAnimatable {
             String animationName = String.format("parallel%d", i);
             data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
         }
-        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
-            if (slot.getType() == EquipmentSlotType.Group.ARMOR) {
+        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
+            if (slot.getSlotType() == EntityEquipmentSlot.Type.ARMOR) {
                 String controllerName = String.format("%s_controller", slot.getName());
                 data.addAnimationController(new AnimationController(this, controllerName, 0, e -> manager.predicateArmor(e, slot)));
             }
@@ -70,7 +68,7 @@ public class CustomPlayerEntity implements IAnimatable {
 
     public ResourceLocation getMainModel() {
         if (GeckoLibCache.getInstance().getGeoModels().containsKey(this.mainModel)) {
-            return mainModel;
+            return this.mainModel;
         }
         return CustomPlayerModel.DEFAULT_MAIN_MODEL;
     }
@@ -81,7 +79,7 @@ public class CustomPlayerEntity implements IAnimatable {
 
     public ResourceLocation getAnimation() {
         if (GeckoLibCache.getInstance().getAnimations().containsKey(this.mainModel)) {
-            return mainModel;
+            return this.mainModel;
         }
         return CustomPlayerModel.DEFAULT_MAIN_ANIMATION;
     }
@@ -100,22 +98,21 @@ public class CustomPlayerEntity implements IAnimatable {
         return 0.7f;
     }
 
-    public PlayerEntity getPlayer() {
+    public EntityPlayer getPlayer() {
         return player;
     }
 
-    public void setPlayer(PlayerEntity player) {
+    public void setPlayer(EntityPlayer player) {
         this.player = player;
     }
 
     @Override
-    @Keep
     public AnimationFactory getFactory() {
         return this.factory;
     }
 
     public ResourceLocation getTexture() {
-        return texture;
+        return this.texture;
     }
 
     public void setTexture(ResourceLocation texture) {

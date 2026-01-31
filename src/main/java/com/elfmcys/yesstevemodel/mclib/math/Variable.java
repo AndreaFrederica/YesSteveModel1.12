@@ -1,7 +1,5 @@
 package com.elfmcys.yesstevemodel.mclib.math;
 
-import com.elfmcys.yesstevemodel.util.Keep;
-
 public class Variable implements IValue {
     private String name;
     private double value;
@@ -16,7 +14,6 @@ public class Variable implements IValue {
     }
 
     @Override
-    @Keep
     public double get() {
         return this.value;
     }
@@ -26,7 +23,6 @@ public class Variable implements IValue {
     }
 
     @Override
-    @Keep
     public String toString() {
         return this.name;
     }

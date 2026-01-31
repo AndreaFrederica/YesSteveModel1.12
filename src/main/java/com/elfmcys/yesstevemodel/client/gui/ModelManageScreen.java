@@ -9,18 +9,15 @@ import com.elfmcys.yesstevemodel.network.message.HandleFile;
 import com.elfmcys.yesstevemodel.network.message.RefreshModelManage;
 import com.elfmcys.yesstevemodel.network.message.RequestServerModelInfo;
 import com.elfmcys.yesstevemodel.network.message.UploadFile;
-import com.elfmcys.yesstevemodel.util.Keep;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
+import javax.annotation.Nonnull;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -31,8 +28,8 @@ public class ModelManageScreen extends Screen {
     private static final int MAX_COUNT = 13;
     private final List<RequestServerModelInfo.Info> customModels;
     private final List<RequestServerModelInfo.Info> authModels;
-    private volatile TranslationTextComponent uploadError = null;
-    private TextFieldWidget textField;
+    private volatile String uploadError = null;
+    private GuiTextField textField;
     private static boolean isCustomModels = true;
     private int index = -1;
     private Action action = Action.EMPTY;
@@ -42,7 +39,6 @@ public class ModelManageScreen extends Screen {
     private int y;
 
     public ModelManageScreen(List<RequestServerModelInfo.Info> customModels, List<RequestServerModelInfo.Info> authModels) {
-        super(new StringTextComponent("Model Manage Screen"));
         this.customModels = customModels;
         this.authModels = authModels;
     }
@@ -55,10 +51,7 @@ public class ModelManageScreen extends Screen {
     }
 
     @Override
-    @Keep
-    protected void init() {
-        this.buttons.clear();
-        this.children.clear();
+    public void initGui() {
         this.calculateList();
         this.x = (width - 420) / 2;
         this.y = (height - 235) / 2;
@@ -75,7 +68,7 @@ public class ModelManageScreen extends Screen {
 
     private void addExtraButtons() {
         if (this.action != Action.UPLOAD || StringUtils.isNoneBlank(UploadManager.FILE_PATH)) {
-            addButton(new FlatColorButton(x + 270, y + 235 - 23, 70, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.confirm"), (b) -> {
+            addButton(new FlatColorButton(x + 270, y + 235 - 23, 70, 18, I18n.format("gui.yes_steve_model.model_manage.confirm"), (b) -> {
                 boolean canConfirm = false;
                 if (index >= 0 && index < getModels().size()) {
                     RequestServerModelInfo.Info info = getModels().get(index);
@@ -88,8 +81,8 @@ public class ModelManageScreen extends Screen {
                         NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "move", ""));
                         canConfirm = true;
                     }
-                    if (this.action == Action.RENAME && StringUtils.isNotBlank(this.textField.getValue())) {
-                        String value = this.textField.getValue();
+                    if (this.action == Action.RENAME && StringUtils.isNotBlank(this.textField.getText())) {
+                        String value = this.textField.getText();
                         String fileName = info.getFileName();
                         if (info.getType() == Type.FOLDER && !value.equals(fileName)) {
                             NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "rename", value));
@@ -115,32 +108,31 @@ public class ModelManageScreen extends Screen {
                     NetworkHandler.CHANNEL.sendToServer(new RefreshModelManage());
                 }
             }));
-            addButton(new FlatColorButton(x + 345, y + 235 - 23, 70, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.cancel"), (b) -> {
+            addButton(new FlatColorButton(x + 345, y + 235 - 23, 70, 18, I18n.format("gui.yes_steve_model.model_manage.cancel"), (b) -> {
                 this.action = Action.EMPTY;
-                this.init();
+                this.refreshGui();
             }));
         }
         if (this.action == Action.RENAME) {
-            textField = new TextFieldWidget(getMinecraft().font, x + 270, y + 51, 145, 14, new StringTextComponent("YSM Rename Box"));
+            textField = new GuiTextField(0, this.fontRenderer, x + 270, y + 51, 145, 14);
             textField.setTextColor(0xF3EFE0);
-            textField.setMaxLength(24);
-            textField.moveCursorToEnd();
-            this.addWidget(this.textField);
+            textField.setMaxStringLength(24);
+            textField.setCursorPositionEnd();
         }
     }
 
     private void addActionButtons() {
-        addButton(new FlatColorButton(x + 5, y + 235 - 23, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.delete"), (b) -> {
+        addButton(new FlatColorButton(x + 5, y + 235 - 23, 80, 18, I18n.format("gui.yes_steve_model.model_manage.delete"), (b) -> {
             this.action = Action.DELETE;
-            this.init();
+            this.refreshGui();
         }));
-        addButton(new FlatColorButton(x + 90, y + 235 - 23, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.move"), (b) -> {
+        addButton(new FlatColorButton(x + 90, y + 235 - 23, 80, 18, I18n.format("gui.yes_steve_model.model_manage.move"), (b) -> {
             this.action = Action.MOVE;
-            this.init();
+            this.refreshGui();
         }));
-        addButton(new FlatColorButton(x + 175, y + 235 - 23, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.rename"), (b) -> {
+        addButton(new FlatColorButton(x + 175, y + 235 - 23, 80, 18, I18n.format("gui.yes_steve_model.model_manage.rename"), (b) -> {
             this.action = Action.RENAME;
-            this.init();
+            this.refreshGui();
         }));
     }
 
@@ -156,7 +148,7 @@ public class ModelManageScreen extends Screen {
             ModelInfoButton modelInfoButton = new ModelInfoButton(x + 5, modelsY, 12, info, (b) -> {
                 this.index = finalIndex;
                 this.action = Action.EMPTY;
-                this.init();
+                this.refreshGui();
             });
             if (this.index == i) {
                 modelInfoButton.setSelect(true);
@@ -167,51 +159,51 @@ public class ModelManageScreen extends Screen {
     }
 
     private void addPageButtons() {
-        addButton(new FlatColorButton(x + 5, y + 28, 80, 18, new StringTextComponent("<"), (b) -> {
+        addButton(new FlatColorButton(x + 5, y + 28, 80, 18, "<", (b) -> {
             if (page > 0) {
                 page--;
-                this.init();
+                this.refreshGui();
             }
         }));
-        addButton(new FlatColorButton(x + 260 - 85, y + 28, 80, 18, new StringTextComponent(">"), (b) -> {
+        addButton(new FlatColorButton(x + 260 - 85, y + 28, 80, 18, ">", (b) -> {
             if ((page + 1) * MAX_COUNT < this.modelsCount) {
                 page++;
-                this.init();
+                this.refreshGui();
             }
         }));
     }
 
     private void addTopButtons() {
-        FlatColorButton customButton = new FlatColorButton(x + 5, y + 5, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.custom"), (b) -> {
+        FlatColorButton customButton = new FlatColorButton(x + 5, y + 5, 80, 18, I18n.format("gui.yes_steve_model.model_manage.custom"), (b) -> {
             if (!isCustomModels) {
                 isCustomModels = true;
                 this.index = -1;
                 page = 0;
                 this.action = Action.EMPTY;
-                this.init();
+                this.refreshGui();
             }
         });
         customButton.setSelect(isCustomModels);
         addButton(customButton);
 
-        FlatColorButton authButton = new FlatColorButton(x + 90, y + 5, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.auth"), (b) -> {
+        FlatColorButton authButton = new FlatColorButton(x + 90, y + 5, 80, 18, I18n.format("gui.yes_steve_model.model_manage.auth"), (b) -> {
             if (isCustomModels) {
                 isCustomModels = false;
                 this.index = -1;
                 page = 0;
                 this.action = Action.EMPTY;
-                this.init();
+                this.refreshGui();
             }
         });
         authButton.setSelect(!isCustomModels);
         addButton(authButton);
 
-        addButton(new FlatColorButton(x + 175, y + 5, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model_manage.upload"), (b) -> {
+        addButton(new FlatColorButton(x + 175, y + 5, 80, 18, I18n.format("gui.yes_steve_model.model_manage.upload"), (b) -> {
             if (UploadManager.STATUE == UploadManager.Statue.FULFILL) {
                 UploadManager.FILE_PATH = "";
             }
             this.action = Action.UPLOAD;
-            this.init();
+            this.refreshGui();
             if (UploadManager.STATUE == UploadManager.Statue.FULFILL) {
                 new Thread(this::getUploadFilePath).start();
             }
@@ -219,23 +211,28 @@ public class ModelManageScreen extends Screen {
     }
 
     private void getUploadFilePath() {
-        String uploadFilePath = TinyFileDialogs.tinyfd_openFileDialog(I18n.get("gui.yes_steve_model.model_manage.open_file"), null, null, null, false);
-        if (StringUtils.isBlank(uploadFilePath)) {
+        FileDialog dialog = new FileDialog((Frame) null, I18n.format("gui.yes_steve_model.model_manage.open_file"), FileDialog.LOAD);
+        dialog.setMultipleMode(false);
+        dialog.setVisible(true);
+
+        String directory = dialog.getDirectory();
+        String filename = dialog.getFile();
+        if (StringUtils.isBlank(directory) || StringUtils.isBlank(filename)) {
             return;
         }
-        File file = Paths.get(uploadFilePath).toFile();
+        File file = new File(directory, filename);
         if (file.isFile()) {
             this.uploadError = null;
             if (!file.getName().endsWith("zip") && !file.getName().endsWith("ysm")) {
-                this.uploadError = new TranslationTextComponent("gui.yes_steve_model.model_manage.error.format_incorrect");
+                this.uploadError = I18n.format("gui.yes_steve_model.model_manage.error.format_incorrect");
                 return;
             }
             if (FileUtils.sizeOf(file) > 32000) {
-                this.uploadError = new TranslationTextComponent("gui.yes_steve_model.model_manage.error.too_large");
+                this.uploadError = I18n.format("gui.yes_steve_model.model_manage.error.too_large");
                 return;
             }
-            UploadManager.FILE_PATH = uploadFilePath;
-            Minecraft.getInstance().submit(() -> this.init());
+            UploadManager.FILE_PATH = file.getAbsolutePath();
+            Minecraft.getMinecraft().addScheduledTask(this::refreshGui);
         }
     }
 
@@ -251,46 +248,44 @@ public class ModelManageScreen extends Screen {
     }
 
     @Override
-    @Keep
-    public void render(MatrixStack poseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(poseStack);
-        fillGradient(poseStack, x, y, x + 260, y + 235, 0xff_222222, 0xff_222222);
-        fillGradient(poseStack, x + 265, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
-        fillGradient(poseStack, x + 270, y + 5, x + 415, y + 23, 0xff_434242, 0xff_434242);
+    public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
+        this.drawDefaultBackground();
+        this.drawGradientRect(x, y, x + 260, y + 235, 0xff_222222, 0xff_222222);
+        this.drawGradientRect(x + 265, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
+        this.drawGradientRect(x + 270, y + 5, x + 415, y + 23, 0xff_434242, 0xff_434242);
 
-        drawCenteredString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.action_info"), x + 342, y + 11, 0xFFFFFF);
-        drawString(poseStack, font, String.format("%d/%d", page + 1, (this.modelsCount - 1) / MAX_COUNT + 1), x + 120, y + 33, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.action_info"), x + 342, y + 11, 0xFFFFFF);
+        this.drawString(this.fontRenderer, String.format("%d/%d", page + 1, (this.modelsCount - 1) / MAX_COUNT + 1), x + 120, y + 33, 0xFFFFFF);
 
         if (this.action == Action.UPLOAD) {
-            String folder = isCustomModels ? I18n.get("gui.yes_steve_model.model_manage.custom") : I18n.get("gui.yes_steve_model.model_manage.auth");
-            String actionName = I18n.get("gui.yes_steve_model.model_manage." + this.action.name().toLowerCase(Locale.US));
-            drawString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.selected", folder), x + 272, y + 29, 0xFFFFFF);
-            drawString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.action", actionName), x + 272, y + 39, 0xFFFFFF);
-            String uploadStatue = I18n.get("gui.yes_steve_model.model_manage.upload.statue." + UploadManager.STATUE.name().toLowerCase(Locale.US));
-            drawString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.upload.statue", uploadStatue), x + 272, y + 49, 0xFFFFFF);
-            String fileUpload = I18n.get("gui.yes_steve_model.model_manage.file.empty");
+            String folder = isCustomModels ? I18n.format("gui.yes_steve_model.model_manage.custom") : I18n.format("gui.yes_steve_model.model_manage.auth");
+            String actionName = I18n.format("gui.yes_steve_model.model_manage." + this.action.name().toLowerCase(Locale.US));
+            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.selected", TextFormatting.RESET + folder), x + 272, y + 29, 0xFFFFFF);
+            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.action", TextFormatting.RESET + actionName), x + 272, y + 39, 0xFFFFFF);
+            String uploadStatue = I18n.format("gui.yes_steve_model.model_manage.upload.statue." + UploadManager.STATUE.name().toLowerCase(Locale.US));
+            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.upload.statue", TextFormatting.RESET + uploadStatue), x + 272, y + 49, 0xFFFFFF);
+            String fileUpload = I18n.format("gui.yes_steve_model.model_manage.file.empty");
             if (StringUtils.isNoneBlank(UploadManager.FILE_PATH)) {
                 fileUpload = UploadManager.FILE_PATH;
             }
-            int yOffset = font.wordWrapHeight(fileUpload, 145);
-            font.drawWordWrap(new TranslationTextComponent("gui.yes_steve_model.model_manage.file", fileUpload), x + 272, y + 59, 145, 0xFFFFFF);
+            int yOffset = this.drawWordWrap(I18n.format("gui.yes_steve_model.model_manage.file", TextFormatting.RESET + fileUpload), x + 272, y + 59, 145, 0xFFFFFF);
             if (this.uploadError != null) {
-                font.drawWordWrap(uploadError, x + 272, y + 60 + yOffset, 145, 0xFFFFFF);
+                this.drawWordWrap(uploadError, x + 272, y + 60 + yOffset, 145, 0xFFFFFF);
             }
         }
 
         if (index >= 0 && index < getModels().size() && this.action != Action.UPLOAD) {
             RequestServerModelInfo.Info info = getModels().get(this.index);
-            drawString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.selected", info.getFileName()), x + 272, y + 29, 0xFFFFFF);
+            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.selected", TextFormatting.RESET + info.getFileName()), x + 272, y + 29, 0xFFFFFF);
             if (this.action != Action.EMPTY) {
-                String actionName = I18n.get("gui.yes_steve_model.model_manage." + this.action.name().toLowerCase(Locale.US));
-                drawString(poseStack, font, new TranslationTextComponent("gui.yes_steve_model.model_manage.action", actionName), x + 272, y + 39, 0xFFFFFF);
+                String actionName = I18n.format("gui.yes_steve_model.model_manage." + this.action.name().toLowerCase(Locale.US));
+                this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.action", TextFormatting.RESET + actionName), x + 272, y + 39, 0xFFFFFF);
             }
             if (this.action == Action.RENAME && textField != null) {
-                textField.render(poseStack, pMouseX, pMouseY, pPartialTick);
+                textField.drawTextBox();
             }
         }
-        super.render(poseStack, pMouseX, pMouseY, pPartialTick);
+        super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }
 
     private List<RequestServerModelInfo.Info> getModels() {
@@ -301,21 +296,25 @@ public class ModelManageScreen extends Screen {
     }
 
     @Override
-    @Keep
-    public void resize(Minecraft minecraft, int width, int height) {
-        super.resize(minecraft, width, height);
+    public void keyTyped(char codePoint, int modifiers) throws IOException {
+        if (this.textField != null && this.textField.textboxKeyTyped(codePoint, modifiers)) return;
+        super.keyTyped(codePoint, modifiers);
+    }
+
+    @Override
+    public void onResize(@Nonnull Minecraft minecraft, int width, int height) {
+        super.onResize(minecraft, width, height);
         if (textField != null) {
-            String value = this.textField.getValue();
-            super.resize(minecraft, width, height);
-            this.textField.setValue(value);
+            String value = this.textField.getText();
+            super.onResize(minecraft, width, height);
+            this.textField.setText(value);
         }
     }
 
     @Override
-    @Keep
-    public void tick() {
+    public void updateScreen() {
         if (textField != null) {
-            this.textField.tick();
+            this.textField.updateCursorCounter();
         }
     }
 

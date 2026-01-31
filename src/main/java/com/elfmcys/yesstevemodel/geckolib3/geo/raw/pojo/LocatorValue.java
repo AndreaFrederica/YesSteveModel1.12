@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 
@@ -14,7 +13,6 @@ public class LocatorValue implements Serializable {
 
     protected static class Serializer implements JsonSerializer<LocatorValue>, JsonDeserializer<LocatorValue> {
         @Override
-        @Keep
         public LocatorValue deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             LocatorValue result = new LocatorValue();
             if (json.isJsonArray()) {
@@ -26,7 +24,6 @@ public class LocatorValue implements Serializable {
         }
 
         @Override
-        @Keep
         public JsonElement serialize(LocatorValue src, Type typeOfSrc, JsonSerializationContext context) {
             return src.locatorClassValue != null ?
                     context.serialize(src.locatorClassValue) :

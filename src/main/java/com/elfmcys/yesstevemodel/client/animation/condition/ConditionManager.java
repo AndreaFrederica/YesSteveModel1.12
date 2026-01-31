@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
 import com.google.common.collect.Maps;
-import net.minecraft.util.Hand;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.Map;
@@ -16,10 +16,10 @@ public class ConditionManager {
 
     public static void addTest(ResourceLocation id, String name) {
         SWING.putIfAbsent(id, new ConditionalSwing());
-        USE_MAINHAND.putIfAbsent(id, new ConditionalUse(Hand.MAIN_HAND));
-        USE_OFFHAND.putIfAbsent(id, new ConditionalUse(Hand.OFF_HAND));
-        HOLD_MAINHAND.putIfAbsent(id, new ConditionalHold(Hand.MAIN_HAND));
-        HOLD_OFFHAND.putIfAbsent(id, new ConditionalHold(Hand.OFF_HAND));
+        USE_MAINHAND.putIfAbsent(id, new ConditionalUse(EnumHand.MAIN_HAND));
+        USE_OFFHAND.putIfAbsent(id, new ConditionalUse(EnumHand.OFF_HAND));
+        HOLD_MAINHAND.putIfAbsent(id, new ConditionalHold(EnumHand.MAIN_HAND));
+        HOLD_OFFHAND.putIfAbsent(id, new ConditionalHold(EnumHand.OFF_HAND));
         ARMOR.putIfAbsent(id, new ConditionArmor());
 
         ConditionalSwing conditionalSwing = SWING.get(id);

@@ -1,36 +1,31 @@
 package com.elfmcys.yesstevemodel.capability;
 
-import com.elfmcys.yesstevemodel.util.Keep;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ModelInfoCapabilityProvider implements ICapabilitySerializable<CompoundNBT> {
+public class ModelInfoCapabilityProvider implements ICapabilitySerializable<NBTTagCompound> {
     @CapabilityInject(ModelInfoCapability.class)
     public static Capability<ModelInfoCapability> MODEL_INFO_CAP = null;
     private ModelInfoCapability instance = MODEL_INFO_CAP.getDefaultInstance();
 
-    @Nonnull
     @Override
-    @Keep
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == MODEL_INFO_CAP) {
-            return LazyOptional.of(this::createCapability).cast();
-        }
-        return LazyOptional.empty();
+    public boolean hasCapability(@Nonnull Capability<?> cap, @Nullable EnumFacing side) {
+        return cap == MODEL_INFO_CAP;
     }
 
-    @Nonnull
+    @Nullable
     @Override
-    @Keep
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
-        return getCapability(cap, null);
+    public <T> T getCapability(@Nonnull Capability<T> cap, @Nullable EnumFacing side) {
+        if (hasCapability(cap, side)) {
+            return MODEL_INFO_CAP.cast(createCapability());
+        }
+        return null;
     }
 
     @Nonnull
@@ -42,14 +37,12 @@ public class ModelInfoCapabilityProvider implements ICapabilitySerializable<Comp
     }
 
     @Override
-    @Keep
-    public void deserializeNBT(CompoundNBT nbt) {
+    public void deserializeNBT(NBTTagCompound nbt) {
         createCapability().deserializeNBT(nbt);
     }
 
     @Override
-    @Keep
-    public CompoundNBT serializeNBT() {
+    public NBTTagCompound serializeNBT() {
         return createCapability().serializeNBT();
     }
 }

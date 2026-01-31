@@ -6,7 +6,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.snapshot;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public class BoneSnapshot {
     public String name;
@@ -84,7 +83,6 @@ public class BoneSnapshot {
     }
 
     @Override
-    @Keep
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -97,7 +95,6 @@ public class BoneSnapshot {
     }
 
     @Override
-    @Keep
     public int hashCode() {
         return name.hashCode();
     }

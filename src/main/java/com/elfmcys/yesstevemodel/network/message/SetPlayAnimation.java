@@ -1,15 +1,22 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-public class SetPlayAnimation {
+public class SetPlayAnimation implements IPacketBufferMessage {
     private static final int STOP = -1;
-    private final int extraAnimationId;
+    private int extraAnimationId;
+
+    public SetPlayAnimation() {
+    }
 
     public SetPlayAnimation(int extraAnimationId) {
         this.extraAnimationId = extraAnimationId;
@@ -19,37 +26,42 @@ public class SetPlayAnimation {
         return new SetPlayAnimation(STOP);
     }
 
-    public static void encode(SetPlayAnimation message, PacketBuffer buf) {
-        buf.writeInt(message.extraAnimationId);
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeInt(this.extraAnimationId);
     }
 
-    public static SetPlayAnimation decode(PacketBuffer buf) {
-        return new SetPlayAnimation(buf.readInt());
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.extraAnimationId = buf.readInt();
     }
 
-    public static void handle(SetPlayAnimation message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isServer()) {
-            context.enqueueWork(() -> {
-                ServerPlayerEntity sender = context.getSender();
-                if (sender == null) {
-                    return;
-                }
-                if (STOP <= message.extraAnimationId && message.extraAnimationId < 8) {
-                    handleCapability(message, sender);
+    public static class Handler implements IMessageHandler<SetPlayAnimation, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(SetPlayAnimation message, MessageContext ctx) {
+            if (ctx.side.isServer()) {
+                FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
+                    EntityPlayerMP sender = ctx.getServerHandler().player;
+                    if (sender == null) {
+                        return;
+                    }
+                    if (STOP <= message.extraAnimationId && message.extraAnimationId < 8) {
+                        handleCapability(message, sender);
+                    }
+                });
+            }
+            return null;
+        }
+
+        private static void handleCapability(SetPlayAnimation message, EntityPlayerMP sender) {
+            CapabilityEvent.getCapability(sender, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+                if (message.extraAnimationId == STOP) {
+                    modelIdCap.stopAnimation();
+                } else {
+                    modelIdCap.playAnimation("extra" + message.extraAnimationId);
                 }
             });
         }
-        context.setPacketHandled(true);
-    }
-
-    private static void handleCapability(SetPlayAnimation message, ServerPlayerEntity sender) {
-        sender.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
-            if (message.extraAnimationId == STOP) {
-                modelIdCap.stopAnimation();
-            } else {
-                modelIdCap.playAnimation("extra" + message.extraAnimationId);
-            }
-        });
     }
 }

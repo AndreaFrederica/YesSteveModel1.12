@@ -3,32 +3,39 @@ package com.elfmcys.yesstevemodel.network.message;
 import com.elfmcys.yesstevemodel.command.sub.ManageCommand;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import io.netty.buffer.ByteBuf;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class RefreshModelManage {
+public class RefreshModelManage implements IMessage {
     public RefreshModelManage() {
     }
 
-    public static void encode(RefreshModelManage message, PacketBuffer buf) {
+    @Override
+    public void toBytes(ByteBuf buf) {
     }
 
-    public static RefreshModelManage decode(PacketBuffer buf) {
-        return new RefreshModelManage();
+    @Override
+    public void fromBytes(ByteBuf buf) {
     }
 
-    public static void handle(RefreshModelManage message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isServer() && context.getSender() != null && context.getSender().hasPermissions(4)) {
-            context.enqueueWork(() -> {
-                List<RequestServerModelInfo.Info> customInfo = ManageCommand.getFilesInfo(ServerModelManager.CUSTOM);
-                List<RequestServerModelInfo.Info> authInfo = ManageCommand.getFilesInfo(ServerModelManager.AUTH);
-                NetworkHandler.sendToClientPlayer(new RequestServerModelInfo(customInfo, authInfo), context.getSender());
-            });
+    public static class Handler implements IMessageHandler<RefreshModelManage, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(RefreshModelManage message, MessageContext ctx) {
+            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, "")) {
+                FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
+                    List<RequestServerModelInfo.Info> customInfo = ManageCommand.getFilesInfo(ServerModelManager.CUSTOM);
+                    List<RequestServerModelInfo.Info> authInfo = ManageCommand.getFilesInfo(ServerModelManager.AUTH);
+                    NetworkHandler.sendToClientPlayer(new RequestServerModelInfo(customInfo, authInfo), ctx.getServerHandler().player);
+                });
+            }
+            return null;
         }
-        context.setPacketHandled(true);
     }
 }

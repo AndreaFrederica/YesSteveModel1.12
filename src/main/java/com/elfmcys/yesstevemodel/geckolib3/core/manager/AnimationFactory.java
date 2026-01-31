@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.manager;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
-import com.elfmcys.yesstevemodel.util.Keep;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class AnimationFactory {
@@ -13,7 +12,6 @@ public class AnimationFactory {
         this.animatable = animatable;
     }
 
-    @Keep
     public AnimationData getOrCreateAnimationData(int uniqueID) {
         if (!this.animationDataMap.containsKey(uniqueID)) {
             AnimationData data = new AnimationData();

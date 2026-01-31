@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.capability;
 
 import com.google.common.collect.Sets;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.Direction;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 
@@ -42,31 +42,33 @@ public class AuthModelsCapability {
         authModels.clear();
     }
 
-    public ListNBT serializeNBT() {
-        ListNBT listTag = new ListNBT();
+    public NBTTagList serializeNBT() {
+        NBTTagList listTag = new NBTTagList();
         for (ResourceLocation modelId : authModels) {
-            listTag.add(StringNBT.valueOf(modelId.toString()));
+            listTag.appendTag(new NBTTagString(modelId.toString()));
         }
         return listTag;
     }
 
-    public void deserializeNBT(ListNBT nbt) {
+    public void deserializeNBT(NBTTagList nbt) {
         this.authModels.clear();
-        for (INBT tag : nbt) {
-            authModels.add(new ResourceLocation(tag.getAsString()));
+        for (NBTBase tag : nbt) {
+            if (tag instanceof NBTTagString string) {
+                authModels.add(new ResourceLocation(string.getString()));
+            }
         }
     }
 
     public static class Storage implements Capability.IStorage<AuthModelsCapability> {
         @Nullable
         @Override
-        public INBT writeNBT(Capability<AuthModelsCapability> capability, AuthModelsCapability instance, Direction side) {
+        public NBTBase writeNBT(Capability<AuthModelsCapability> capability, AuthModelsCapability instance, EnumFacing side) {
             return instance.serializeNBT();
         }
 
         @Override
-        public void readNBT(Capability<AuthModelsCapability> capability, AuthModelsCapability instance, Direction side, INBT nbt) {
-            instance.deserializeNBT((ListNBT) nbt);
+        public void readNBT(Capability<AuthModelsCapability> capability, AuthModelsCapability instance, EnumFacing side, NBTBase nbt) {
+            instance.deserializeNBT((NBTTagList) nbt);
         }
     }
 }

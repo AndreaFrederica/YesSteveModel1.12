@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.model;
 
+import com.elfmcys.yesstevemodel.geckolib3.animation.AnimationTicker;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatableModel;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
@@ -14,12 +15,9 @@ import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.GeoModelProvider;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.IAnimatableModelProvider;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
-import com.elfmcys.yesstevemodel.util.Keep;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.NativeUtil;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 
 import java.util.Collections;
 
@@ -40,35 +38,20 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
     }
 
     @Override
-    @Keep
     public void setCustomAnimations(T animatable, int instanceId, AnimationEvent animationEvent) {
-        Minecraft mc = Minecraft.getInstance();
         AnimationData manager = animatable.getFactory().getOrCreateAnimationData(instanceId);
+        if (manager.ticker == null) {
+            AnimationTicker ticker = new AnimationTicker(manager);
+            manager.ticker = ticker;
+            MinecraftForge.EVENT_BUS.register(ticker);
+        }
+        Minecraft mc = Minecraft.getMinecraft();
+        this.seekTime = !mc.isGamePaused() || manager.shouldPlayWhilePaused ?
+                manager.tick + mc.getRenderPartialTicks() :
+                manager.tick;
+
         AnimationEvent<T> predicate;
-        double currentTick = animatable instanceof Entity ? ((LivingEntity) animatable).tickCount : getCurrentTick();
-
-        if (manager.startTick == -1) {
-            manager.startTick = currentTick + mc.getFrameTime();
-        }
-
-        if (!mc.isPaused() || manager.shouldPlayWhilePaused) {
-            if (animatable instanceof LivingEntity) {
-                manager.tick = currentTick + mc.getFrameTime();
-                double gameTick = manager.tick;
-                double deltaTicks = gameTick - this.lastGameTickTime;
-                this.seekTime += deltaTicks;
-                this.lastGameTickTime = gameTick;
-                codeAnimations(animatable, instanceId, animationEvent);
-            } else {
-                manager.tick = currentTick - manager.startTick;
-                double gameTick = manager.tick;
-                double deltaTicks = gameTick - this.lastGameTickTime;
-                this.seekTime += deltaTicks;
-                this.lastGameTickTime = gameTick;
-            }
-        }
-
-        predicate = animationEvent == null ? new AnimationEvent<T>(animatable, 0, 0, (float) (manager.tick - this.lastGameTickTime), false, Collections.emptyList()) : animationEvent;
+        predicate = animationEvent == null ? new AnimationEvent<>(animatable, 0, 0, (float) (manager.tick - this.lastGameTickTime), false, Collections.emptyList()) : animationEvent;
         predicate.animationTick = this.seekTime;
         getAnimationProcessor().preAnimationSetup(predicate.getAnimatable(), this.seekTime);
         if (!getAnimationProcessor().getModelRendererList().isEmpty()) {
@@ -76,11 +59,7 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
         }
     }
 
-    public void codeAnimations(T entity, Integer uniqueID, AnimationEvent<?> customPredicate) {
-    }
-
     @Override
-    @Keep
     public AnimationProcessor getAnimationProcessor() {
         return this.animationProcessor;
     }
@@ -90,7 +69,6 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
     }
 
     @Override
-    @Keep
     public Animation getAnimation(String name, IAnimatable animatable) {
         AnimationFile animation = GeckoLibCache.getInstance().getAnimations().get(this.getAnimationFileLocation((T) animatable));
         if (animation == null) {
@@ -100,7 +78,6 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
     }
 
     @Override
-    @Keep
     public GeoModel getModel(ResourceLocation location) {
         GeoModel model = super.getModel(location);
         if (model == null) {
@@ -117,12 +94,11 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
     }
 
     public GeoModel getCurrentModel() {
-        return currentModel;
+        return this.currentModel;
     }
 
     @Override
-    @Keep
     public double getCurrentTick() {
-        return NativeUtil.getTime() * 20;
+        return Minecraft.getSystemTime() / 50d;
     }
 }

@@ -2,7 +2,6 @@ package com.elfmcys.yesstevemodel.mclib.math.functions.utility;
 
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public class DieRollInteger extends Function {
     public java.util.Random random;
@@ -13,13 +12,11 @@ public class DieRollInteger extends Function {
     }
 
     @Override
-    @Keep
     public int getRequiredArguments() {
         return 3;
     }
 
     @Override
-    @Keep
     public double get() {
         double i = 0;
         double total = 0;

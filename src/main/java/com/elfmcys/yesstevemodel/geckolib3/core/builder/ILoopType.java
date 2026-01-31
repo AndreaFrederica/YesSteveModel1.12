@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.builder;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
@@ -42,7 +41,6 @@ public interface ILoopType {
      *
      * @return 是否在动画结束后重复
      */
-    @Keep
     boolean isRepeatingAfterEnd();
 
     enum EDefaultLoopTypes implements ILoopType {
@@ -64,7 +62,6 @@ public interface ILoopType {
         }
 
         @Override
-        @Keep
         public boolean isRepeatingAfterEnd() {
             return this.looping;
         }

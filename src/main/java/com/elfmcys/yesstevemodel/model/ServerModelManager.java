@@ -12,8 +12,8 @@ import com.elfmcys.yesstevemodel.network.message.RequestSyncModel;
 import com.elfmcys.yesstevemodel.util.GetJarResources;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +72,7 @@ public final class ServerModelManager {
     public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
-        for (ServerPlayerEntity player : playerList.getPlayers()) {
+        for (EntityPlayerMP player : playerList.getPlayers()) {
             NetworkHandler.sendToClientPlayer(new RequestSyncModel(), player);
         }
     }
@@ -81,7 +81,7 @@ public final class ServerModelManager {
         ClientModelManager.sendSyncModelMessage();
     }
 
-    public static void sendRequestSyncModelMessage(PlayerEntity player) {
+    public static void sendRequestSyncModelMessage(EntityPlayer player) {
         NetworkHandler.sendToClientPlayer(new RequestSyncModel(), player);
     }
 

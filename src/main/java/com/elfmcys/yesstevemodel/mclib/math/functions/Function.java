@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.mclib.math.functions;
 
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public abstract class Function implements IValue {
     protected IValue[] args;
@@ -27,7 +26,6 @@ public abstract class Function implements IValue {
     }
 
     @Override
-    @Keep
     public String toString() {
         StringBuilder args = new StringBuilder();
         for (int i = 0; i < this.args.length; i++) {
@@ -49,7 +47,6 @@ public abstract class Function implements IValue {
     /**
      * 获取此函数所需的最小参数量
      */
-    @Keep
     public int getRequiredArguments() {
         return 0;
     }

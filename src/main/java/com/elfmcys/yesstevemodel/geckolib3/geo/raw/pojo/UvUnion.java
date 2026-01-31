@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo;
 
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
 
@@ -15,7 +14,6 @@ public class UvUnion implements Serializable {
 
     protected static class Serializer implements JsonSerializer<UvUnion>, JsonDeserializer<UvUnion> {
         @Override
-        @Keep
         public UvUnion deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             UvUnion result = new UvUnion();
             if (json.isJsonArray()) {
@@ -29,7 +27,6 @@ public class UvUnion implements Serializable {
         }
 
         @Override
-        @Keep
         public JsonElement serialize(UvUnion src, Type typeOfSrc, JsonSerializationContext context) {
             return src.isBoxUV ? context.serialize(src.boxUVCoords) : context.serialize(src.faceUV);
         }

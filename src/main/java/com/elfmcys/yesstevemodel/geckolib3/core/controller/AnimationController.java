@@ -21,7 +21,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Axis;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
-import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,7 +46,7 @@ public class AnimationController<T extends IAnimatable> {
     public double transitionLengthTicks;
     public boolean isJustStarting = false;
     public double tickOffset;
-    public Double2DoubleFunction customEasingMethod;
+    public Function<Double, Double> customEasingMethod;
     public double animationSpeed = 1D;
     /**
      * 默认情况下，动画将使用关键帧的 EasingType <br>
@@ -133,7 +132,7 @@ public class AnimationController<T extends IAnimatable> {
      *                              {@link com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingManager}
      */
     public AnimationController(T animatable, String name, float transitionLengthTicks,
-                               Double2DoubleFunction customEasingMethod, IAnimationPredicate<T> animationPredicate) {
+                               Function<Double, Double> customEasingMethod, IAnimationPredicate<T> animationPredicate) {
         this.animatable = animatable;
         this.name = name;
         this.transitionLengthTicks = transitionLengthTicks;
@@ -341,13 +340,13 @@ public class AnimationController<T extends IAnimatable> {
                         AnimationPoint zPoint = getAnimationPointAtTick(rotationKeyFrames.zKeyFrames, 0, true, Axis.Z);
                         boneAnimationQueue.rotationXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.rotationValueX - initialSnapshot.rotationValueX,
-                                xPoint.animationStartValue));
+                                xPoint.animationStartValue()));
                         boneAnimationQueue.rotationYQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.rotationValueY - initialSnapshot.rotationValueY,
-                                yPoint.animationStartValue));
+                                yPoint.animationStartValue()));
                         boneAnimationQueue.rotationZQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
                                 boneSnapshot.rotationValueZ - initialSnapshot.rotationValueZ,
-                                zPoint.animationStartValue));
+                                zPoint.animationStartValue()));
                     }
 
                     if (!positionKeyFrames.xKeyFrames.isEmpty()) {
@@ -355,11 +354,11 @@ public class AnimationController<T extends IAnimatable> {
                         AnimationPoint yPoint = getAnimationPointAtTick(positionKeyFrames.yKeyFrames, 0, false, Axis.Y);
                         AnimationPoint zPoint = getAnimationPointAtTick(positionKeyFrames.zKeyFrames, 0, false, Axis.Z);
                         boneAnimationQueue.positionXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.positionOffsetX, xPoint.animationStartValue));
+                                boneSnapshot.positionOffsetX, xPoint.animationStartValue()));
                         boneAnimationQueue.positionYQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.positionOffsetY, yPoint.animationStartValue));
+                                boneSnapshot.positionOffsetY, yPoint.animationStartValue()));
                         boneAnimationQueue.positionZQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.positionOffsetZ, zPoint.animationStartValue));
+                                boneSnapshot.positionOffsetZ, zPoint.animationStartValue()));
                     }
 
                     if (!scaleKeyFrames.xKeyFrames.isEmpty()) {
@@ -367,11 +366,11 @@ public class AnimationController<T extends IAnimatable> {
                         AnimationPoint yPoint = getAnimationPointAtTick(scaleKeyFrames.yKeyFrames, 0, false, Axis.Y);
                         AnimationPoint zPoint = getAnimationPointAtTick(scaleKeyFrames.zKeyFrames, 0, false, Axis.Z);
                         boneAnimationQueue.scaleXQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.scaleValueX, xPoint.animationStartValue));
+                                boneSnapshot.scaleValueX, xPoint.animationStartValue()));
                         boneAnimationQueue.scaleYQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.scaleValueY, yPoint.animationStartValue));
+                                boneSnapshot.scaleValueY, yPoint.animationStartValue()));
                         boneAnimationQueue.scaleZQueue().add(new AnimationPoint(null, adjustedTick, this.transitionLengthTicks,
-                                boneSnapshot.scaleValueZ, zPoint.animationStartValue));
+                                boneSnapshot.scaleValueZ, zPoint.animationStartValue()));
                     }
                 }
             }

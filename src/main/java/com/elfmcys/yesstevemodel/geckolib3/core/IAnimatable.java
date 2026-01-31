@@ -6,7 +6,6 @@ package com.elfmcys.yesstevemodel.geckolib3.core;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationFactory;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 /**
  * 任何想要附加动画的模型，都需要继承此接口
@@ -17,7 +16,6 @@ public interface IAnimatable {
      *
      * @param data 数据
      */
-    @Keep
     void registerControllers(AnimationData data);
 
     /**
@@ -25,6 +23,5 @@ public interface IAnimatable {
      *
      * @return AnimationFactory
      */
-    @Keep
     AnimationFactory getFactory();
 }

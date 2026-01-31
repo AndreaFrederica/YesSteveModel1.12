@@ -8,52 +8,70 @@ import com.elfmcys.yesstevemodel.util.ThreadTools;
 import com.elfmcys.yesstevemodel.util.UuidUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class RequestLoadModel {
-    private final String fileName;
+public class RequestLoadModel implements IPacketBufferMessage {
+    private String fileName;
+
+    public RequestLoadModel() {
+    }
 
     public RequestLoadModel(String fileName) {
         this.fileName = fileName;
     }
 
-    public static void encode(RequestLoadModel message, PacketBuffer buf) {
-        buf.writeUtf(message.fileName);
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeString(this.fileName);
     }
 
-    public static RequestLoadModel decode(PacketBuffer buf) {
-        return new RequestLoadModel(buf.readUtf());
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.fileName = buf.readString(Short.MAX_VALUE);
     }
 
-    public static void handle(RequestLoadModel message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isClient()) {
-            context.enqueueWork(() -> {
+    public static class Handler implements IMessageHandler<RequestLoadModel, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(RequestLoadModel message, MessageContext ctx) {
+            if (ctx.side.isClient()) {
+                handleClient(message);
+            }
+            return null;
+        }
+
+        @SideOnly(Side.CLIENT)
+        private static void handleClient(RequestLoadModel message) {
+            Minecraft.getMinecraft().addScheduledTask(() -> {
                 ClientModelManager.CACHE_MD5.add(message.fileName);
                 loadModel(message.fileName);
             });
         }
-        context.setPacketHandled(true);
     }
 
+    @SideOnly(Side.CLIENT)
     public static void loadModel(String fileName) {
         ThreadTools.THREAD_POOL.submit(() -> {
             try {
                 while (ClientModelManager.PASSWORD == null) {
                     Thread.sleep(500);
                 }
-                if (Minecraft.getInstance().player != null) {
-                    UUID uuid = Minecraft.getInstance().player.getUUID();
+                if (Minecraft.getMinecraft().player != null) {
+                    UUID uuid = Minecraft.getMinecraft().player.getUniqueID();
                     Path modelFile = ServerModelManager.CACHE_CLIENT.resolve(fileName);
                     byte[] fileBytes = FileUtils.readFileToByteArray(modelFile.toFile());
                     ModelData data = EncryptTools.decryptModel(UuidUtils.asBytes(uuid), ClientModelManager.PASSWORD, fileBytes);
                     if (data != null) {
-                        Minecraft.getInstance().tell(() -> ClientModelManager.registerAll(data));
+                        Minecraft.getMinecraft().addScheduledTask(() -> ClientModelManager.registerAll(data));
                     }
                 }
             } catch (Exception e) {

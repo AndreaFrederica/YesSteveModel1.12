@@ -9,11 +9,10 @@ import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoCube;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.util.VectorUtils;
-import com.elfmcys.yesstevemodel.util.Keep;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.util.math.vector.Vector3f;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.vecmath.Vector3f;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ public class GeoBuilder implements IGeoBuilder {
     }
 
     @Override
-    @Keep
     public GeoModel constructGeoModel(RawGeometryTree geometryTree) {
         GeoModel model = new GeoModel();
         model.properties = geometryTree.properties;
@@ -72,14 +70,14 @@ public class GeoBuilder implements IGeoBuilder {
     }
 
     @Override
-    @Keep
     public GeoBone constructBone(RawBoneGroup bone, ModelProperties properties, GeoBone parent) {
         GeoBone geoBone = new GeoBone();
 
         Bone rawBone = bone.selfBone;
         Vector3f rotation = VectorUtils.convertDoubleToFloat(VectorUtils.fromArray(rawBone.getRotation()));
         Vector3f pivot = VectorUtils.convertDoubleToFloat(VectorUtils.fromArray(rawBone.getPivot()));
-        rotation.mul(-1, -1, 1);
+        rotation.x *= -1;
+        rotation.y *= -1;
 
         geoBone.mirror = rawBone.getMirror();
         geoBone.dontRender = rawBone.getNeverRender();
@@ -88,13 +86,13 @@ public class GeoBuilder implements IGeoBuilder {
         geoBone.parent = parent;
         geoBone.setModelRendererName(rawBone.getName());
 
-        geoBone.setRotationX((float) Math.toRadians(rotation.x()));
-        geoBone.setRotationY((float) Math.toRadians(rotation.y()));
-        geoBone.setRotationZ((float) Math.toRadians(rotation.z()));
+        geoBone.setRotationX((float) Math.toRadians(rotation.getX()));
+        geoBone.setRotationY((float) Math.toRadians(rotation.getY()));
+        geoBone.setRotationZ((float) Math.toRadians(rotation.getZ()));
 
-        geoBone.rotationPointX = -pivot.x();
-        geoBone.rotationPointY = pivot.y();
-        geoBone.rotationPointZ = pivot.z();
+        geoBone.rotationPointX = -pivot.getX();
+        geoBone.rotationPointY = pivot.getY();
+        geoBone.rotationPointZ = pivot.getZ();
 
         if (!ArrayUtils.isEmpty(rawBone.getCubes())) {
             for (Cube cube : rawBone.getCubes()) {

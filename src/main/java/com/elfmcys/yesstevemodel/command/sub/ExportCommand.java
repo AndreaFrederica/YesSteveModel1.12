@@ -4,37 +4,55 @@ import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.command.argument.ModelsArgument;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.util.YesModelUtils;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
-public class ExportCommand {
+public class ExportCommand extends CommandBase {
     private static final String EXPORT_NAME = "export";
-    private static final String MODEL_ID_NAME = "model_id";
 
-    public static LiteralArgumentBuilder<CommandSource> get() {
-        LiteralArgumentBuilder<CommandSource> export = Commands.literal(EXPORT_NAME);
-        RequiredArgumentBuilder<CommandSource, String> modelId = Commands.argument(MODEL_ID_NAME, ModelsArgument.ids());
-        export.then(modelId.executes(ExportCommand::exportModel));
-        return export;
+    @Nonnull
+    @Override
+    public String getName() {
+        return EXPORT_NAME;
     }
 
-    private static int exportModel(CommandContext<CommandSource> context) {
-        String modelName = ModelsArgument.getModel(context, MODEL_ID_NAME);
+    @Nonnull
+    @Override
+    public String getUsage(@Nonnull ICommandSender sender) {
+        return "commands.yes_steve_model.export.usage";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @Override
+    public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
+        if (args.length != 1) throw new WrongUsageException(getUsage(sender));
+        exportModel(sender, args[0]);
+    }
+
+    private void exportModel(ICommandSender sender, String modelName) {
         File customFolder = ServerModelManager.CUSTOM.resolve(modelName).toFile();
         if (customFolder.isDirectory()) {
             try {
                 YesModelUtils.export(customFolder);
-                context.getSource().sendSuccess(new TranslationTextComponent("commands.yes_steve_model.export.success",
-                        YesSteveModel.MOD_ID, modelName), false);
-                return Command.SINGLE_SUCCESS;
+                notifyCommandListener(sender, this, "commands.yes_steve_model.export.success",
+                        YesSteveModel.MOD_ID, modelName);
+                return;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -44,16 +62,22 @@ public class ExportCommand {
         if (authFolder.isDirectory()) {
             try {
                 YesModelUtils.export(authFolder);
-                context.getSource().sendSuccess(new TranslationTextComponent("commands.yes_steve_model.export.success",
-                        YesSteveModel.MOD_ID, modelName), false);
-                return Command.SINGLE_SUCCESS;
+                notifyCommandListener(sender, this, "commands.yes_steve_model.export.success",
+                        YesSteveModel.MOD_ID, modelName);
+                return;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        context.getSource().sendSuccess(new TranslationTextComponent("commands.yes_steve_model.export.not_exist",
-                modelName), false);
-        return Command.SINGLE_SUCCESS;
+        sender.sendMessage(new TextComponentTranslation("commands.yes_steve_model.export.not_exist", modelName));
+    }
+
+    @Nonnull
+    @Override
+    public List<String> getTabCompletions(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args, @Nullable BlockPos targetPos) {
+        return args.length == 1 ?
+                getListOfStringsMatchingLastWord(args, ModelsArgument.listSuggestions()) :
+                Collections.emptyList();
     }
 }

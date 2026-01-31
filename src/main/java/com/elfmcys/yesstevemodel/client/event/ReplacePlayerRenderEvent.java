@@ -1,28 +1,29 @@
 package com.elfmcys.yesstevemodel.client.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraftforge.api.distmarker.Dist;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = YesSteveModel.MOD_ID)
+@Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
 public class ReplacePlayerRenderEvent {
     @SubscribeEvent
     public static void onRender(RenderPlayerEvent.Pre event) {
-        PlayerEntity playerRender = event.getPlayer();
-        ClientPlayerEntity playerSelf = Minecraft.getInstance().player;
-        if (playerRender.equals(playerSelf) && GeneralConfig.DISABLE_SELF_MODEL.get()) {
+        EntityPlayer playerRender = event.getEntityPlayer();
+        EntityPlayerSP playerSelf = Minecraft.getMinecraft().player;
+        if (playerRender.equals(playerSelf) && GeneralConfig.DISABLE_SELF_MODEL) {
             return;
         }
-        if (!playerRender.equals(playerSelf) && GeneralConfig.DISABLE_OTHER_MODEL.get()) {
+        if (!playerRender.equals(playerSelf) && GeneralConfig.DISABLE_OTHER_MODEL) {
             return;
         }
         event.setCanceled(true);
-        RegisterEntityRenderersEvent.getInstance().render(event.getPlayer(), event.getPlayer().yRot, event.getPartialRenderTick(), event.getMatrixStack(), event.getBuffers(), event.getLight());
+        ClientProxy.getInstance().doRender(playerRender, event.getX(), event.getY(), event.getZ(), playerRender.rotationYaw, event.getPartialRenderTick());
     }
 }

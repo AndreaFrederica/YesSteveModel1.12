@@ -5,37 +5,50 @@ import com.elfmcys.yesstevemodel.model.format.Type;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.RequestServerModelInfo;
 import com.google.common.collect.Lists;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
-public class ManageCommand {
+public class ManageCommand extends CommandBase {
     private static final String MANAGE_NAME = "manage";
 
-    public static LiteralArgumentBuilder<CommandSource> get() {
-        LiteralArgumentBuilder<CommandSource> manage = Commands.literal(MANAGE_NAME).requires(stack -> stack.hasPermission(4));
-        manage.executes(ManageCommand::exportModel);
-        return manage;
+    @Nonnull
+    @Override
+    public String getName() {
+        return MANAGE_NAME;
     }
 
-    private static int exportModel(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        if (context.getSource().hasPermission(4)) {
-            ServerPlayerEntity player = context.getSource().getPlayerOrException();
+    @Nonnull
+    @Override
+    public String getUsage(@Nonnull ICommandSender sender) {
+        return "commands.yes_steve_model.manage.usage";
+    }
+
+    // 4 级命令，省去重写
+
+    @Override
+    public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
+        if (args.length != 0) throw new WrongUsageException(getUsage(sender));
+        exportModel(sender);
+    }
+
+    private void exportModel(ICommandSender sender) throws CommandException {
+        if (sender.canUseCommand(4, getName())) {
+            EntityPlayerMP player = getCommandSenderAsPlayer(sender);
             List<RequestServerModelInfo.Info> customInfo = getFilesInfo(ServerModelManager.CUSTOM);
             List<RequestServerModelInfo.Info> authInfo = getFilesInfo(ServerModelManager.AUTH);
             NetworkHandler.sendToClientPlayer(new RequestServerModelInfo(customInfo, authInfo), player);
         }
-        return Command.SINGLE_SUCCESS;
     }
 
     public static List<RequestServerModelInfo.Info> getFilesInfo(Path rootPath) {

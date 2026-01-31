@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.util.JSONException;
+import net.minecraft.client.util.JsonException;
 
 import java.util.*;
 
@@ -132,17 +132,17 @@ public class JsonAnimationUtils {
     }
 
     private static JsonElement getObjectByKey(Set<Map.Entry<String, JsonElement>> json, String key)
-            throws JSONException {
+            throws JsonException {
         for (Map.Entry<String, JsonElement> entry : json) {
             if (entry.getKey().equals(key)) {
                 return entry.getValue();
             }
         }
-        throw new JSONException("Could not find key: " + key);
+        throw new JsonException("Could not find key: " + key);
     }
 
     public static Map.Entry<String, JsonElement> getAnimation(JsonObject animationFile, String animationName)
-            throws JSONException {
+            throws JsonException {
         return new AbstractMap.SimpleEntry(animationName, getObjectByKey(getAnimations(animationFile), animationName));
     }
 

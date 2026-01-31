@@ -1,8 +1,9 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.render.built;
 
-import net.minecraft.util.math.vector.Vector3f;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
+
+import javax.vecmath.Vector3f;
 
 public class GeoVertex {
     public final Vector3f position;

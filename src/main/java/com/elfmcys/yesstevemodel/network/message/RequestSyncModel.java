@@ -1,27 +1,41 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-public class RequestSyncModel {
+public class RequestSyncModel implements IMessage {
     public RequestSyncModel() {
     }
 
-    public static void encode(RequestSyncModel message, PacketBuffer buf) {
+    @Override
+    public void toBytes(ByteBuf buf) {
     }
 
-    public static RequestSyncModel decode(PacketBuffer buf) {
-        return new RequestSyncModel();
+    @Override
+    public void fromBytes(ByteBuf buf) {
     }
 
-    public static void handle(RequestSyncModel message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isClient()) {
-            context.enqueueWork(ClientModelManager::sendSyncModelMessage);
+    public static class Handler implements IMessageHandler<RequestSyncModel, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(RequestSyncModel message, MessageContext ctx) {
+            if (ctx.side.isClient()) {
+                handleClient();
+            }
+            return null;
         }
-        context.setPacketHandled(true);
+
+        @SideOnly(Side.CLIENT)
+        private static void handleClient() {
+            Minecraft.getMinecraft().addScheduledTask(ClientModelManager::sendSyncModelMessage);
+        }
     }
 }

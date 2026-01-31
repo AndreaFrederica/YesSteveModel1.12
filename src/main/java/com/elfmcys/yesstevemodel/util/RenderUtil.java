@@ -1,213 +1,228 @@
 package com.elfmcys.yesstevemodel.util;
 
+import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
-import com.elfmcys.yesstevemodel.client.event.RegisterEntityRenderersEvent;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.Pose;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.item.EntityBoat;
+import net.minecraft.entity.passive.EntityHorse;
+import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3f;
+import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-@SuppressWarnings("all")
+/*
+1.16.5 - 1.12.2
+player.yBodyRot - player.renderYawOffset	身体转向角度
+player.yRot - player.rotationYaw	视口偏航角
+player.xRot	- player.rotationPitch	视口俯仰角
+player.yHeadRot	- player.rotationYawHead	头部偏航角
+player.yHeadRotO - player.prevRotationYawHead	上一刻头部偏航角
+ */
 public final class RenderUtil {
-    public static void renderTextureScreenEntity(float pPosX, float pPosY, float pScale, float pitch, float yaw, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId, boolean showGround, Consumer<CustomPlayerEntity> consumer) {
+    public static void renderTextureScreenEntity(float pPosX, float pPosY, float pScale, float pitch, float yaw, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId, boolean showGround, Consumer<CustomPlayerEntity> consumer) {
         if (player == null) {
             return;
         }
         try {
-            CustomPlayerRenderer renderer = RegisterEntityRenderersEvent.getInstance();
+            CustomPlayerRenderer renderer = ClientProxy.getInstance();
             IAnimatable animatable = AnimatableCacheUtil.TEXTURE_GUI_CACHE.get(modelId, CustomPlayerEntity::new);
-            if (animatable instanceof CustomPlayerEntity) {
-                CustomPlayerEntity entity = (CustomPlayerEntity) animatable;
+            if (animatable instanceof CustomPlayerEntity entity) {
                 consumer.accept(entity);
 
                 entity.setMainModel(ModelIdUtil.getMainId(modelId));
                 entity.setTexture(textureId);
 
-                RenderSystem.pushMatrix();
-                RenderSystem.translatef((float) pPosX, (float) pPosY, 1050.0F);
-                RenderSystem.scalef(1.0F, 1.0F, -1.0F);
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(pPosX, pPosY, 1050.0F);
+                GlStateManager.scale(1.0F, 1.0F, -1.0F);
 
-                MatrixStack poseStack = new MatrixStack();
-                poseStack.translate(0.0D, 0.0D, 1000.0D);
-                poseStack.scale(pScale, pScale, pScale);
-                poseStack.translate(0, 0.8, 0);
-                Quaternion zp = Vector3f.ZP.rotationDegrees(180.0F);
-                Quaternion xp = Vector3f.XP.rotationDegrees(-10 + pitch);
-                zp.mul(xp);
-                poseStack.mulPose(zp);
+                /*
+                动画位移矩阵开始
+                 */
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(0.0D, 0.0D, 1000.0D);
+                GlStateManager.scale(pScale, pScale, pScale);
+                GlStateManager.translate(0, 0.8, 0);
+                GlStateManager.rotate(180.0F, 0, 0, 1);
+                GlStateManager.rotate(-10 + pitch, 1, 0, 0);
 
-                float yBodyRot = player.yBodyRot;
-                float yRot = player.yRot;
-                float xRot = player.xRot;
-                float yHeadRotO = player.yHeadRotO;
-                float yHeadRot = player.yHeadRot;
-                Pose pose = player.getPose();
+                float yBodyRot = player.renderYawOffset;
+                float yRot = player.rotationYaw;
+                float xRot = player.rotationPitch;
+                float yHeadRotO = player.prevRotationYawHead;
+                float yHeadRot = player.rotationYawHead;
+                //Pose pose = player.getPose();
 
-                player.yBodyRot = -yaw;
-                player.yRot = 180;
-                player.xRot = 0;
-                player.yHeadRot = player.yRot;
-                player.yHeadRotO = player.yRot;
+                player.renderYawOffset = -yaw;
+                player.rotationYaw = 180;
+                player.rotationPitch = 0;
+                player.rotationYawHead = player.rotationYaw;
+                player.prevRotationYawHead = player.rotationYaw;
 
-                EntityRendererManager dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-                xp.conj();
-                dispatcher.overrideCameraOrientation(xp);
+                RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
                 dispatcher.setRenderShadow(false);
-                IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-                RenderSystem.runAsFancy(() -> {
+                RenderHelper.enableStandardItemLighting();
+                if (entity.hasPreviewAnimation("sleep")) {
+                    GlStateManager.rotate(yaw - 90, 0, 1, 0);
+                    GlStateManager.translate(0.5, 0.5625, 0);
+                    //player.setPose(Pose.SLEEPING);
+                }
+                if (entity.hasPreviewAnimation("swim") || entity.hasPreviewAnimation("swim_stand")) {
+                    //player.setPose(Pose.SWIMMING);
+                }
+                if (entity.hasPreviewAnimation("sneak") || entity.hasPreviewAnimation("sneaking")) {
+                    //player.setPose(Pose.CROUCHING);
+                }
+                if (entity.hasPreviewAnimation("sit")) {
+                    GlStateManager.translate(0, -0.5, 0);
+                }
+                if (entity.hasPreviewAnimation("ride")) {
+                    GlStateManager.translate(0, 0.85, 0);
+                }
+                if (entity.hasPreviewAnimation("ride_pig")) {
+                    GlStateManager.translate(0, 0.3125, 0);
+                }
+                if (entity.hasPreviewAnimation("boat")) {
+                    GlStateManager.translate(0, -0.45, 0);
+                }
+                renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+                try {
+                    renderExtraEntity(yaw, player, entity, dispatcher);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+                GlStateManager.popMatrix();
+                /*
+                动画位移矩阵结束
+                 */
+                if (showGround) {
                     if (entity.hasPreviewAnimation("sleep")) {
-                        poseStack.mulPose(Vector3f.YP.rotationDegrees(yaw - 90));
-                        poseStack.translate(0.5, 0.5625, 0);
-                        player.setPose(Pose.SLEEPING);
+                        renderBed(pScale, pitch, yaw);
                     }
-                    if (entity.hasPreviewAnimation("swim") || entity.hasPreviewAnimation("swim_stand")) {
-                        player.setPose(Pose.SWIMMING);
-                    }
-                    if (entity.hasPreviewAnimation("sneak") || entity.hasPreviewAnimation("sneaking")) {
-                        player.setPose(Pose.CROUCHING);
-                    }
-                    if (entity.hasPreviewAnimation("sit")) {
-                        poseStack.translate(0, -0.5, 0);
-                    }
-                    if (entity.hasPreviewAnimation("ride")) {
-                        poseStack.translate(0, 0.85, 0);
-                    }
-                    if (entity.hasPreviewAnimation("ride_pig")) {
-                        poseStack.translate(0, 0.3125, 0);
-                    }
-                    if (entity.hasPreviewAnimation("boat")) {
-                        poseStack.translate(0, -0.45, 0);
-                    }
-                    renderer.render(player, animatable, 0, 1.0f, poseStack, bufferSource, 0xf000f0);
-                    try {
-                        renderExtraEntity(yaw, player, entity, poseStack, dispatcher, bufferSource);
-                    } catch (ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
-                    if (showGround) {
-                        if (entity.hasPreviewAnimation("sleep")) {
-                            renderBed(pScale, pitch, yaw, bufferSource);
-                        }
-                        renderGround(pScale, pitch, yaw, bufferSource);
-                    }
-                });
-                bufferSource.endBatch();
+                    renderGround(pScale, pitch, yaw);
+                }
+                RenderHelper.disableStandardItemLighting();
                 dispatcher.setRenderShadow(true);
 
-                player.yBodyRot = yBodyRot;
-                player.yRot = yRot;
-                player.xRot = xRot;
-                player.yHeadRotO = yHeadRotO;
-                player.yHeadRot = yHeadRot;
-                player.setPose(pose);
+                player.renderYawOffset = yBodyRot;
+                player.rotationYaw = yRot;
+                player.rotationPitch = xRot;
+                player.prevRotationYawHead = yHeadRotO;
+                player.rotationYawHead = yHeadRot;
+                //player.setPose(pose);
 
-                RenderSystem.popMatrix();
+                GlStateManager.popMatrix();
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
     }
 
-    private static void renderBed(float scale, float pitch, float yaw, IRenderTypeBuffer.Impl bufferSource) {
-        MatrixStack poseStack = new MatrixStack();
-        poseStack.translate(0.0D, 0.0D, 1000.0D);
-        poseStack.scale(scale, scale, scale);
-        poseStack.translate(0, 0.8, 0);
-        Quaternion zp = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion xp = Vector3f.XP.rotationDegrees(-10 + pitch);
-        zp.mul(xp);
-        poseStack.mulPose(zp);
+    private static void renderBed(float scale, float pitch, float yaw) {
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.0D, 0.0D, 1000.0D);
+        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.translate(0, 0.8, 0);
+        GlStateManager.rotate(180.0F, 0, 0, 1);
+        GlStateManager.rotate(-10 + pitch, 1, 0, 0);
 
-        poseStack.mulPose(Vector3f.YP.rotationDegrees(yaw + 180));
-        poseStack.translate(-0.5, 0, 0.5);
-        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.RED_BED.defaultBlockState(), poseStack, bufferSource, 0xf000f0, OverlayTexture.NO_OVERLAY);
+        GlStateManager.rotate(yaw + 180, 0, 1, 0);
+        GlStateManager.translate(-0.5, 0, 0.5);
+        renderSingleBlock(Blocks.BED.getDefaultState());
+        GlStateManager.popMatrix();
     }
 
-    private static void renderGround(float scale, float pitch, float yaw, IRenderTypeBuffer.Impl bufferSource) {
-        MatrixStack poseStack = new MatrixStack();
-        poseStack.translate(0.0D, 0.0D, 1000.0D);
-        poseStack.scale(scale, scale, scale);
-        poseStack.translate(0, 0.8, 0);
-        Quaternion zp = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion xp = Vector3f.XP.rotationDegrees(-10 + pitch);
-        zp.mul(xp);
-        poseStack.mulPose(zp);
+    private static void renderGround(float scale, float pitch, float yaw) {
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.0D, 0.0D, 1000.0D);
+        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.translate(0, 0.8, 0);
+        GlStateManager.rotate(180.0F, 0, 0, 1);
+        GlStateManager.rotate(-10 + pitch, 1, 0, 0);
 
-        poseStack.mulPose(Vector3f.YP.rotationDegrees(yaw));
-        poseStack.translate(-1.5, -1, -2.5);
+        GlStateManager.rotate(yaw, 0, 1, 0);
+        GlStateManager.translate(-1.5, -1, -1.5);
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                poseStack.translate(0, 0, 1);
-                Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.GRASS_BLOCK.defaultBlockState(), poseStack, bufferSource, 0xf000f0, OverlayTexture.NO_OVERLAY);
+                GlStateManager.translate(0, 0, 1);
+                renderSingleBlock(Blocks.GRASS.getDefaultState());
             }
-            poseStack.translate(1, 0, -3);
+            GlStateManager.translate(1, 0, -3);
         }
-        poseStack.translate(-1, 1, 1);
-        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.GRASS.defaultBlockState(), poseStack, bufferSource, 0xf000f0, OverlayTexture.NO_OVERLAY);
-        poseStack.translate(0, 0, 1);
-        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.RED_TULIP.defaultBlockState(), poseStack, bufferSource, 0xf000f0, OverlayTexture.NO_OVERLAY);
-
+        GlStateManager.translate(-1, 1, 1);
+        renderSingleBlock(Blocks.TALLGRASS.getStateFromMeta(1));
+        GlStateManager.translate(0, 0, 1);
+        renderSingleBlock(Blocks.RED_FLOWER.getStateFromMeta(4));
+        GlStateManager.popMatrix();
     }
 
-    private static void renderExtraEntity(float yaw, ClientPlayerEntity player, CustomPlayerEntity playerEntity, MatrixStack poseStack, EntityRendererManager dispatcher, IRenderTypeBuffer.Impl bufferSource) throws ExecutionException {
+    private static void renderSingleBlock(IBlockState state) {
+        GlStateManager.pushMatrix(); // 一定要 push，原版方块渲染不干净
+        final Minecraft mc = Minecraft.getMinecraft();
+        mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        mc.getBlockRendererDispatcher().renderBlockBrightness(state, 1.0F);
+        GlStateManager.popMatrix();
+    }
+
+    @SuppressWarnings({"DataFlowIssue", "UnnecessaryReturnStatement"})
+    private static void renderExtraEntity(float yaw, EntityPlayerSP player, CustomPlayerEntity playerEntity, RenderManager dispatcher) throws ExecutionException {
         if (playerEntity.hasPreviewAnimation("ride")) {
-            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityType.HORSE.getRegistryName(), () -> EntityType.HORSE.create(player.level));
-            renderExtraEntity(yaw, player, poseStack, dispatcher, bufferSource, entity);
+            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityList.getKey(EntityHorse.class), () -> new EntityHorse(player.world));
+            renderExtraEntity(yaw, player, dispatcher, entity);
             return;
         }
         if (playerEntity.hasPreviewAnimation("ride_pig")) {
-            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityType.PIG.getRegistryName(), () -> EntityType.PIG.create(player.level));
-            renderExtraEntity(yaw, player, poseStack, dispatcher, bufferSource, entity);
+            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityList.getKey(EntityPig.class), () -> new EntityPig(player.world));
+            renderExtraEntity(yaw, player, dispatcher, entity);
             return;
         }
         if (playerEntity.hasPreviewAnimation("boat")) {
-            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityType.BOAT.getRegistryName(), () -> EntityType.BOAT.create(player.level));
-            renderExtraEntity(yaw, player, poseStack, dispatcher, bufferSource, entity);
+            Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityList.getKey(EntityBoat.class), () -> new EntityBoat(player.world));
+            renderExtraEntity(yaw, player, dispatcher, entity);
             return;
         }
     }
 
-    private static void renderExtraEntity(float yaw, ClientPlayerEntity player, MatrixStack poseStack, EntityRendererManager dispatcher, IRenderTypeBuffer.Impl bufferSource, Entity entity) {
-        poseStack.mulPose(Vector3f.YP.rotationDegrees(yaw));
-        dispatcher.render(entity, 0, -entity.getPassengersRidingOffset() - player.getMyRidingOffset(), 0, 0, 1.0f, poseStack, bufferSource, 0xf000f0);
+    private static void renderExtraEntity(float yaw, EntityPlayer player, RenderManager dispatcher, Entity entity) {
+        GlStateManager.rotate(yaw, 0, 1, 0);
+        dispatcher.renderEntity(entity, 0, -entity.getMountedYOffset() - player.getYOffset(), 0, 0.0F, 1.0F, false);
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableColorMaterial();
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
+    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
         if (player == null) {
             return;
         }
         try {
-            CustomPlayerRenderer renderer = RegisterEntityRenderersEvent.getInstance();
+            CustomPlayerRenderer renderer = ClientProxy.getInstance();
             IAnimatable animatable = AnimatableCacheUtil.ANIMATABLE_CACHE.get(modelId, CustomPlayerEntity::new);
-            if (animatable instanceof CustomPlayerEntity) {
-                CustomPlayerEntity entity = (CustomPlayerEntity) animatable;
+            if (animatable instanceof CustomPlayerEntity entity) {
                 consumer.accept(entity);
-                renderModel((double) pPosX, (double) pPosY, (float) pScale, player, modelId, textureId, renderer, entity);
+                renderModel(pPosX, pPosY, (float) pScale, player, modelId, textureId, renderer, entity);
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId) {
+    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId) {
         renderEntityInInventory(pPosX, pPosY, pScale, player, modelId, textureId, entity -> {
             if (entity.hasPreviewAnimation()) {
                 entity.clearPreviewAnimation();
@@ -215,99 +230,104 @@ public final class RenderUtil {
         });
     }
 
-    private static void renderModel(double pPosX, double pPosY, float pScale, ClientPlayerEntity player, ResourceLocation modelId, ResourceLocation textureId, GeoReplacedEntityRenderer renderer, CustomPlayerEntity entity) {
+    private static void renderModel(
+            double pPosX, double pPosY, float pScale, EntityPlayerSP player,
+            ResourceLocation modelId, ResourceLocation textureId,
+            GeoReplacedEntityRenderer<CustomPlayerEntity> renderer, CustomPlayerEntity entity
+    ) {
         entity.setMainModel(ModelIdUtil.getMainId(modelId));
         entity.setTexture(textureId);
 
-        RenderSystem.pushMatrix();
-        RenderSystem.translatef((float) pPosX, (float) pPosY, 1050.0F);
-        RenderSystem.scalef(1.0F, 1.0F, -1.0F);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) pPosX, (float) pPosY, 1050.0F);
+        GlStateManager.scale(1.0F, 1.0F, -1.0F);
 
-        MatrixStack poseStack = new MatrixStack();
-        poseStack.translate(0.0D, 0.0D, 1000.0D);
-        poseStack.scale(pScale, pScale, pScale);
-        Quaternion zp = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion xp = Vector3f.XP.rotationDegrees(-10);
-        zp.mul(xp);
-        poseStack.mulPose(zp);
+        GlStateManager.translate(0.0D, 0.0D, 1000.0D);
+        GlStateManager.scale(pScale, pScale, pScale);
+        GlStateManager.rotate(180.0F, 0, 0, 1);
+        GlStateManager.rotate(-10, 1, 0, 0);
 
-        float yBodyRot = player.yBodyRot;
-        float yRot = player.yRot;
-        float xRot = player.xRot;
-        float yHeadRotO = player.yHeadRotO;
-        float yHeadRot = player.yHeadRot;
+        float yBodyRot = player.renderYawOffset;
+        float yRot = player.rotationYaw;
+        float xRot = player.rotationPitch;
+        float yHeadRotO = player.prevRotationYawHead;
+        float yHeadRot = player.rotationYawHead;
 
-        ItemStack[] itemStacks = new ItemStack[EquipmentSlotType.values().length];
-        int i = 0;
-        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
-            itemStacks[i] = player.getItemBySlot(slot);
-            if (slot == EquipmentSlotType.MAINHAND) {
-                player.inventory.items.set(player.inventory.selected, ItemStack.EMPTY);
-            } else if (slot == EquipmentSlotType.OFFHAND) {
-                player.inventory.offhand.set(0, ItemStack.EMPTY);
-            } else {
-                player.inventory.armor.set(slot.getIndex(), ItemStack.EMPTY);
-            }
-            i++;
-        }
+//        ItemStack[] itemStacks = new ItemStack[EquipmentSlotType.values().length];
+//        int i = 0;
+//        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+//            itemStacks[i] = player.getItemBySlot(slot);
+//            if (slot == EquipmentSlotType.MAINHAND) {
+//                player.inventory.items.set(player.inventory.selected, ItemStack.EMPTY);
+//            } else if (slot == EquipmentSlotType.OFFHAND) {
+//                player.inventory.offhand.set(0, ItemStack.EMPTY);
+//            } else {
+//                player.inventory.armor.set(slot.getIndex(), ItemStack.EMPTY);
+//            }
+//            i++;
+//        }
 
-        player.yBodyRot = 200;
-        player.yRot = 180;
-        player.xRot = 0;
-        player.yHeadRot = player.yRot;
-        player.yHeadRotO = player.yRot;
+        player.renderYawOffset = 200;
+        player.rotationYaw = 180;
+        player.rotationPitch = 0;
+        player.rotationYawHead = player.rotationYaw;
+        player.prevRotationYawHead = player.rotationYaw;
 
-        EntityRendererManager dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        xp.conj();
-        dispatcher.overrideCameraOrientation(xp);
+        RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
         dispatcher.setRenderShadow(false);
-        IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderSystem.runAsFancy(() -> {
-            renderer.render(player, entity, 0, 1.0f, poseStack, bufferSource, 0xf000f0);
-        });
-        bufferSource.endBatch();
+        RenderHelper.enableStandardItemLighting();
+        renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+        RenderHelper.disableStandardItemLighting();
         dispatcher.setRenderShadow(true);
 
-        player.yBodyRot = yBodyRot;
-        player.yRot = yRot;
-        player.xRot = xRot;
-        player.yHeadRotO = yHeadRotO;
-        player.yHeadRot = yHeadRot;
+        player.renderYawOffset = yBodyRot;
+        player.rotationYaw = yRot;
+        player.rotationPitch = xRot;
+        player.prevRotationYawHead = yHeadRotO;
+        player.rotationYawHead = yHeadRot;
 
-        i = 0;
-        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
-            ItemStack itemStack = itemStacks[i];
-            if (slot == EquipmentSlotType.MAINHAND) {
-                player.inventory.items.set(player.inventory.selected, itemStack);
-            } else if (slot == EquipmentSlotType.OFFHAND) {
-                player.inventory.offhand.set(0, itemStack);
-            } else {
-                player.inventory.armor.set(slot.getIndex(), itemStack);
-            }
-            i++;
-        }
+//        i = 0;
+//        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
+//            ItemStack itemStack = itemStacks[i];
+//            if (slot == EquipmentSlotType.MAINHAND) {
+//                player.inventory.items.set(player.inventory.selected, itemStack);
+//            } else if (slot == EquipmentSlotType.OFFHAND) {
+//                player.inventory.offhand.set(0, itemStack);
+//            } else {
+//                player.inventory.armor.set(slot.getIndex(), itemStack);
+//            }
+//            i++;
+//        }
 
-        RenderSystem.popMatrix();
+        GlStateManager.popMatrix();
     }
 
-    public static void renderPlayerEntity(ClientPlayerEntity player, double posX, double posY, float scale, float yawOffset, int z) {
-        RenderSystem.pushMatrix();
-        RenderSystem.translatef((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
-        RenderSystem.scalef(1, 1, -1);
-        MatrixStack stack = new MatrixStack();
-        stack.scale(scale, scale, scale);
-        Quaternion zRot = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion yRot = Vector3f.YP.rotationDegrees(player.yBodyRot + yawOffset - 180);
-        zRot.mul(yRot);
-        stack.mulPose(zRot);
-        EntityRendererManager renderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        yRot.conj();
-        renderDispatcher.overrideCameraOrientation(yRot);
+    public static void renderPlayerEntity(EntityPlayerSP player, double posX, double posY, float scale, float yawOffset, int z) {
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
+        GlStateManager.scale(1, 1, -1);
+        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.rotate(180.0F, 0, 0, 1);
+        GlStateManager.rotate(player.renderYawOffset + yawOffset - 180, 0, 1, 0);
+        RenderManager renderDispatcher = Minecraft.getMinecraft().getRenderManager();
         renderDispatcher.setRenderShadow(false);
-        IRenderTypeBuffer.Impl buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderSystem.runAsFancy(() -> renderDispatcher.render(player, 0, 0, 0.0D, 0.0F, 1.0F, stack, buffer, 15728880));
-        buffer.endBatch();
+        RenderHelper.enableStandardItemLighting();
+        renderDispatcher.renderEntity(player, 0, 0, 0, 0.0F, 1.0F, false);
+        RenderHelper.disableStandardItemLighting();
         renderDispatcher.setRenderShadow(true);
-        RenderSystem.popMatrix();
+        GlStateManager.popMatrix();
+    }
+
+    public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
+        final Minecraft mc = Minecraft.getMinecraft();
+        int scale = new ScaledResolution(mc).getScaleFactor();
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(
+                screenX * scale,
+                mc.displayHeight - (screenY * scale + boxHeight * scale),
+                Math.max(0, boxWidth * scale),
+                Math.max(0, boxHeight * scale)
+        );
     }
 }

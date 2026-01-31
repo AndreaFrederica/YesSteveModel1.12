@@ -1,43 +1,42 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.gui.button.Button;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
-import com.elfmcys.yesstevemodel.util.Keep;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.resources.I18n;
+
+import java.io.File;
 
 public class OpenModelFolderScreen extends Screen {
     private final PlayerModelScreen screen;
 
     protected OpenModelFolderScreen(PlayerModelScreen screen) {
-        super(new StringTextComponent("Open Model Folder"));
         this.screen = screen;
     }
 
     @Override
-    @Keep
-    protected void init() {
+    public void initGui() {
         int x = (width - 310) / 2;
         int y = height / 2 + 60;
-        this.buttons.clear();
-        this.children.clear();
-        this.addButton(new Button(x, y, 150, 20, new TranslationTextComponent("gui.yes_steve_model.open_model_folder.open"), b -> {
-            Util.getPlatform().openFile(ServerModelManager.CUSTOM.toFile());
+        this.addButton(new Button(x, y, 150, 20, I18n.format("gui.yes_steve_model.open_model_folder.open"), b -> {
+            try {
+                Class<?> oclass = Class.forName("java.awt.Desktop");
+                Object object = oclass.getMethod("getDesktop").invoke(null);
+                oclass.getMethod("open", File.class).invoke(object, ServerModelManager.CUSTOM.toFile());
+            } catch (Exception e) {
+                YesSteveModel.LOGGER.error("Couldn't open file", e);
+            }
         }));
-        this.addButton(new Button(x + 160, y, 150, 20, new TranslationTextComponent("gui.yes_steve_model.model.return"), b -> {
-            getMinecraft().setScreen(this.screen);
+        this.addButton(new Button(x + 160, y, 150, 20, I18n.format("gui.yes_steve_model.model.return"), b -> {
+            this.mc.displayGuiScreen(this.screen);
         }));
     }
 
     @Override
-    @Keep
-    public void render(MatrixStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pPoseStack);
-        font.drawWordWrap(new TranslationTextComponent("gui.yes_steve_model.open_model_folder.tips"),
+    public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
+        this.drawDefaultBackground();
+        this.drawWordWrap(I18n.format("gui.yes_steve_model.open_model_folder.tips"),
                 (width - 400) / 2, height / 2 - 80, 400, 0XFFFFFF);
-        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+        super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }
 }

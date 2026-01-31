@@ -5,136 +5,144 @@ import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.command.argument.ModelsArgument;
 import com.elfmcys.yesstevemodel.command.argument.TexturesArgument;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.model.format.ServerModelInfo;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
+import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
 
-public class ModelCommand {
+public class ModelCommand extends CommandBase {
     public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().excludeFieldsWithoutExposeAnnotation().create();
     private static final String MODEL_NAME = "model";
     private static final String RELOAD_NAME = "reload";
     private static final String SET_NAME = "set";
-    private static final String TARGETS_NAME = "targets";
-    private static final String MODEL_ID_NAME = "model_id";
-    private static final String TEXTURE_ID_NAME = "texture_id";
-    private static final String IGNORE_AUTH_NAME = "ignore_auth";
     private static final String EXPORT_NAME = "export";
 
-    public static LiteralArgumentBuilder<CommandSource> get() {
-        LiteralArgumentBuilder<CommandSource> model = Commands.literal(MODEL_NAME);
-        LiteralArgumentBuilder<CommandSource> reload = Commands.literal(RELOAD_NAME);
-        model.then(reload.executes(ModelCommand::reloadAllPack));
-
-        LiteralArgumentBuilder<CommandSource> set = Commands.literal(SET_NAME);
-        RequiredArgumentBuilder<CommandSource, EntitySelector> targets = Commands.argument(TARGETS_NAME, EntityArgument.players());
-        RequiredArgumentBuilder<CommandSource, String> modelId = Commands.argument(MODEL_ID_NAME, ModelsArgument.ids());
-        RequiredArgumentBuilder<CommandSource, String> textureId = Commands.argument(TEXTURE_ID_NAME, TexturesArgument.ids());
-        RequiredArgumentBuilder<CommandSource, Boolean> ignoreAuth = Commands.argument(IGNORE_AUTH_NAME, BoolArgumentType.bool());
-
-        model.then(set.then(targets.then(modelId.then(textureId.executes(context -> setModel(context, false))))));
-        model.then(set.then(targets.then(modelId.then(textureId.then(ignoreAuth.executes(ModelCommand::setModelIgnoreAuth))))));
-
-        LiteralArgumentBuilder<CommandSource> export = Commands.literal(EXPORT_NAME);
-        model.then(export.executes(ModelCommand::exportAllPackInfo));
-        return model;
+    @Nonnull
+    @Override
+    public String getName() {
+        return MODEL_NAME;
     }
 
-    private static int setModelIgnoreAuth(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        boolean ignoreAuth = BoolArgumentType.getBool(context, IGNORE_AUTH_NAME);
-        return setModel(context, ignoreAuth);
+    @Nonnull
+    @Override
+    public String getUsage(@Nonnull ICommandSender sender) {
+        return "commands.yes_steve_model.model.usage";
     }
 
-    private static int setModel(CommandContext<CommandSource> context, boolean ignoreAuth) throws CommandSyntaxException {
-        Collection<ServerPlayerEntity> targets = EntityArgument.getPlayers(context, TARGETS_NAME);
-        String modelName = ModelsArgument.getModel(context, MODEL_ID_NAME);
-        String textureName = TexturesArgument.getTexture(context, TEXTURE_ID_NAME);
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @Override
+    public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
+        if (args.length == 0) throw new WrongUsageException(getUsage(sender));
+        switch (args[0].toLowerCase()) {
+            case RELOAD_NAME -> {
+                if (args.length != 1) throw new WrongUsageException(getUsage(sender));
+                reloadAllPack(server, sender);
+            }
+            case EXPORT_NAME -> {
+                if (args.length != 1) throw new WrongUsageException(getUsage(sender));
+                exportAllPackInfo(sender);
+            }
+            case SET_NAME -> {
+                switch (args.length) {
+                    case 4 -> setModel(server, sender, args[1], args[2], args[3], false);
+                    case 5 -> setModel(server, sender, args[1], args[2], args[3], parseBoolean(args[4]));
+                    default -> throw new WrongUsageException("commands.yes_steve_model.model.set.usage");
+                }
+            }
+            default -> throw new WrongUsageException(getUsage(sender));
+        }
+    }
+
+    private void setModel(MinecraftServer server, ICommandSender sender, String targetsArg, String modelName, String textureName, boolean ignoreAuth) throws CommandException {
+        List<EntityPlayerMP> targets = getPlayers(server, sender, targetsArg);
+
         if (!ServerModelManager.CACHE_NAME_INFO.containsKey(modelName)) {
-            context.getSource().sendSuccess(new TranslationTextComponent("commands.yes_steve_model.export.not_exist",
-                    modelName), true);
-            return Command.SINGLE_SUCCESS;
+            sender.sendMessage(new TextComponentTranslation("commands.yes_steve_model.export.not_exist",
+                    modelName));
+            return;
         }
 
         ServerModelInfo info = ServerModelManager.CACHE_NAME_INFO.get(modelName);
-        if (!info.getTexture().isPresent()) {
-            return Command.SINGLE_SUCCESS;
-        }
+        if (!info.getTexture().isPresent()) return;
 
         ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, modelName);
         ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, textureName);
 
         if (ignoreAuth) {
-            targets.forEach(player -> player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
                 cap.setModelAndTexture(modelId, textureId);
-                context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.set.success",
-                        modelName, player.getScoreboardName()), true);
+                notifyCommandListener(sender, this, "message.yes_steve_model.model.set.success",
+                        modelName, player.getName());
             }));
-            return Command.SINGLE_SUCCESS;
+            return;
         }
 
-        targets.forEach(player -> player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
-                player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(authCap -> {
+        targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+                CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(authCap -> {
                     if (!ServerModelManager.AUTH_MODELS.contains(modelName) || authCap.containModel(modelId)) {
                         cap.setModelAndTexture(modelId, textureId);
-                        context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.set.success",
-                                modelName, player.getScoreboardName()), true);
+                        notifyCommandListener(sender, this, "message.yes_steve_model.model.set.success",
+                                modelName, player.getName());
                     } else {
-                        context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.set.need_auth",
-                                modelName, player.getScoreboardName()), true);
+                        notifyCommandListener(sender, this, "message.yes_steve_model.model.set.need_auth",
+                                modelName, player.getName());
                     }
                 })));
-        return Command.SINGLE_SUCCESS;
     }
 
-    private static int exportAllPackInfo(CommandContext<CommandSource> context) {
+    private void exportAllPackInfo(ICommandSender sender) {
         String infoText = GSON.toJson(ServerModelManager.CACHE_NAME_INFO);
-        context.getSource().sendSuccess(new StringTextComponent(infoText), false);
-        return Command.SINGLE_SUCCESS;
+        sender.sendMessage(new TextComponentString(infoText));
     }
 
-    private static int reloadAllPack(CommandContext<CommandSource> context) {
+    private void reloadAllPack(MinecraftServer server, ICommandSender sender) {
         StopWatch watch = StopWatch.createStarted();
-        checkModelFiles(context, CUSTOM);
-        checkModelFiles(context, AUTH);
+        checkModelFiles(sender, CUSTOM);
+        checkModelFiles(sender, AUTH);
         ServerModelManager.reloadPacks();
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ServerModelManager::sendRequestSyncModelMessage);
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
-            ServerModelManager.sendRequestSyncModelMessage(context.getSource().getServer().getPlayerList());
+        if (FMLCommonHandler.instance().getSide().isClient()) {
+            ServerModelManager.sendRequestSyncModelMessage();
+        } else {
+            ServerModelManager.sendRequestSyncModelMessage(server.getPlayerList());
         }
-        context.getSource().getLevel().players().forEach(player -> player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
-            player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+        server.getPlayerList().getPlayers().forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
+            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
                 if (ServerModelManager.AUTH_MODELS.contains(modelIdCap.getModelId().getPath()) && !ownModelsCap.containModel(modelIdCap.getModelId())) {
                     ResourceLocation defaultModelId = new ResourceLocation(YesSteveModel.MOD_ID, "default");
                     ResourceLocation defaultTextureId = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
@@ -143,16 +151,15 @@ public class ModelCommand {
             });
         }));
         watch.stop();
-        context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.info", watch.getTime(TimeUnit.MICROSECONDS) / 1000.0), true);
-        return Command.SINGLE_SUCCESS;
+        notifyCommandListener(sender, this, "message.yes_steve_model.model.reload.info", watch.getTime(TimeUnit.MICROSECONDS) / 1000.0);
     }
 
-    private static void checkModelFiles(CommandContext<CommandSource> context, Path rootPath) {
+    private void checkModelFiles(ICommandSender sender, Path rootPath) {
         Collection<File> dirs = FileUtils.listFiles(rootPath.toFile(), DirectoryFileFilter.INSTANCE, null);
         for (File dir : dirs) {
             String dirName = dir.getName();
-            if (!ResourceLocation.isValidResourceLocation(dirName)) {
-                context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.error.dir_name", dirName), true);
+            if (!ResourceUtil.isValidResourceLocation(dirName)) {
+                sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.dir_name", dirName));
             }
             boolean noMainModelFile = true;
             boolean noArmModelFile = true;
@@ -160,31 +167,24 @@ public class ModelCommand {
             Collection<File> files = FileUtils.listFiles(rootPath.resolve(dirName).toFile(), FileFileFilter.FILE, null);
             for (File file : files) {
                 String fileName = file.getName();
-                if (MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
-                    noMainModelFile = false;
-                }
-                if (ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
-                    noArmModelFile = false;
-                }
+                if (MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noMainModelFile = false;
+                if (ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noArmModelFile = false;
                 if (fileName.endsWith(".png")) {
                     noTextureFile = false;
                     String name = file.getName();
                     name = name.substring(0, name.length() - 4);
-                    if (!ResourceLocation.isValidResourceLocation(name)) {
+                    if (!ResourceUtil.isValidResourceLocation(name)) {
                         String showName = String.format("%s/%s.png", dirName, name);
-                        context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.error.texture_name", showName), true);
+                        sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.texture_name", showName));
                     }
                 }
             }
-            if (noMainModelFile) {
-                context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.error.no_main_file", dirName), true);
-            }
-            if (noArmModelFile) {
-                context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.error.no_arm_file", dirName), true);
-            }
-            if (noTextureFile) {
-                context.getSource().sendSuccess(new TranslationTextComponent("message.yes_steve_model.model.reload.error.no_texture_file", dirName), true);
-            }
+            if (noMainModelFile)
+                sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_main_file", dirName));
+            if (noArmModelFile)
+                sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_arm_file", dirName));
+            if (noTextureFile)
+                sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_texture_file", dirName));
         }
     }
 
@@ -196,5 +196,26 @@ public class ModelCommand {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public List<String> getTabCompletions(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args, @Nullable BlockPos targetPos) {
+        return switch (args.length) {
+            case 1 -> getListOfStringsMatchingLastWord(args, RELOAD_NAME, SET_NAME, EXPORT_NAME);
+            case 2 -> SET_NAME.equalsIgnoreCase(args[0]) ?
+                    getListOfStringsMatchingLastWord(args, server.getOnlinePlayerNames()) :
+                    Collections.emptyList();
+            case 3 -> SET_NAME.equalsIgnoreCase(args[0]) ?
+                    getListOfStringsMatchingLastWord(args, ModelsArgument.listSuggestions()) :
+                    Collections.emptyList();
+            case 4 -> SET_NAME.equalsIgnoreCase(args[0]) ?
+                    getListOfStringsMatchingLastWord(args, TexturesArgument.listSuggestions(args[2])) :
+                    Collections.emptyList();
+            case 5 -> SET_NAME.equalsIgnoreCase(args[0]) ?
+                    getListOfStringsMatchingLastWord(args, "true", "false") :
+                    Collections.emptyList();
+            default -> Collections.emptyList();
+        };
     }
 }

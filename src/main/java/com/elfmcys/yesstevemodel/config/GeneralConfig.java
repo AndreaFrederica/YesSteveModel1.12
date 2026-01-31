@@ -1,47 +1,63 @@
 package com.elfmcys.yesstevemodel.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import com.elfmcys.yesstevemodel.config.util.ConfigBuilder;
+
+import javax.annotation.Nonnull;
 
 public class GeneralConfig {
-    public static ForgeConfigSpec.BooleanValue DISCLAIMER_SHOW;
-    public static ForgeConfigSpec.BooleanValue PRINT_ANIMATION_ROULETTE_MSG;
-    public static ForgeConfigSpec.BooleanValue DISABLE_SELF_MODEL;
-    public static ForgeConfigSpec.BooleanValue DISABLE_OTHER_MODEL;
-    public static ForgeConfigSpec.BooleanValue DISABLE_SELF_HANDS;
-    public static ForgeConfigSpec.ConfigValue<String> DEFAULT_MODEL_ID;
-    public static ForgeConfigSpec.ConfigValue<String> DEFAULT_MODEL_TEXTURE;
+    public static boolean DISCLAIMER_SHOW = true;
+    public static boolean PRINT_ANIMATION_ROULETTE_MSG = true;
+    public static boolean DISABLE_SELF_MODEL = false;
+    public static boolean DISABLE_OTHER_MODEL = false;
+    public static boolean DISABLE_SELF_HANDS = false;
+    public static String DEFAULT_MODEL_ID = "default";
+    public static String DEFAULT_MODEL_TEXTURE = "default.png";
 
-    public static ForgeConfigSpec init() {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-        init(builder);
-        ExtraPlayerScreenConfig.init(builder);
-        return builder.build();
-    }
+    static void build(@Nonnull ConfigBuilder builder) {
+        builder.pushCategory("general");
 
-    public static void init(ForgeConfigSpec.Builder builder) {
-        builder.push("general");
+        DISCLAIMER_SHOW = builder.get(
+                "DisclaimerShow",
+                DISCLAIMER_SHOW,
+                "Whether to display disclaimer GUI"
+        );
 
-        builder.comment("Whether to display disclaimer GUI");
-        DISCLAIMER_SHOW = builder.define("DisclaimerShow", true);
+        PRINT_ANIMATION_ROULETTE_MSG = builder.get(
+                "PrintAnimationRouletteMsg",
+                PRINT_ANIMATION_ROULETTE_MSG,
+                "Whether to print animation roulette play message"
+        );
 
-        builder.comment("Whether to print animation roulette play message");
-        PRINT_ANIMATION_ROULETTE_MSG = builder.define("PrintAnimationRouletteMsg", true);
+        DISABLE_SELF_MODEL = builder.get(
+                "DisableSelfModel",
+                DISABLE_SELF_MODEL,
+                "Prevents rendering of self player's model"
+        );
 
-        builder.comment("Prevents rendering of self player's model");
-        DISABLE_SELF_MODEL = builder.define("DisableSelfModel", false);
+        DISABLE_OTHER_MODEL = builder.get(
+                "DisableOtherModel",
+                DISABLE_OTHER_MODEL,
+                "Prevents rendering of other player's model"
+        );
 
-        builder.comment("Prevents rendering of other player's model");
-        DISABLE_OTHER_MODEL = builder.define("DisableOtherModel", false);
+        DISABLE_SELF_HANDS = builder.get(
+                "DisableSelfHands",
+                DISABLE_SELF_HANDS,
+                "Prevents rendering of self player's hand"
+        );
 
-        builder.comment("Prevents rendering of self player's hand");
-        DISABLE_SELF_HANDS = builder.define("DisableSelfHands", false);
+        DEFAULT_MODEL_ID = builder.get(
+                "DefaultModelId",
+                DEFAULT_MODEL_ID,
+                "The default model ID when a player first enters the game"
+        );
 
-        builder.comment("The default model ID when a player first enters the game");
-        DEFAULT_MODEL_ID = builder.define("DefaultModelId", "default");
+        DEFAULT_MODEL_TEXTURE = builder.get(
+                "DefaultModelTexture",
+                DEFAULT_MODEL_TEXTURE,
+                "The default model texture when a player first enters the game"
+        );
 
-        builder.comment("The default model texture when a player first enters the game");
-        DEFAULT_MODEL_TEXTURE = builder.define("DefaultModelTexture", "default.png");
-
-        builder.pop();
+        builder.popCategory();
     }
 }

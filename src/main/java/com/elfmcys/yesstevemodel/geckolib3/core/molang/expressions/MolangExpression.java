@@ -4,7 +4,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.mclib.math.Constant;
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.Operation;
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
@@ -39,7 +38,6 @@ public abstract class MolangExpression implements IValue {
         return false;
     }
 
-    @Keep
     public JsonElement toJson() {
         return new JsonPrimitive(this.toString());
     }

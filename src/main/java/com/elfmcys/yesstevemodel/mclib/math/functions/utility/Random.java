@@ -2,7 +2,6 @@ package com.elfmcys.yesstevemodel.mclib.math.functions.utility;
 
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public class Random extends Function {
     public java.util.Random random;
@@ -13,7 +12,6 @@ public class Random extends Function {
     }
 
     @Override
-    @Keep
     public double get() {
         double random = 0;
         if (this.args.length >= 3) {

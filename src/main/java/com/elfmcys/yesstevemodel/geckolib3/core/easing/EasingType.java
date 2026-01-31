@@ -7,15 +7,11 @@ public enum EasingType {
     NONE, CUSTOM, LINEAR, STEP;
 
     public static EasingType getEasingTypeFromString(String search) {
-        switch (search.toLowerCase(Locale.ROOT)) {
-            default:
-                return NONE;
-            case "custom":
-                return CUSTOM;
-            case "linear":
-                return LINEAR;
-            case "step":
-                return STEP;
-        }
+        return switch (search.toLowerCase(Locale.ROOT)) {
+            case "custom" -> CUSTOM;
+            case "linear" -> LINEAR;
+            case "step" -> STEP;
+            default -> NONE;
+        };
     }
 }

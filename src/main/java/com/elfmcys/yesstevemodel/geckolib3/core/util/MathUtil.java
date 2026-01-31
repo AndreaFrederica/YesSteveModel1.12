@@ -15,21 +15,21 @@ public class MathUtil {
      * @return 线性插值
      */
     public static float lerpValues(AnimationPoint animationPoint, EasingType easingType, Function<Double, Double> customEasingMethod) {
-        if (animationPoint.currentTick >= animationPoint.animationEndTick) {
-            return (float) animationPoint.animationEndValue;
+        if (animationPoint.currentTick() >= animationPoint.animationEndTick()) {
+            return (float) animationPoint.animationEndValue();
         }
-        if (animationPoint.currentTick == 0 && animationPoint.animationEndTick == 0) {
-            return (float) animationPoint.animationEndValue;
+        if (animationPoint.currentTick() == 0 && animationPoint.animationEndTick() == 0) {
+            return (float) animationPoint.animationEndValue();
         }
         if (easingType == EasingType.CUSTOM && customEasingMethod != null) {
-            return lerpValues(customEasingMethod.apply(animationPoint.currentTick / animationPoint.animationEndTick),
-                    animationPoint.animationStartValue, animationPoint.animationEndValue);
-        } else if (easingType == EasingType.NONE && animationPoint.keyframe != null) {
-            easingType = animationPoint.keyframe.easingType;
+            return lerpValues(customEasingMethod.apply(animationPoint.currentTick() / animationPoint.animationEndTick()),
+                    animationPoint.animationStartValue(), animationPoint.animationEndValue());
+        } else if (easingType == EasingType.NONE && animationPoint.keyframe() != null) {
+            easingType = animationPoint.keyframe().easingType;
         }
-        double ease = EasingManager.ease(animationPoint.currentTick / animationPoint.animationEndTick, easingType,
-                animationPoint.keyframe == null ? null : animationPoint.keyframe.easingArgs);
-        return lerpValues(ease, animationPoint.animationStartValue, animationPoint.animationEndValue);
+        double ease = EasingManager.ease(animationPoint.currentTick() / animationPoint.animationEndTick(), easingType,
+                animationPoint.keyframe() == null ? null : animationPoint.keyframe().easingArgs);
+        return lerpValues(ease, animationPoint.animationStartValue(), animationPoint.animationEndValue());
     }
 
     public static float lerpValues(double percentCompleted, double startValue, double endValue) {

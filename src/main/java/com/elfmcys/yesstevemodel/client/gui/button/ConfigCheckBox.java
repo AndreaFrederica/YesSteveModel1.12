@@ -1,22 +1,18 @@
 package com.elfmcys.yesstevemodel.client.gui.button;
 
-import com.elfmcys.yesstevemodel.util.Keep;
-import net.minecraft.client.gui.widget.button.CheckboxButton;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.resources.I18n;
 
-public class ConfigCheckBox extends CheckboxButton {
-    private final ForgeConfigSpec.BooleanValue configSpec;
+import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
-    public ConfigCheckBox(int pX, int pY, String key, ForgeConfigSpec.BooleanValue configSpec) {
-        super(pX, pY, 400, 20, new TranslationTextComponent("gui.yes_steve_model.config." + key), configSpec.get());
-        this.configSpec = configSpec;
-    }
-
-    @Override
-    @Keep
-    public void onPress() {
-        super.onPress();
-        this.configSpec.set(!this.configSpec.get());
+public class ConfigCheckBox extends Checkbox {
+    /**
+     * @param font 计算宽度用，文本较长时按钮宽度（点击区域）也会跟着变长。
+     */
+    public ConfigCheckBox(int pX, int pY, String key, @Nonnull FontRenderer font, boolean current, Consumer<Boolean> setter) {
+        super(pX, pY, I18n.format("gui.yes_steve_model.config." + key), font, current, (button -> {
+            setter.accept(((Checkbox) button).selected());
+        }));
     }
 }

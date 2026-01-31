@@ -44,7 +44,7 @@ version = propertyString('mod_version')
 group = propertyString('root_package')
 
 base {
-    archivesName.set('ysm')
+    archivesName.set('yesstevemodel-1.12.2-release')
 }
 
 tasks.decompressDecompiledSources.enabled !propertyBool('change_minecraft_sources')

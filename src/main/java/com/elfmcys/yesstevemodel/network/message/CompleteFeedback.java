@@ -1,27 +1,41 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.client.upload.UploadManager;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-public class CompleteFeedback {
+public class CompleteFeedback implements IMessage {
     public CompleteFeedback() {
     }
 
-    public static void encode(CompleteFeedback message, PacketBuffer buf) {
+    @Override
+    public void toBytes(ByteBuf buf) {
     }
 
-    public static CompleteFeedback decode(PacketBuffer buf) {
-        return new CompleteFeedback();
+    @Override
+    public void fromBytes(ByteBuf buf) {
     }
 
-    public static void handle(CompleteFeedback message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isClient()) {
-            context.enqueueWork(UploadManager::finishUpload);
+    public static class Handler implements IMessageHandler<CompleteFeedback, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(CompleteFeedback message, MessageContext ctx) {
+            if (ctx.side.isClient()) {
+                handleClient();
+            }
+            return null;
         }
-        context.setPacketHandled(true);
+
+        @SideOnly(Side.CLIENT)
+        private static void handleClient() {
+            Minecraft.getMinecraft().addScheduledTask(UploadManager::finishUpload);
+        }
     }
 }

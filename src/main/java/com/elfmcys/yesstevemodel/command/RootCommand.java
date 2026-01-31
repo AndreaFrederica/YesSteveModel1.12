@@ -1,22 +1,39 @@
 package com.elfmcys.yesstevemodel.command;
 
 import com.elfmcys.yesstevemodel.command.sub.*;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.command.ICommandSender;
+import net.minecraftforge.server.command.CommandTreeBase;
 
-public class RootCommand {
+import javax.annotation.Nonnull;
+
+/*
+这里规定一下，失败操作用sender.sendMessage（后台看不到），成功操作用notifyCommandListener（后台可见）
+ */
+public class RootCommand extends CommandTreeBase {
     private static final String ROOT_NAME = "ysm";
 
-    public static void register(CommandDispatcher<CommandSource> dispatcher) {
-        LiteralArgumentBuilder<CommandSource> root = Commands.literal(ROOT_NAME)
-                .requires((source -> source.hasPermission(2)));
-        root.then(ModelCommand.get());
-        root.then(AuthCommand.get());
-        root.then(ExportCommand.get());
-        root.then(PlayAnimationCommand.get());
-        root.then(ManageCommand.get());
-        dispatcher.register(root);
+    public RootCommand() {
+        this.addSubcommand(new ModelCommand());
+        this.addSubcommand(new AuthCommand());
+        this.addSubcommand(new ExportCommand());
+        this.addSubcommand(new PlayAnimationCommand());
+        this.addSubcommand(new ManageCommand());
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return ROOT_NAME;
+    }
+
+    @Nonnull
+    @Override
+    public String getUsage(@Nonnull ICommandSender sender) {
+        return "commands.yes_steve_model.ysm.usage";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
     }
 }

@@ -2,43 +2,65 @@ package com.elfmcys.yesstevemodel.command.sub;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.command.argument.AnimationArgument;
-import com.mojang.brigadier.Command;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 
-import java.util.Collection;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
-public class PlayAnimationCommand {
+public class PlayAnimationCommand extends CommandBase {
     private static final String PLAY_NAME = "play";
-    private static final String TARGETS_NAME = "targets";
-    private static final String ANIMATION_NAME = "animation";
     private static final String STOP = "stop";
 
-    public static LiteralArgumentBuilder<CommandSource> get() {
-        LiteralArgumentBuilder<CommandSource> play = Commands.literal(PLAY_NAME);
-        RequiredArgumentBuilder<CommandSource, EntitySelector> targets = Commands.argument(TARGETS_NAME, EntityArgument.players());
-        RequiredArgumentBuilder<CommandSource, String> animation = Commands.argument(ANIMATION_NAME, AnimationArgument.animations());
-        play.then(targets.then(animation.executes(PlayAnimationCommand::playAnimation)));
-        return play;
+    @Nonnull
+    @Override
+    public String getName() {
+        return PLAY_NAME;
     }
 
-    private static int playAnimation(CommandContext<CommandSource> context) throws CommandSyntaxException {
-        Collection<ServerPlayerEntity> targets = EntityArgument.getPlayers(context, TARGETS_NAME);
-        String animation = AnimationArgument.getAnimation(context, ANIMATION_NAME);
-        targets.forEach(player -> player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+    @Nonnull
+    @Override
+    public String getUsage(@Nonnull ICommandSender sender) {
+        return "commands.yes_steve_model.play.usage";
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+    @Override
+    public void execute(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args) throws CommandException {
+        if (args.length != 2) throw new WrongUsageException(getUsage(sender));
+        List<EntityPlayerMP> targets = getPlayers(server, sender, args[0]);
+        playAnimation(targets, args[1]);
+    }
+
+    private void playAnimation(List<EntityPlayerMP> targets, String animation) throws CommandException {
+        targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
             if (STOP.equals(animation)) {
                 cap.stopAnimation();
             } else {
                 cap.playAnimation(animation);
             }
         }));
-        return Command.SINGLE_SUCCESS;
+    }
+
+    @Nonnull
+    @Override
+    public List<String> getTabCompletions(@Nonnull MinecraftServer server, @Nonnull ICommandSender sender, @Nonnull String[] args, @Nullable BlockPos targetPos) {
+        return switch (args.length) {
+            case 1 -> getListOfStringsMatchingLastWord(args, server.getOnlinePlayerNames());
+            case 2 -> getListOfStringsMatchingLastWord(args, AnimationArgument.listSuggestions());
+            default -> Collections.emptyList();
+        };
     }
 }

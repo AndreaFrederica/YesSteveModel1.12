@@ -1,53 +1,66 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.Set;
-import java.util.function.Supplier;
 
-public class SyncAuthModels {
-    private final Set<ResourceLocation> authModels;
+public class SyncAuthModels implements IPacketBufferMessage {
+    private Set<ResourceLocation> authModels;
+
+    public SyncAuthModels() {
+    }
 
     public SyncAuthModels(Set<ResourceLocation> authModels) {
         this.authModels = authModels;
     }
 
-    public static void encode(SyncAuthModels message, PacketBuffer buf) {
-        buf.writeVarInt(message.authModels.size());
-        for (ResourceLocation modelId : message.authModels) {
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeVarInt(this.authModels.size());
+        for (ResourceLocation modelId : this.authModels) {
             buf.writeResourceLocation(modelId);
         }
     }
 
-    public static SyncAuthModels decode(PacketBuffer buf) {
+    @Override
+    public void fromBytes(PacketBuffer buf) {
         int size = buf.readVarInt();
         Set<ResourceLocation> tmp = Sets.newHashSet();
         for (int i = 0; i < size; i++) {
             tmp.add(buf.readResourceLocation());
         }
-        return new SyncAuthModels(tmp);
+        this.authModels = tmp;
     }
 
-    public static void handle(SyncAuthModels message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isClient()) {
-            context.enqueueWork(() -> handleCapability(message));
+    public static class Handler implements IMessageHandler<SyncAuthModels, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(SyncAuthModels message, MessageContext ctx) {
+            if (ctx.side.isClient()) {
+                handleCapability(message);
+            }
+            return null;
         }
-        context.setPacketHandled(true);
-    }
 
-    @OnlyIn(Dist.CLIENT)
-    private static void handleCapability(SyncAuthModels message) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
-            mc.player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> cap.setAuthModels(message.authModels));
+        @SideOnly(Side.CLIENT)
+        private static void handleCapability(SyncAuthModels message) {
+            Minecraft.getMinecraft().addScheduledTask(() -> {
+                Minecraft mc = Minecraft.getMinecraft();
+                if (mc.player != null) {
+                    CapabilityEvent.getCapability(mc.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> cap.setAuthModels(message.authModels));
+                }
+            });
         }
     }
 }

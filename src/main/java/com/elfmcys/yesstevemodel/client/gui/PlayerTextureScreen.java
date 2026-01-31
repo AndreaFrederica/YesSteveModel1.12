@@ -5,22 +5,17 @@ import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatColorButton;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatIconButton;
 import com.elfmcys.yesstevemodel.client.gui.button.TextureButton;
-import com.elfmcys.yesstevemodel.util.Keep;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +50,6 @@ public class PlayerTextureScreen extends Screen {
 
 
     public PlayerTextureScreen(PlayerModelScreen parent, ResourceLocation modelId, List<ResourceLocation> textures) {
-        super(new StringTextComponent("Player Texture GUI"));
         this.parent = parent;
         this.modelId = modelId;
         this.textures = textures;
@@ -65,11 +59,7 @@ public class PlayerTextureScreen extends Screen {
     }
 
     @Override
-    @Keep
-    protected void init() {
-        this.buttons.clear();
-        this.children.clear();
-
+    public void initGui() {
         this.x = (width - 420) / 2;
         this.y = (height - 235) / 2;
         this.maxTexturePage = (textures.size() - 1) / 4;
@@ -81,8 +71,8 @@ public class PlayerTextureScreen extends Screen {
             this.animationPage = 0;
         }
 
-        addButton(new FlatColorButton(x + 5, y, 80, 18, new TranslationTextComponent("gui.yes_steve_model.model.return"), (b) -> {
-            this.getMinecraft().setScreen(parent);
+        addButton(new FlatColorButton(x + 5, y, 80, 18, I18n.format("gui.yes_steve_model.model.return"), (b) -> {
+            this.mc.displayGuiScreen(parent);
         }));
 
         addButton(new FlatIconButton(x + 281, y + 2, 16, 16, 64, 16, (b) -> {
@@ -99,28 +89,28 @@ public class PlayerTextureScreen extends Screen {
             this.showGround = !this.showGround;
         }).setTooltips("gui.yes_steve_model.model.ground"));
 
-        addButton(new FlatColorButton(x + 321, y + 213, 18, 18, new StringTextComponent("<"), (b) -> {
+        addButton(new FlatColorButton(x + 321, y + 213, 18, 18, "<", (b) -> {
             if (this.texturePage > 0) {
                 this.texturePage--;
-                this.init();
+                this.refreshGui();
             }
         }));
-        addButton(new FlatColorButton(x + 383, y + 213, 18, 18, new StringTextComponent(">"), (b) -> {
+        addButton(new FlatColorButton(x + 383, y + 213, 18, 18, ">", (b) -> {
             if (this.texturePage < this.maxTexturePage) {
                 this.texturePage++;
-                this.init();
+                this.refreshGui();
             }
         }));
-        addButton(new FlatColorButton(x + 11, y + 214, 16, 16, new StringTextComponent("<"), (b) -> {
+        addButton(new FlatColorButton(x + 11, y + 214, 16, 16, "<", (b) -> {
             if (this.animationPage > 0) {
                 this.animationPage--;
-                this.init();
+                this.refreshGui();
             }
         }));
-        addButton(new FlatColorButton(x + 63, y + 214, 16, 16, new StringTextComponent(">"), (b) -> {
+        addButton(new FlatColorButton(x + 63, y + 214, 16, 16, ">", (b) -> {
             if (this.animationPage < this.maxAnimationPage) {
                 this.animationPage++;
-                this.init();
+                this.refreshGui();
             }
         }));
 
@@ -134,9 +124,9 @@ public class PlayerTextureScreen extends Screen {
             int yStart = y + 27 + 17 * i;
             String key = String.format("gui.yes_steve_model.texture.button.%s", name.replaceAll("\\:", "."));
             String keyDesc = String.format("gui.yes_steve_model.texture.button.%s.desc", name.replaceAll("\\:", "."));
-            FlatColorButton sideButton = new FlatColorButton(x + 5, yStart, 80, 16, new TranslationTextComponent(key), b -> this.animation = name);
-            sideButton.setTooltips(Lists.newArrayList(new TranslationTextComponent(keyDesc).withStyle(TextFormatting.GOLD),
-                    new TranslationTextComponent("gui.yes_steve_model.texture.button.animation_name", name).withStyle(TextFormatting.GRAY)));
+            FlatColorButton sideButton = new FlatColorButton(x + 5, yStart, 80, 16, I18n.format(key), b -> this.animation = name);
+            sideButton.setTooltips(Lists.newArrayList(TextFormatting.GOLD + I18n.format(keyDesc),
+                    TextFormatting.GRAY + I18n.format("gui.yes_steve_model.texture.button.animation_name", name)));
             addButton(sideButton);
         }
 
@@ -152,126 +142,116 @@ public class PlayerTextureScreen extends Screen {
     }
 
     @Override
-    @Keep
-    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick) {
-        ClientPlayerEntity player = getMinecraft().player;
+    public void drawScreen(int mouseX, int mouseY, float partialTick) {
+        EntityPlayerSP player = this.mc.player;
         if (player == null) {
             return;
         }
 
-        poseStack.translate(0, 0, -1000);
-        renderBackground(poseStack);
-        fillGradient(poseStack, x, y + 22, x + 90, y + 235, 0xff_222222, 0xff_222222);
-        fillGradient(poseStack, x + 93, y, x + 299, y + 235, 0xff_222222, 0xff_222222);
-        fillGradient(poseStack, x + 302, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
-        poseStack.translate(0, 0, 1000);
+        //GlStateManager.translate(0, 0, -1000);
+        this.drawDefaultBackground();
+        drawGradientRect(x, y + 22, x + 90, y + 235, 0xff_222222, 0xff_222222);
+        drawGradientRect(x + 93, y, x + 299, y + 235, 0xff_222222, 0xff_222222);
+        drawGradientRect(x + 302, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
+        //GlStateManager.translate(0, 0, 1000);
 
-        player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
-            MainWindow window = Minecraft.getInstance().getWindow();
-            double guiScale = window.getGuiScale();
-            int scissorX = (int) ((this.x + 93) * guiScale);
-            int scissorY = (int) (window.getHeight() - ((this.y + 235) * guiScale));
-            int scissorW = (int) (206 * guiScale);
-            int scissorH = (int) (235 * guiScale);
-            RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
-            RenderUtil.renderTextureScreenEntity(this.x + 299 / 2.0F + 40 + posX, this.y + 235 / 2.0F + 80 + posY, scale, pitch, yaw, getMinecraft().player, modelId, cap.getSelectTexture(), showGround, entity -> {
+        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            RenderUtil.scissor(this.x + 93, this.y, 206, 235);
+            RenderUtil.renderTextureScreenEntity(this.x + 299 / 2.0F + 40 + posX, this.y + 235 / 2.0F + 80 + posY, scale, pitch, yaw, this.mc.player, modelId, cap.getSelectTexture(), showGround, entity -> {
                 if (!entity.hasPreviewAnimation(animation)) {
                     entity.setPreviewAnimation(animation);
                 }
             });
-            RenderSystem.disableScissor();
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
         });
 
         String texturePageInfo = String.format("%d/%d", texturePage + 1, this.maxTexturePage + 1);
-        font.draw(poseStack, texturePageInfo, x + 302 + (118 - font.width(texturePageInfo)) / 2.0F, y + 223 - font.lineHeight / 2.0F, 0xF3EFE0);
+        this.drawString(this.fontRenderer, texturePageInfo, x + 302 + (118 - this.fontRenderer.getStringWidth(texturePageInfo)) / 2, y + 223 - this.fontRenderer.FONT_HEIGHT / 2, 0xF3EFE0);
 
         String animationPageInfo = String.format("%d/%d", animationPage + 1, this.maxAnimationPage + 1);
-        font.draw(poseStack, animationPageInfo, x + 5 + (80 - font.width(animationPageInfo)) / 2.0F, y + 218, 0xF3EFE0);
+        this.drawString(this.fontRenderer, animationPageInfo, x + 5 + (80 - this.fontRenderer.getStringWidth(animationPageInfo)) / 2, y + 218, 0xF3EFE0);
 
-        super.render(poseStack, mouseX, mouseY, partialTick);
-        this.buttons.stream().filter(r -> r instanceof FlatColorButton)
-                .forEach(r -> ((FlatColorButton) r).renderToolTip(this, poseStack, mouseX, mouseY));
+        super.drawScreen(mouseX, mouseY, partialTick);
+        this.buttonList.stream().filter(r -> r instanceof FlatColorButton)
+                .forEach(r -> ((FlatColorButton) r).renderToolTip(this, mouseX, mouseY));
     }
 
     @Override
-    @Keep
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (minecraft == null || !inViewRange(mouseX, mouseY)) {
-            return false;
+    public void mouseDragged(int mouseX, int mouseY, int button, int dragX, int dragY) {
+        if (this.mc == null || !inViewRange(mouseX, mouseY)) {
+            return;
         }
         if (button == LEFT_MOUSE_BUTTON) {
-            yaw += (1.5 * dragX);
+            yaw += (float) (1.5 * dragX);
             changePitchValue((float) dragY);
         }
         if (button == RIGHT_MOUSE_BUTTON) {
             posX += dragX;
             posY += dragY;
         }
-        return true;
     }
 
     @Override
-    @Keep
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (minecraft == null) {
-            return false;
+    public void mouseScrolled(int mouseX, int mouseY, int delta) {
+        if (this.mc == null) {
+            return;
         }
         if (delta != 0) {
             if (inViewRange(mouseX, mouseY)) {
                 changeScaleValue((float) delta * 0.07f);
-                return true;
+                return;
             }
             if (inAnimationRange(mouseX, mouseY)) {
-                return scrollAnimationPage(delta);
+                scrollAnimationPage(delta);
+                return;
             }
             if (inTextureRange(mouseX, mouseY)) {
-                return scrollTexturePage(delta);
+                scrollTexturePage(delta);
+                return;
             }
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        super.mouseScrolled(mouseX, mouseY, delta);
     }
 
-    private boolean scrollTexturePage(double delta) {
+    private void scrollTexturePage(double delta) {
         if (delta > 0 && this.texturePage > 0) {
             this.texturePage--;
-            getMinecraft().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            this.init();
+            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            this.refreshGui();
         }
         if (delta < 0 && this.texturePage < this.maxTexturePage) {
             this.texturePage++;
-            getMinecraft().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            this.init();
+            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            this.refreshGui();
         }
-        return true;
     }
 
-    private boolean scrollAnimationPage(double delta) {
+    private void scrollAnimationPage(double delta) {
         if (delta > 0 && this.animationPage > 0) {
             this.animationPage--;
-            getMinecraft().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            this.init();
+            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            this.refreshGui();
         }
         if (delta < 0 && this.animationPage < this.maxAnimationPage) {
             this.animationPage++;
-            getMinecraft().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            this.init();
+            this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            this.refreshGui();
         }
-        return true;
     }
 
-    private boolean inViewRange(double mouseX, double mouseY) {
+    private boolean inViewRange(int mouseX, int mouseY) {
         boolean isInWidthRange = (x + 93) < mouseX && mouseX < (x + 299);
         boolean isInHeightRange = y < mouseY && mouseY < (y + 235);
         return isInWidthRange && isInHeightRange;
     }
 
-    private boolean inAnimationRange(double mouseX, double mouseY) {
+    private boolean inAnimationRange(int mouseX, int mouseY) {
         boolean isInWidthRange = x < mouseX && mouseX < (x + 90);
         boolean isInHeightRange = (y + 22) < mouseY && mouseY < (y + 235);
         return isInWidthRange && isInHeightRange;
     }
 
-    private boolean inTextureRange(double mouseX, double mouseY) {
+    private boolean inTextureRange(int mouseX, int mouseY) {
         boolean isInWidthRange = (x + 302) < mouseX && mouseX < (x + 420);
         boolean isInHeightRange = y < mouseY && mouseY < (y + 235);
         return isInWidthRange && isInHeightRange;
@@ -293,8 +273,7 @@ public class PlayerTextureScreen extends Screen {
     }
 
     @Override
-    @Keep
-    public boolean isPauseScreen() {
+    public boolean doesGuiPauseGame() {
         return false;
     }
 }

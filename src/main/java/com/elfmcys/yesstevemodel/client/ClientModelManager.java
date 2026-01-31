@@ -27,13 +27,11 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.JSONException;
-import net.minecraft.util.JSONUtils;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.JsonException;
+import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +50,7 @@ import java.util.Map;
 public class ClientModelManager {
     public static Map<ResourceLocation, List<ResourceLocation>> MODELS = Maps.newHashMap();
     public static Map<ResourceLocation, Pair<Double, Double>> SCALE_INFO = Maps.newHashMap();
-    public static Map<ResourceLocation, List<ITextComponent>> EXTRA_INFO = Maps.newHashMap();
+    public static Map<ResourceLocation, List<String>> EXTRA_INFO = Maps.newHashMap();
     public static Map<ResourceLocation, String[]> EXTRA_ANIMATION_NAME = Maps.newHashMap();
     public static AnimationFile DEFAULT_ANIMATION_FILE = new AnimationFile();
     public static List<String> CACHE_MD5 = Lists.newArrayList();
@@ -80,8 +78,7 @@ public class ClientModelManager {
         Map<ResourceLocation, GeoModel> geoModels = GeckoLibCache.getInstance().getGeoModels();
         try {
             Object obj = ObjectStreamUtil.toObject(data);
-            if (obj instanceof RawGeoModel) {
-                RawGeoModel rawModel = (RawGeoModel) obj;
+            if (obj instanceof RawGeoModel rawModel) {
                 if (rawModel.getFormatVersion() == FormatVersion.VERSION_1_12_0) {
                     RawGeometryTree rawGeometryTree = RawGeometryTree.parseHierarchy(rawModel);
                     GeoModel geoModel = GeoBuilder.getGeoBuilder(id.getNamespace()).constructGeoModel(rawGeometryTree);
@@ -114,7 +111,11 @@ public class ClientModelManager {
     }
 
     private static void registerTexture(ResourceLocation id, byte[] data) {
-        Minecraft.getInstance().getTextureManager().register(id, new OuterFileTexture(data));
+        // 确保主线程上传
+        final Minecraft mc = Minecraft.getMinecraft();
+        mc.addScheduledTask(() -> {
+            mc.getTextureManager().loadTexture(id, new OuterFileTexture(data));
+        });
     }
 
     private static void registerAnimations(ResourceLocation id, Map<String, byte[]> mapData) {
@@ -136,7 +137,7 @@ public class ClientModelManager {
     private static AnimationFile getAnimationFile(String file) {
         AnimationFile animationFile = new AnimationFile();
         MolangParser parser = GeckoLibCache.getInstance().parser;
-        JsonObject jsonObject = JSONUtils.fromJson(YesSteveModel.GSON, file, JsonObject.class);
+        JsonObject jsonObject = JsonUtils.fromJson(YesSteveModel.GSON, file, JsonObject.class, false);
         if (jsonObject != null) {
             for (Map.Entry<String, JsonElement> entry : JsonAnimationUtils.getAnimations(jsonObject)) {
                 String animationName = entry.getKey();
@@ -144,7 +145,7 @@ public class ClientModelManager {
                 try {
                     animation = JsonAnimationUtils.deserializeJsonToAnimation(JsonAnimationUtils.getAnimation(jsonObject, animationName), parser);
                     animationFile.putAnimation(animationName, animation);
-                } catch (JSONException e) {
+                } catch (JsonException e) {
                     e.printStackTrace();
                 }
             }
@@ -182,7 +183,7 @@ public class ClientModelManager {
         SyncModelFiles syncModelFiles = new SyncModelFiles(md5Info);
         ThreadTools.THREAD_POOL.submit(() -> {
             try {
-                while (Minecraft.getInstance().getConnection() == null) {
+                while (Minecraft.getMinecraft().getConnection() == null) {
                     Thread.sleep(500);
                 }
                 NetworkHandler.CHANNEL.sendToServer(syncModelFiles);
@@ -208,21 +209,21 @@ public class ClientModelManager {
     }
 
     @Nullable
-    private static List<ITextComponent> handleExtraInfo(ResourceLocation id, @Nullable ExtraInfo extraInfo) {
+    private static List<String> handleExtraInfo(ResourceLocation id, @Nullable ExtraInfo extraInfo) {
         if (extraInfo == null || StringUtils.isBlank(extraInfo.getName())) {
             return null;
         }
-        List<ITextComponent> component = Lists.newArrayList();
-        component.add(new StringTextComponent(extraInfo.getName()).withStyle(TextFormatting.GOLD));
+        List<String> component = Lists.newArrayList();
+        component.add(TextFormatting.GOLD + extraInfo.getName());
         if (StringUtils.isNoneBlank(extraInfo.getTips())) {
             String[] split = extraInfo.getTips().split("\n");
-            Arrays.stream(split).forEach(s -> component.add(new StringTextComponent(s).withStyle(TextFormatting.GRAY)));
+            Arrays.stream(split).forEach(s -> component.add(TextFormatting.GRAY + I18n.format(s)));
         }
         if (extraInfo.getAuthors() != null && extraInfo.getAuthors().length != 0) {
-            component.add(new TranslationTextComponent("gui.yes_steve_model.model.authors", StringUtils.join(extraInfo.getAuthors(), "丨")));
+            component.add(I18n.format("gui.yes_steve_model.model.authors", TextFormatting.RESET + StringUtils.join(extraInfo.getAuthors(), "丨")));
         }
         if (StringUtils.isNoneBlank(extraInfo.getLicense())) {
-            component.add(new TranslationTextComponent("gui.yes_steve_model.model.license", extraInfo.getLicense()));
+            component.add(I18n.format("gui.yes_steve_model.model.license", TextFormatting.RESET + extraInfo.getLicense()));
         }
         return component;
     }

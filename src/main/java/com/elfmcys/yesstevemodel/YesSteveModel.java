@@ -1,23 +1,48 @@
 package com.elfmcys.yesstevemodel;
 
-import com.elfmcys.yesstevemodel.config.GeneralConfig;
-import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(YesSteveModel.MOD_ID)
+@Mod(
+        modid = YesSteveModel.MOD_ID,
+        name = Tags.MOD_NAME,
+        version = Tags.VERSION,
+        dependencies = "required-after:mixinbooter@[8.0,)",
+        guiFactory = "com.elfmcys.yesstevemodel.config.ConfigGuiFactory"
+)
 public class YesSteveModel {
-    public static final String MOD_ID = "yes_steve_model";
+    public static final String MOD_ID = Tags.MOD_ID;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
-    public YesSteveModel() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.init());
-        ServerModelManager.reloadPacks();
+    @SidedProxy(clientSide = "com.elfmcys.yesstevemodel.client.ClientProxy", serverSide = "com.elfmcys.yesstevemodel.CommonProxy")
+    public static CommonProxy proxy;
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        proxy.preInit(event);
+    }
+
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        proxy.init(event);
+    }
+
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        proxy.postInit(event);
+    }
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        proxy.serverStarting(event);
     }
 }

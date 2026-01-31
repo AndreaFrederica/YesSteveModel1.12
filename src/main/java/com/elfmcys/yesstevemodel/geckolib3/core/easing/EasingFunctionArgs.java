@@ -1,28 +1,12 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.easing;
 
-import com.elfmcys.yesstevemodel.util.Keep;
+import com.github.bsideup.jabel.Desugar;
 
 import java.util.Objects;
 
-public class EasingFunctionArgs {
-    private final EasingType easingType;
-    private final Double arg0;
-
-    public EasingFunctionArgs(EasingType easingType, Double arg0) {
-        this.easingType = easingType;
-        this.arg0 = arg0;
-    }
-
-    public EasingType easingType() {
-        return easingType;
-    }
-
-    public Double arg0() {
-        return arg0;
-    }
-
+@Desugar
+public record EasingFunctionArgs(EasingType easingType, Double arg0) {
     @Override
-    @Keep
     public boolean equals(Object o) {
         if (this == o) {
             return true;

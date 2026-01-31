@@ -6,7 +6,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.keyframe;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingType;
-import com.elfmcys.yesstevemodel.util.Keep;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 import java.util.List;
@@ -65,13 +64,11 @@ public class KeyFrame<T> {
     }
 
     @Override
-    @Keep
     public int hashCode() {
         return Objects.hash(length, startValue, endValue);
     }
 
     @Override
-    @Keep
     public boolean equals(Object obj) {
         return obj instanceof KeyFrame && hashCode() == obj.hashCode();
     }

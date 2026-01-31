@@ -2,7 +2,6 @@ package com.elfmcys.yesstevemodel.mclib.math.functions.classic;
 
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
 import com.elfmcys.yesstevemodel.mclib.math.functions.Function;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public class Exp extends Function {
     public Exp(IValue[] values, String name) throws Exception {
@@ -10,13 +9,11 @@ public class Exp extends Function {
     }
 
     @Override
-    @Keep
     public int getRequiredArguments() {
         return 1;
     }
 
     @Override
-    @Keep
     public double get() {
         return Math.exp(this.getArg(0));
     }

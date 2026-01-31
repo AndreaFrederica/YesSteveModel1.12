@@ -1,16 +1,23 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-public class SetStarModel {
-    private final ResourceLocation modelId;
-    private final boolean isAdd;
+public class SetStarModel implements IPacketBufferMessage {
+    private ResourceLocation modelId;
+    private boolean isAdd;
+
+    public SetStarModel() {
+    }
 
     private SetStarModel(ResourceLocation modelId, boolean isAdd) {
         this.modelId = modelId;
@@ -25,36 +32,42 @@ public class SetStarModel {
         return new SetStarModel(modelId, false);
     }
 
-    public static void encode(SetStarModel message, PacketBuffer buf) {
-        buf.writeResourceLocation(message.modelId);
-        buf.writeBoolean(message.isAdd);
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeResourceLocation(this.modelId);
+        buf.writeBoolean(this.isAdd);
     }
 
-    public static SetStarModel decode(PacketBuffer buf) {
-        return new SetStarModel(buf.readResourceLocation(), buf.readBoolean());
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.modelId = buf.readResourceLocation();
+        this.isAdd = buf.readBoolean();
     }
 
-    public static void handle(SetStarModel message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isServer()) {
-            context.enqueueWork(() -> {
-                ServerPlayerEntity sender = context.getSender();
-                if (sender == null) {
-                    return;
+    public static class Handler implements IMessageHandler<SetStarModel, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(SetStarModel message, MessageContext ctx) {
+            if (ctx.side.isServer()) {
+                FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
+                    EntityPlayerMP sender = ctx.getServerHandler().player;
+                    if (sender == null) {
+                        return;
+                    }
+                    handleCapability(message, sender);
+                });
+            }
+            return null;
+        }
+
+        private static void handleCapability(SetStarModel message, EntityPlayerMP sender) {
+            CapabilityEvent.getCapability(sender, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+                if (message.isAdd) {
+                    cap.addModel(message.modelId);
+                } else {
+                    cap.removeModel(message.modelId);
                 }
-                handleCapability(message, sender);
             });
         }
-        context.setPacketHandled(true);
-    }
-
-    private static void handleCapability(SetStarModel message, ServerPlayerEntity sender) {
-        sender.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
-            if (message.isAdd) {
-                cap.addModel(message.modelId);
-            } else {
-                cap.removeModel(message.modelId);
-            }
-        });
     }
 }

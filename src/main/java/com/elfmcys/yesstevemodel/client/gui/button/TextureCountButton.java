@@ -2,33 +2,32 @@ package com.elfmcys.yesstevemodel.client.gui.button;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
-import com.elfmcys.yesstevemodel.util.Keep;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+
+import javax.annotation.Nonnull;
 
 public class TextureCountButton extends FlatColorButton {
     public TextureCountButton(int x, int y) {
-        super(x, y, 20, 20, StringTextComponent.EMPTY, (b) -> {
+        super(x, y, 20, 20, "", (b) -> {
         });
     }
 
     @Override
-    @Keep
-    public ITextComponent getMessage() {
-        ClientPlayerEntity player = Minecraft.getInstance().player;
-        if (player != null) {
-            return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
-                ResourceLocation modelId = cap.getModelId();
-                if (ClientModelManager.MODELS.containsKey(modelId)) {
-                    String countText = String.valueOf(ClientModelManager.MODELS.get(modelId).size());
-                    return new StringTextComponent(countText);
-                }
-                return super.getMessage();
-            }).orElse(super.getMessage());
-        }
-        return super.getMessage();
+    public void drawButton(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTicks) {
+        this.updateDisplayString();
+        super.drawButton(mc, mouseX, mouseY, partialTicks);
+    }
+
+    private void updateDisplayString() {
+        EntityPlayerSP player = Minecraft.getMinecraft().player;
+        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            ResourceLocation modelId = cap.getModelId();
+            if (ClientModelManager.MODELS.containsKey(modelId)) {
+                this.displayString = String.valueOf(ClientModelManager.MODELS.get(modelId).size());
+            }
+        });
     }
 }

@@ -2,19 +2,25 @@ package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.function.Supplier;
 
-public class UploadFile {
-    private final String name;
-    private final byte[] fileBytes;
-    private final Dir dir;
+public class UploadFile implements IPacketBufferMessage {
+    private String name;
+    private byte[] fileBytes;
+    private Dir dir;
+
+    public UploadFile() {
+    }
 
     public UploadFile(String name, byte[] fileBytes, Dir dir) {
         this.name = name;
@@ -22,39 +28,45 @@ public class UploadFile {
         this.dir = dir;
     }
 
-    public static void encode(UploadFile message, PacketBuffer buf) {
-        buf.writeUtf(message.name);
-        buf.writeByteArray(message.fileBytes);
-        buf.writeEnum(message.dir);
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeString(this.name);
+        buf.writeByteArray(this.fileBytes);
+        buf.writeEnumValue(this.dir);
     }
 
-    public static UploadFile decode(PacketBuffer buf) {
-        String name = buf.readUtf();
-        byte[] bytes = buf.readByteArray();
-        Dir dirOut = buf.readEnum(Dir.class);
-        return new UploadFile(name, bytes, dirOut);
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.name = buf.readString(Short.MAX_VALUE);
+        this.fileBytes = buf.readByteArray();
+        this.dir = buf.readEnumValue(Dir.class);
     }
 
-    public static void handle(UploadFile message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isServer() && context.getSender() != null && context.getSender().hasPermissions(4)) {
-            context.enqueueWork(() -> writeFile(message, context.getSender()));
+    public static class Handler implements IMessageHandler<UploadFile, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(UploadFile message, MessageContext ctx) {
+            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, "")) {
+                FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
+                    writeFile(message, ctx.getServerHandler().player);
+                });
+            }
+            return null;
         }
-        context.setPacketHandled(true);
-    }
 
-    private static void writeFile(UploadFile message, ServerPlayerEntity player) {
-        Path filePath;
-        if (message.dir == Dir.CUSTOM) {
-            filePath = ServerModelManager.CUSTOM.resolve(message.name);
-        } else {
-            filePath = ServerModelManager.AUTH.resolve(message.name);
-        }
-        try {
-            FileUtils.writeByteArrayToFile(filePath.toFile(), message.fileBytes);
-            NetworkHandler.sendToClientPlayer(new CompleteFeedback(), player);
-        } catch (IOException e) {
-            e.printStackTrace();
+        private static void writeFile(UploadFile message, EntityPlayerMP player) {
+            Path filePath;
+            if (message.dir == Dir.CUSTOM) {
+                filePath = ServerModelManager.CUSTOM.resolve(message.name);
+            } else {
+                filePath = ServerModelManager.AUTH.resolve(message.name);
+            }
+            try {
+                FileUtils.writeByteArrayToFile(filePath.toFile(), message.fileBytes);
+                NetworkHandler.sendToClientPlayer(new CompleteFeedback(), player);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

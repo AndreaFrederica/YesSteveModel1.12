@@ -7,14 +7,11 @@
 package com.elfmcys.yesstevemodel.geckolib3.util;
 
 
-import com.elfmcys.yesstevemodel.util.Keep;
-
 public interface IRenderCycle {
     /**
      * IRenderCycle 名称
      *
      * @return 名称
      */
-    @Keep
     String name();
 }

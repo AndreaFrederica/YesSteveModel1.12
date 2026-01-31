@@ -1,19 +1,17 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.config.Config;
 import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
-import com.elfmcys.yesstevemodel.util.Keep;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.IReorderingProcessor;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import org.lwjgl.input.Keyboard;
 
+import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.List;
 
 public class ExtraPlayerConfigScreen extends Screen {
-    private static final char RESET_KEY = 'r';
     private int posX;
     private int posY;
     private float scale;
@@ -22,119 +20,121 @@ public class ExtraPlayerConfigScreen extends Screen {
     private boolean isChangeScale = false;
 
     public ExtraPlayerConfigScreen() {
-        super(new StringTextComponent("YSM Extra Player Render Config GUI"));
-        this.posX = ExtraPlayerScreenConfig.PLAYER_POS_X.get();
-        this.posY = ExtraPlayerScreenConfig.PLAYER_POS_Y.get();
-        this.scale = ExtraPlayerScreenConfig.PLAYER_SCALE.get().floatValue();
-        this.yawOffset = ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET.get().floatValue();
+        this.posX = ExtraPlayerScreenConfig.PLAYER_POS_X;
+        this.posY = ExtraPlayerScreenConfig.PLAYER_POS_Y;
+        this.scale = ExtraPlayerScreenConfig.PLAYER_SCALE;
+        this.yawOffset = ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET;
     }
 
-    @Keep
     @Override
-    public void render(MatrixStack poseStack, int pMouseX, int pMouseY, float pPartialTick) {
+    public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
         int startX = this.posX;
         int startY = this.posY;
         int endX = (int) (startX + this.scale * 1);
         int endY = (int) (startY + this.scale * 2);
 
-        vLine(poseStack, width / 2 - 1, -2, height + 2, 0x9fffffff);
-        hLine(poseStack, -2, width + 2, height / 2 - 1, 0x9fffffff);
+        this.drawVerticalLine(width / 2 - 1, -2, height + 2, 0x9fffffff);
+        this.drawHorizontalLine(-2, width + 2, height / 2 - 1, 0x9fffffff);
 
-        vLine(poseStack, 10, -2, height + 2, 0x9fffffff);
-        vLine(poseStack, width - 10, -2, height + 2, 0x9fffffff);
-        hLine(poseStack, -2, width + 2, 10, 0x9fffffff);
-        hLine(poseStack, -2, width + 2, height - 10, 0x9fffffff);
+        this.drawVerticalLine(10, -2, height + 2, 0x9fffffff);
+        this.drawVerticalLine(width - 10, -2, height + 2, 0x9fffffff);
+        this.drawHorizontalLine(-2, width + 2, 10, 0x9fffffff);
+        this.drawHorizontalLine(-2, width + 2, height - 10, 0x9fffffff);
 
-        vLine(poseStack, startX, startY, endY, 0xffff0000);
-        vLine(poseStack, endX, startY, endY, 0xffff0000);
-        hLine(poseStack, startX, endX, startY, 0xffff0000);
-        hLine(poseStack, startX, endX, endY, 0xffff0000);
+        this.drawVerticalLine(startX, startY, endY, 0xffff0000);
+        this.drawVerticalLine(endX, startY, endY, 0xffff0000);
+        this.drawHorizontalLine(startX, endX, startY, 0xffff0000);
+        this.drawHorizontalLine(startX, endX, endY, 0xffff0000);
 
-        fillGradient(poseStack, startX, startY, endX, endY, 0x4fffffff, 0x4fffffff);
+        this.drawGradientRect(startX, startY, endX, endY, 0x4fffffff, 0x4fffffff);
 
-        fillGradient(poseStack, startX - 5, startY - 5, startX + 5, startY + 5, 0xFF00FF9F, 0xFF00FF9F);
-        fillGradient(poseStack, endX - 5, endY - 5, endX + 5, endY + 5, 0xFF00009F, 0xFF00009F);
+        this.drawGradientRect(startX - 5, startY - 5, startX + 5, startY + 5, 0xFF00FF9F, 0xFF00FF9F);
+        this.drawGradientRect(endX - 5, endY - 5, endX + 5, endY + 5, 0xFF00009F, 0xFF00009F);
 
         int y = 15;
-        TranslationTextComponent component = new TranslationTextComponent("gui.yes_steve_model.extra_player_render.tips");
-        List<IReorderingProcessor> split = font.split(component, 500);
-        for (IReorderingProcessor charSequence : split) {
-            int w = font.width(charSequence);
-            font.drawShadow(poseStack, charSequence, width - 15 - w, y, 0xFFFFFF);
+        String component = I18n.format("gui.yes_steve_model.extra_player_render.tips");
+        List<String> split = this.listLineBreakStringToWidth(component, 500);
+        for (String charSequence : split) {
+            int w = this.fontRenderer.getStringWidth(charSequence);
+            this.drawString(this.fontRenderer, charSequence, width - 15 - w, y, 0xFFFFFF);
             y += 10;
         }
 
-        if (getMinecraft().player != null) {
-            RenderUtil.renderPlayerEntity(getMinecraft().player, this.posX, this.posY, this.scale, this.yawOffset, 50);
+        if (this.mc.player != null) {
+            RenderUtil.renderPlayerEntity(this.mc.player, this.posX, this.posY, this.scale, this.yawOffset, 50);
         }
     }
 
-    @Keep
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
         boolean xIn = this.posX - 5 < mouseX && mouseX < this.posX + 5;
         boolean yIn = this.posY - 5 < mouseY && mouseY < this.posY + 5;
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && xIn && yIn) {
+        if (button == LEFT_MOUSE_BUTTON && xIn && yIn) {
             this.isChangePos = true;
         }
         int endX = (int) (this.posX + this.scale * 1);
         int endY = (int) (this.posY + this.scale * 2);
         boolean xIn2 = endX - 5 < mouseX && mouseX < endX + 5;
         boolean yIn2 = endY - 5 < mouseY && mouseY < endY + 5;
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && xIn2 && yIn2) {
+        if (button == LEFT_MOUSE_BUTTON && xIn2 && yIn2) {
             this.isChangeScale = true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        super.mouseClicked(mouseX, mouseY, button);
     }
 
-    @Keep
     @Override
-    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+    public void mouseReleased(int mouseX, int mouseY, int button) {
         this.isChangePos = false;
         this.isChangeScale = false;
-        return super.mouseReleased(pMouseX, pMouseY, pButton);
+        super.mouseReleased(mouseX, mouseY, button);
     }
 
-    @Keep
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public void mouseDragged(int mouseX, int mouseY, int button, int deltaX, int deltaY) {
         if (isChangeScale) {
             double scale1 = mouseX - this.posX;
-            double scale2 = (mouseY - this.posY) / 2;
+            double scale2 = (double) (mouseY - this.posY) / 2;
             this.scale = (float) Math.min(scale1, scale2);
-            return true;
+            return;
         }
         if (isChangePos) {
-            this.posX = (int) mouseX;
-            this.posY = (int) mouseY;
-            return true;
+            this.posX = mouseX;
+            this.posY = mouseY;
+            return;
         }
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+        if (button == RIGHT_MOUSE_BUTTON) {
             this.yawOffset += (deltaX * 2);
-            return true;
         }
-        return false;
     }
 
-    @Keep
     @Override
-    public boolean charTyped(char typedChar, int keyCode) {
-        if (Character.toLowerCase(typedChar) == RESET_KEY && hasAltDown()) {
+    public void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (keyCode == Keyboard.KEY_R && isAltKeyDown()) {
             this.posX = 10;
             this.posY = 10;
             this.scale = 40;
             this.yawOffset = 5;
         }
-        return super.charTyped(typedChar, keyCode);
+        super.keyTyped(typedChar, keyCode);
     }
 
-    @Keep
     @Override
-    public void onClose() {
-        ExtraPlayerScreenConfig.PLAYER_POS_X.set(this.posX);
-        ExtraPlayerScreenConfig.PLAYER_POS_Y.set(this.posY);
-        ExtraPlayerScreenConfig.PLAYER_SCALE.set((double) this.scale);
-        ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET.set((double) this.yawOffset);
-        super.onClose();
+    public void onGuiClosed() {
+        ExtraPlayerScreenConfig.PLAYER_POS_X = this.posX;
+        ExtraPlayerScreenConfig.PLAYER_POS_Y = this.posY;
+        ExtraPlayerScreenConfig.PLAYER_SCALE = this.scale;
+        ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET = this.yawOffset;
+        Config.save();
+        super.onGuiClosed();
+    }
+
+    @Override
+    public void onResize(@Nonnull Minecraft mc, int width, int height) {
+        ExtraPlayerScreenConfig.PLAYER_POS_X = this.posX;
+        ExtraPlayerScreenConfig.PLAYER_POS_Y = this.posY;
+        ExtraPlayerScreenConfig.PLAYER_SCALE = this.scale;
+        ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET = this.yawOffset;
+        Config.save();
+        super.onResize(mc, width, height);
     }
 }

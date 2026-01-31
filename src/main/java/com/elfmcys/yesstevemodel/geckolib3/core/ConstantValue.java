@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.core;
 
 import com.elfmcys.yesstevemodel.mclib.math.IValue;
-import com.elfmcys.yesstevemodel.util.Keep;
 
 public class ConstantValue implements IValue {
     private final double value;
@@ -31,7 +30,6 @@ public class ConstantValue implements IValue {
     }
 
     @Override
-    @Keep
     public double get() {
         return value;
     }

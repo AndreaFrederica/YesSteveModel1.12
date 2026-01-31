@@ -1,7 +1,5 @@
 package com.elfmcys.yesstevemodel.mclib.math;
 
-import com.elfmcys.yesstevemodel.util.Keep;
-
 public class Operator implements IValue {
     public Operation operation;
     public IValue a;
@@ -14,13 +12,11 @@ public class Operator implements IValue {
     }
 
     @Override
-    @Keep
     public double get() {
         return this.operation.calculate(a.get(), b.get());
     }
 
     @Override
-    @Keep
     public String toString() {
         return a.toString() + " " + this.operation.sign + " " + b.toString();
     }

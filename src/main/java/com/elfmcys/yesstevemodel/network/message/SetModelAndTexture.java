@@ -2,51 +2,64 @@ package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-public class SetModelAndTexture {
-    private final ResourceLocation modelId;
-    private final ResourceLocation selectTexture;
+public class SetModelAndTexture implements IPacketBufferMessage {
+    private ResourceLocation modelId;
+    private ResourceLocation selectTexture;
+
+    public SetModelAndTexture() {
+    }
 
     public SetModelAndTexture(ResourceLocation modelId, ResourceLocation selectTexture) {
         this.modelId = modelId;
         this.selectTexture = selectTexture;
     }
 
-    public static void encode(SetModelAndTexture message, PacketBuffer buf) {
-        buf.writeResourceLocation(message.modelId);
-        buf.writeResourceLocation(message.selectTexture);
+    @Override
+    public void toBytes(PacketBuffer buf) {
+        buf.writeResourceLocation(this.modelId);
+        buf.writeResourceLocation(this.selectTexture);
     }
 
-    public static SetModelAndTexture decode(PacketBuffer buf) {
-        return new SetModelAndTexture(buf.readResourceLocation(), buf.readResourceLocation());
+    @Override
+    public void fromBytes(PacketBuffer buf) {
+        this.modelId = buf.readResourceLocation();
+        this.selectTexture = buf.readResourceLocation();
     }
 
-    public static void handle(SetModelAndTexture message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        if (context.getDirection().getReceptionSide().isServer()) {
-            context.enqueueWork(() -> {
-                ServerPlayerEntity sender = context.getSender();
-                if (sender == null) {
-                    return;
-                }
-                handleCapability(message, sender);
-            });
-        }
-        context.setPacketHandled(true);
-    }
-
-    private static void handleCapability(SetModelAndTexture message, ServerPlayerEntity sender) {
-        sender.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> sender.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
-            if (!ServerModelManager.AUTH_MODELS.contains(message.modelId.getPath()) || ownModelsCap.containModel(message.modelId)) {
-                modelIdCap.setModelAndTexture(message.modelId, message.selectTexture);
+    public static class Handler implements IMessageHandler<SetModelAndTexture, IMessage> {
+        @Nullable
+        @Override
+        public IMessage onMessage(SetModelAndTexture message, MessageContext ctx) {
+            if (ctx.side.isServer()) {
+                FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
+                    EntityPlayerMP sender = ctx.getServerHandler().player;
+                    if (sender == null) {
+                        return;
+                    }
+                    handleCapability(message, sender);
+                });
             }
-        }));
+            return null;
+        }
+
+        private static void handleCapability(SetModelAndTexture message, EntityPlayerMP sender) {
+            CapabilityEvent.getCapability(sender, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> CapabilityEvent.getCapability(sender, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
+                if (!ServerModelManager.AUTH_MODELS.contains(message.modelId.getPath()) || ownModelsCap.containModel(message.modelId)) {
+                    modelIdCap.setModelAndTexture(message.modelId, message.selectTexture);
+                }
+            }));
+        }
     }
 }

@@ -1,31 +1,28 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.easing;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Memoizer;
-import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 
 import java.util.List;
 import java.util.function.Function;
 
 public class EasingManager {
-    private static final Function<EasingFunctionArgs, Double2DoubleFunction> GET_EASING_FUNCTION = Memoizer
+    private static final Function<EasingFunctionArgs, Function<Double, Double>> GET_EASING_FUNCTION = Memoizer
             .memoize(EasingManager::getEasingFuncImpl);
 
     public static double ease(double number, EasingType easingType, List<Double> easingArgs) {
-        Double firstArg = easingArgs == null || easingArgs.size() < 1 ? null : easingArgs.get(0);
+        Double firstArg = easingArgs == null || easingArgs.isEmpty() ? null : easingArgs.get(0);
         return GET_EASING_FUNCTION.apply(new EasingFunctionArgs(easingType, firstArg)).apply(number);
     }
 
 
-    private static Double2DoubleFunction getEasingFuncImpl(EasingFunctionArgs args) {
-        switch (args.easingType()) {
-            default:
-                return in(EasingManager::linear);
-            case STEP:
-                return in(step(args.arg0()));
-        }
+    private static Function<Double, Double> getEasingFuncImpl(EasingFunctionArgs args) {
+        return switch (args.easingType()) {
+            case STEP -> in(step(args.arg0()));
+            default -> in(EasingManager::linear);
+        };
     }
 
-    private static Double2DoubleFunction in(Double2DoubleFunction easing) {
+    private static Function<Double, Double> in(Function<Double, Double> easing) {
         return easing;
     }
 
@@ -34,7 +31,7 @@ public class EasingManager {
     }
 
 
-    private static Double2DoubleFunction step(Double stepArg) {
+    private static Function<Double, Double> step(Double stepArg) {
         int steps = stepArg != null ? stepArg.intValue() : 2;
         double[] intervals = stepRange(steps);
         return t -> intervals[findIntervalBorderIndex(t, intervals, false)];

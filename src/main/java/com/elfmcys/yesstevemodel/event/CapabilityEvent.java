@@ -8,17 +8,21 @@ import com.elfmcys.yesstevemodel.network.message.SyncAuthModels;
 import com.elfmcys.yesstevemodel.network.message.SyncModelInfo;
 import com.elfmcys.yesstevemodel.network.message.SyncStarModels;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+
+import javax.annotation.Nullable;
+import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = YesSteveModel.MOD_ID)
 public final class CapabilityEvent {
@@ -28,16 +32,14 @@ public final class CapabilityEvent {
 
     @SubscribeEvent
     public static void onAttachCapabilityEvent(AttachCapabilitiesEvent<Entity> event) {
-        Entity entity = event.getObject();
-        if (entity instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) entity;
-            if (!player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
+        if (event.getObject() instanceof EntityPlayer player) {
+            if (!CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
                 event.addCapability(MODEL_INFO_CAP, new ModelInfoCapabilityProvider());
             }
-            if (!player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(AUTH_MODELS_CAP)) {
+            if (!CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(AUTH_MODELS_CAP)) {
                 event.addCapability(AUTH_MODELS_CAP, new AuthModelsCapabilityProvider());
             }
-            if (!player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
+            if (!CapabilityEvent.getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
                 event.addCapability(STAR_MODELS_CAP, new StarModelsCapabilityProvider());
             }
         }
@@ -45,26 +47,25 @@ public final class CapabilityEvent {
 
     @SubscribeEvent
     public static void onPlayerCloned(PlayerEvent.Clone event) {
-        LazyOptional<ModelInfoCapability> oldModelInfoCap = getModelInfoCap(event.getOriginal());
-        LazyOptional<AuthModelsCapability> oldAuthModelsCap = getAuthModelsCap(event.getOriginal());
-        LazyOptional<StarModelsCapability> oldStarModelsCap = getStarModelsCap(event.getOriginal());
+        Optional<ModelInfoCapability> oldModelInfoCap = getModelInfoCap(event.getOriginal());
+        Optional<AuthModelsCapability> oldAuthModelsCap = getAuthModelsCap(event.getOriginal());
+        Optional<StarModelsCapability> oldStarModelsCap = getStarModelsCap(event.getOriginal());
 
-        LazyOptional<ModelInfoCapability> newModelInfoCap = getModelInfoCap(event.getPlayer());
-        LazyOptional<AuthModelsCapability> newAuthModelsCap = getAuthModelsCap(event.getPlayer());
-        LazyOptional<StarModelsCapability> newStarModelsCap = getStarModelsCap(event.getPlayer());
+        Optional<ModelInfoCapability> newModelInfoCap = getModelInfoCap(event.getEntityPlayer());
+        Optional<AuthModelsCapability> newAuthModelsCap = getAuthModelsCap(event.getEntityPlayer());
+        Optional<StarModelsCapability> newStarModelsCap = getStarModelsCap(event.getEntityPlayer());
 
-        newModelInfoCap.ifPresent((newModelInfo) -> oldModelInfoCap.ifPresent(newModelInfo::copyFrom));
-        newAuthModelsCap.ifPresent((newAuthModels) -> oldAuthModelsCap.ifPresent(newAuthModels::copyFrom));
-        newStarModelsCap.ifPresent((newStarModels) -> oldStarModelsCap.ifPresent(newStarModels::copyFrom));
+        newModelInfoCap.ifPresent(newModelInfo -> oldModelInfoCap.ifPresent(newModelInfo::copyFrom));
+        newAuthModelsCap.ifPresent(newAuthModels -> oldAuthModelsCap.ifPresent(newAuthModels::copyFrom));
+        newStarModelsCap.ifPresent(newStarModels -> oldStarModelsCap.ifPresent(newStarModels::copyFrom));
     }
 
     @SubscribeEvent
     public static void onTrackingPlayer(PlayerEvent.StartTracking event) {
-        if (event.getTarget() instanceof PlayerEntity) {
-            PlayerEntity player = event.getPlayer();
-            PlayerEntity trackPlayer = (PlayerEntity) event.getTarget();
+        if (event.getTarget() instanceof EntityPlayer trackPlayer) {
+            EntityPlayer player = event.getEntityPlayer();
             getModelInfoCap(trackPlayer).ifPresent(cap -> {
-                SyncModelInfo syncMsg = new SyncModelInfo(trackPlayer.getId(), cap);
+                SyncModelInfo syncMsg = new SyncModelInfo(trackPlayer.getEntityId(), cap);
                 NetworkHandler.sendToClientPlayer(syncMsg, player);
             });
         }
@@ -72,11 +73,9 @@ public final class CapabilityEvent {
 
     @SubscribeEvent
     public static void onEntityJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) event.getEntity();
+        if (event.getEntity() instanceof EntityPlayer player) {
             getModelInfoCap(player).ifPresent(modelInfoCap -> {
-                if (player instanceof ServerPlayerEntity) {
-                    ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+                if (player instanceof EntityPlayerMP serverPlayer) {
                     getAuthModelsCap(player).ifPresent(authModelsCap -> {
                         NetworkHandler.sendToClientPlayer(new SyncAuthModels(authModelsCap.getAuthModels()), serverPlayer);
                         if (ServerModelManager.AUTH_MODELS.contains(modelInfoCap.getModelId().getPath()) && !authModelsCap.containModel(modelInfoCap.getModelId())) {
@@ -85,7 +84,7 @@ public final class CapabilityEvent {
                             modelInfoCap.setModelAndTexture(defaultModelId, defaultTextureId);
                         }
                     });
-                    SyncModelInfo syncMsg = new SyncModelInfo(serverPlayer.getId(), modelInfoCap);
+                    SyncModelInfo syncMsg = new SyncModelInfo(serverPlayer.getEntityId(), modelInfoCap);
                     NetworkHandler.sendToClientPlayer(syncMsg, serverPlayer);
                 } else {
                     modelInfoCap.markDirty();
@@ -93,8 +92,7 @@ public final class CapabilityEvent {
             });
 
             getStarModelsCap(player).ifPresent(starModelCap -> {
-                if (player instanceof ServerPlayerEntity) {
-                    ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+                if (player instanceof EntityPlayerMP serverPlayer) {
                     NetworkHandler.sendToClientPlayer(new SyncStarModels(starModelCap.getStarModels()), serverPlayer);
                 }
             });
@@ -106,11 +104,11 @@ public final class CapabilityEvent {
      */
     @SubscribeEvent
     public static void playerTickEvent(TickEvent.PlayerTickEvent event) {
-        PlayerEntity player = event.player;
-        if (event.side == LogicalSide.SERVER && event.phase == TickEvent.Phase.END) {
+        EntityPlayer player = event.player;
+        if (event.side.isServer() && event.phase == TickEvent.Phase.END) {
             getModelInfoCap(player).ifPresent(cap -> {
                 if (cap.isDirty()) {
-                    SyncModelInfo syncMsg = new SyncModelInfo(player.getId(), cap);
+                    SyncModelInfo syncMsg = new SyncModelInfo(player.getEntityId(), cap);
                     if (player.getServer() == null) {
                         return;
                     }
@@ -121,15 +119,25 @@ public final class CapabilityEvent {
         }
     }
 
-    private static LazyOptional<ModelInfoCapability> getModelInfoCap(PlayerEntity player) {
-        return player.getCapability(ModelInfoCapabilityProvider.MODEL_INFO_CAP);
+    private static Optional<ModelInfoCapability> getModelInfoCap(EntityPlayer player) {
+        return getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP);
     }
 
-    private static LazyOptional<AuthModelsCapability> getAuthModelsCap(PlayerEntity player) {
-        return player.getCapability(AuthModelsCapabilityProvider.AUTH_MODELS_CAP);
+    private static Optional<AuthModelsCapability> getAuthModelsCap(EntityPlayer player) {
+        return getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP);
     }
 
-    private static LazyOptional<StarModelsCapability> getStarModelsCap(PlayerEntity player) {
-        return player.getCapability(StarModelsCapabilityProvider.STAR_MODELS_CAP);
+    private static Optional<StarModelsCapability> getStarModelsCap(EntityPlayer player) {
+        return getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP);
+    }
+
+    public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {
+        return getCapability(provider, capability, null);
+    }
+
+    public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability, @Nullable EnumFacing side) {
+        return provider != null && provider.hasCapability(capability, side) ?
+                Optional.ofNullable(provider.getCapability(capability, side)) :
+                Optional.empty();
     }
 }
