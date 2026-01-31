@@ -20,6 +20,8 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
@@ -253,19 +255,19 @@ public final class RenderUtil {
         float yHeadRotO = player.prevRotationYawHead;
         float yHeadRot = player.rotationYawHead;
 
-//        ItemStack[] itemStacks = new ItemStack[EquipmentSlotType.values().length];
-//        int i = 0;
-//        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
-//            itemStacks[i] = player.getItemBySlot(slot);
-//            if (slot == EquipmentSlotType.MAINHAND) {
-//                player.inventory.items.set(player.inventory.selected, ItemStack.EMPTY);
-//            } else if (slot == EquipmentSlotType.OFFHAND) {
-//                player.inventory.offhand.set(0, ItemStack.EMPTY);
-//            } else {
-//                player.inventory.armor.set(slot.getIndex(), ItemStack.EMPTY);
-//            }
-//            i++;
-//        }
+        ItemStack[] itemStacks = new ItemStack[EntityEquipmentSlot.values().length];
+        int i = 0;
+        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
+            itemStacks[i] = player.getItemStackFromSlot(slot);
+            if (slot == EntityEquipmentSlot.MAINHAND) {
+                player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
+            } else if (slot == EntityEquipmentSlot.OFFHAND) {
+                player.inventory.offHandInventory.set(0, ItemStack.EMPTY);
+            } else {
+                player.inventory.armorInventory.set(slot.getIndex(), ItemStack.EMPTY);
+            }
+            i++;
+        }
 
         player.renderYawOffset = 200;
         player.rotationYaw = 180;
@@ -286,18 +288,18 @@ public final class RenderUtil {
         player.prevRotationYawHead = yHeadRotO;
         player.rotationYawHead = yHeadRot;
 
-//        i = 0;
-//        for (EquipmentSlotType slot : EquipmentSlotType.values()) {
-//            ItemStack itemStack = itemStacks[i];
-//            if (slot == EquipmentSlotType.MAINHAND) {
-//                player.inventory.items.set(player.inventory.selected, itemStack);
-//            } else if (slot == EquipmentSlotType.OFFHAND) {
-//                player.inventory.offhand.set(0, itemStack);
-//            } else {
-//                player.inventory.armor.set(slot.getIndex(), itemStack);
-//            }
-//            i++;
-//        }
+        i = 0;
+        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
+            ItemStack itemStack = itemStacks[i];
+            if (slot == EntityEquipmentSlot.MAINHAND) {
+                player.inventory.mainInventory.set(player.inventory.currentItem, itemStack);
+            } else if (slot == EntityEquipmentSlot.OFFHAND) {
+                player.inventory.offHandInventory.set(0, itemStack);
+            } else {
+                player.inventory.armorInventory.set(slot.getIndex(), itemStack);
+            }
+            i++;
+        }
 
         GlStateManager.popMatrix();
     }
