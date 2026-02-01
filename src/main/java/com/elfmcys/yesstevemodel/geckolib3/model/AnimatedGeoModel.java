@@ -16,7 +16,6 @@ import com.elfmcys.yesstevemodel.geckolib3.model.provider.IAnimatableModelProvid
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 

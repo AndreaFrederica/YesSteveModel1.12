@@ -72,7 +72,7 @@ public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable>
     }
 
     public abstract void render(
-            T entitylivingbaseIn, float limbSwing, float limbSwingAmount,
+            @Nonnull T entityLivingBaseIn, float limbSwing, float limbSwingAmount,
             float partialTicks, float ageInTicks,
             float netHeadYaw, float headPitch, Color renderColor
     );

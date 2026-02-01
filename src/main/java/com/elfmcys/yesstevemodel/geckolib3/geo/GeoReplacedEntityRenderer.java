@@ -197,8 +197,12 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
 
         if (entity instanceof EntityPlayer player && !player.isSpectator()) {
             for (GeoLayerRenderer layerRenderer : this.layerRenderers) {
-                layerRenderer.render(entity, limbSwing, limbSwingAmount, partialTick,
-                        lerpedAge, netHeadYaw, headPitch, renderColor);
+                // TODO：原 Gecko 这里用的是 doRenderLayer（原版接口），暂时不知道为什么，先改成 render
+                layerRenderer.render(
+                        entity, limbSwing, limbSwingAmount,
+                        partialTick, lerpedAge,
+                        netHeadYaw, headPitch, renderColor
+                );
             }
         }
         //GlStateManager.popMatrix();

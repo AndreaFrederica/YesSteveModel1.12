@@ -14,6 +14,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHandSide;
 
+import javax.annotation.Nonnull;
+
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerHeldItem}。
  */
@@ -25,7 +27,7 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatabl
     }
 
     @Override
-    public void render(T entityLivingBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, Color renderColor) {
+    public void render(@Nonnull T entityLivingBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, Color renderColor) {
         if (this.entityRenderer.getGeoModel() == null) {
             return;
         }
