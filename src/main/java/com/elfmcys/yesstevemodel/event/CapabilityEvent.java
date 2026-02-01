@@ -109,10 +109,8 @@ public final class CapabilityEvent {
             getModelInfoCap(player).ifPresent(cap -> {
                 if (cap.isDirty()) {
                     SyncModelInfo syncMsg = new SyncModelInfo(player.getEntityId(), cap);
-                    if (player.getServer() == null) {
-                        return;
-                    }
-                    player.getServer().getPlayerList().getPlayers().forEach(p -> NetworkHandler.sendToClientPlayer(syncMsg, p));
+                    NetworkHandler.CHANNEL.sendToAllTracking(syncMsg, player);
+                    NetworkHandler.sendToClientPlayer(syncMsg, player);
                     cap.setDirty(false);
                 }
             });
