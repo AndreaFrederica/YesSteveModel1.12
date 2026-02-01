@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 
-@SuppressWarnings("rawtypes")
 public class AnimationUtils {
     public static double convertTicksToSeconds(double ticks) {
         return ticks / 20;
@@ -30,6 +29,7 @@ public class AnimationUtils {
         return renderManager.getEntityRenderObject(entity);
     }
 
+    @SuppressWarnings("rawtypes")
     public static <T extends Entity> GeoModelProvider getGeoModelForEntity(T entity) {
         Render<T> entityRenderer = getRenderer(entity);
         if (entityRenderer instanceof IGeoRenderer geoRenderer) {

@@ -20,6 +20,7 @@ import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.zip.DataFormatException;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public final class YesModelUtils {
     /**
      * 二进制文件的头部幻数
@@ -274,7 +275,6 @@ public final class YesModelUtils {
         return readInt(stream) != 0;
     }
 
-    @SuppressWarnings("all")
     private static int readInt(ByteArrayInputStream stream) throws IOException {
         byte[] sizeBytes = new byte[4];
         stream.read(sizeBytes);

@@ -82,6 +82,7 @@ public class PlayerModelScreen extends Screen {
         this.maxPage = (this.models.size() - 1) / 10;
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     @Override
     public void initGui() {
         this.calculateModelList();
@@ -184,7 +185,6 @@ public class PlayerModelScreen extends Screen {
     }
 
     @Override
-    @SuppressWarnings("all")
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
 
@@ -281,7 +281,7 @@ public class PlayerModelScreen extends Screen {
         return isInWidthRange && isInHeightRange;
     }
 
-    private boolean scrollPage(float delta) {
+    private void scrollPage(float delta) {
         if (delta > 0 && this.page > 0) {
             this.page--;
             this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -292,7 +292,6 @@ public class PlayerModelScreen extends Screen {
             this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             this.refreshGui();
         }
-        return true;
     }
 
     @Override

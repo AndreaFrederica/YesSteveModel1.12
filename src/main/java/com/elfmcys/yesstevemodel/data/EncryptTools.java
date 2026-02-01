@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public final class EncryptTools {
     /**
      * 二进制文件的头部幻数
@@ -248,7 +249,6 @@ public final class EncryptTools {
         return null;
     }
 
-    @SuppressWarnings("all")
     private static Map<String, byte[]> readMapData(ByteArrayInputStream tmp, Map<String, Integer> modelMapDataInfo) throws IOException {
         Map<String, byte[]> output = Maps.newHashMap();
         for (String name : modelMapDataInfo.keySet()) {
@@ -271,7 +271,6 @@ public final class EncryptTools {
         return mapDataInfo;
     }
 
-    @SuppressWarnings("all")
     private static String readString(ByteArrayInputStream stream) throws IOException {
         int size = readInt(stream);
         byte[] stringBytes = new byte[size];
@@ -283,7 +282,6 @@ public final class EncryptTools {
         return readInt(stream) != 0;
     }
 
-    @SuppressWarnings("all")
     private static int readInt(ByteArrayInputStream stream) throws IOException {
         byte[] sizeBytes = new byte[4];
         stream.read(sizeBytes);

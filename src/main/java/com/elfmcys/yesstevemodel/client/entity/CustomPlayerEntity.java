@@ -39,7 +39,6 @@ public class CustomPlayerEntity implements IAnimatable {
      * 越往后优先级越高
      */
     @Override
-    @SuppressWarnings("all")
     public void registerControllers(AnimationData data) {
         AnimationManager manager = AnimationManager.getInstance();
         for (int i = 0; i < 8; i++) {
@@ -47,11 +46,11 @@ public class CustomPlayerEntity implements IAnimatable {
             String animationName = String.format("pre_parallel%d", i);
             data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
         }
-        data.addAnimationController(new AnimationController(this, MAIN_CONTROLLER, 2, manager::predicateMain));
-        data.addAnimationController(new AnimationController(this, HOLD_OFFHAND_CONTROLLER, 0, manager::predicateOffhandHold));
-        data.addAnimationController(new AnimationController(this, HOLD_MAINHAND_CONTROLLER, 0, manager::predicateMainhandHold));
-        data.addAnimationController(new AnimationController(this, SWING_CONTROLLER, 2, manager::predicateSwing));
-        data.addAnimationController(new AnimationController(this, USE_CONTROLLER, 2, manager::predicateUse));
+        data.addAnimationController(new AnimationController<>(this, MAIN_CONTROLLER, 2, manager::predicateMain));
+        data.addAnimationController(new AnimationController<>(this, HOLD_OFFHAND_CONTROLLER, 0, manager::predicateOffhandHold));
+        data.addAnimationController(new AnimationController<>(this, HOLD_MAINHAND_CONTROLLER, 0, manager::predicateMainhandHold));
+        data.addAnimationController(new AnimationController<>(this, SWING_CONTROLLER, 2, manager::predicateSwing));
+        data.addAnimationController(new AnimationController<>(this, USE_CONTROLLER, 2, manager::predicateUse));
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("parallel_%d_controller", i);
             String animationName = String.format("parallel%d", i);
@@ -60,10 +59,10 @@ public class CustomPlayerEntity implements IAnimatable {
         for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
             if (slot.getSlotType() == EntityEquipmentSlot.Type.ARMOR) {
                 String controllerName = String.format("%s_controller", slot.getName());
-                data.addAnimationController(new AnimationController(this, controllerName, 0, e -> manager.predicateArmor(e, slot)));
+                data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateArmor(e, slot)));
             }
         }
-        data.addAnimationController(new AnimationController(this, CAP_CONTROLLER, 2, manager::predicateCap));
+        data.addAnimationController(new AnimationController<>(this, CAP_CONTROLLER, 2, manager::predicateCap));
     }
 
     public ResourceLocation getMainModel() {

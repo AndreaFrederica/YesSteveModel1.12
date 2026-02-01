@@ -6,7 +6,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.AnimationPoint;
 
 import java.util.function.Function;
 
-@SuppressWarnings("all")
 public class MathUtil {
     /**
      * 对一个 AnimationPoint 进行线性插值计算
@@ -14,6 +13,7 @@ public class MathUtil {
      * @param animationPoint 动画信息
      * @return 线性插值
      */
+    @SuppressWarnings({"ConstantValue", "unchecked"})
     public static float lerpValues(AnimationPoint animationPoint, EasingType easingType, Function<Double, Double> customEasingMethod) {
         if (animationPoint.currentTick() >= animationPoint.animationEndTick()) {
             return (float) animationPoint.animationEndValue();

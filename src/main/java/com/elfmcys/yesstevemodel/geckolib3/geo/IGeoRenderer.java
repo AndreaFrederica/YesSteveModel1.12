@@ -19,11 +19,12 @@ import javax.annotation.Nullable;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
 
-@SuppressWarnings({"rawtypes", "unused"})
+@SuppressWarnings("unused")
 public interface IGeoRenderer<T> {
     MatrixStack MATRIX_STACK = new MatrixStack();
     String GLOW_PREFIX = "ysmGlow";
 
+    @SuppressWarnings("rawtypes")
     GeoModelProvider getGeoModelProvider();
 
     ResourceLocation getTextureLocation(T animatable);

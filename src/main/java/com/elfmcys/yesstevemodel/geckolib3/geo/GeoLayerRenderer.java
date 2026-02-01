@@ -9,6 +9,8 @@ import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
+import javax.annotation.Nonnull;
+
 public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable> implements LayerRenderer<T> {
     protected final IGeoRenderer<T> entityRenderer;
 
@@ -49,8 +51,11 @@ public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable>
     }
 
     @Override
-    public void doRenderLayer(T entityIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks,
-                              float netHeadYaw, float headPitch, float scaleIn) {
+    public void doRenderLayer(
+            @Nonnull T entityIn, float limbSwing, float limbSwingAmount,
+            float partialTicks, float ageInTicks,
+            float netHeadYaw, float headPitch, float scaleIn
+    ) {
     }
 
     public IGeoRenderer<T> getRenderer() {

@@ -304,7 +304,7 @@ public final class RenderUtil {
         GlStateManager.popMatrix();
     }
 
-    //TODO：光照
+    //TODO：光照；禁用自定义模型，渲染原版玩家时出现严重错误
     public static void renderPlayerEntity(EntityPlayerSP player, double posX, double posY, float scale, float yawOffset, int z) {
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
@@ -315,7 +315,7 @@ public final class RenderUtil {
         RenderManager renderDispatcher = Minecraft.getMinecraft().getRenderManager();
         renderDispatcher.setRenderShadow(false);
         RenderHelper.enableStandardItemLighting();
-        renderDispatcher.renderEntity(player, 0, 0, 0, 0.0F, 1.0F, false);
+        renderDispatcher.renderEntity(player, 0, 0, 0, 0.0F, 1.0F, false); // 最后这个参数是隐藏碰撞箱
         RenderHelper.disableStandardItemLighting();
         renderDispatcher.setRenderShadow(true);
         GlStateManager.popMatrix();
