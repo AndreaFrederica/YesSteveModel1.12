@@ -13,10 +13,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class PlayerModelScreen extends Screen {
+    protected final EntityPlayer player;
     private Map<ResourceLocation, List<ResourceLocation>> models = Maps.newHashMap();
     private List<ResourceLocation> modelOrderList;
     private int maxPage;
@@ -43,6 +44,12 @@ public class PlayerModelScreen extends Screen {
 
     public PlayerModelScreen() {
         this.category = Category.ALL;
+        this.player = Minecraft.getMinecraft().player;
+    }
+
+    public PlayerModelScreen(EntityPlayer player) {
+        this.category = Category.ALL;
+        this.player = player;
     }
 
     private void calculateModelList() {
@@ -51,26 +58,22 @@ public class PlayerModelScreen extends Screen {
             this.models.putAll(ClientModelManager.MODELS);
         }
         if (this.category == Category.AUTH) {
-            if (this.mc != null && this.mc.player != null) {
-                CapabilityEvent.getCapability(this.mc.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
-                    for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
-                        if (cap.containModel(modelId) || !ClientModelManager.AUTH_MODELS.contains(modelId.getPath())) {
-                            this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
-                        }
+            CapabilityEvent.getCapability(this.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+                for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
+                    if (cap.containModel(modelId) || !ClientModelManager.AUTH_MODELS.contains(modelId.getPath())) {
+                        this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
                     }
-                });
-            }
+                }
+            });
         }
         if (this.category == Category.STAR) {
-            if (this.mc != null && this.mc.player != null) {
-                CapabilityEvent.getCapability(this.mc.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
-                    for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
-                        if (cap.containModel(modelId)) {
-                            this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
-                        }
+            CapabilityEvent.getCapability(this.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+                for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
+                    if (cap.containModel(modelId)) {
+                        this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
                     }
-                });
-            }
+                }
+            });
         }
 
         if (this.textField != null) {
@@ -104,15 +107,12 @@ public class PlayerModelScreen extends Screen {
 
         this.addButton(new TextureCountButton(this.x + 5, this.y + 5));
         this.addButton(new FlatIconButton(this.x + 28, this.y + 5, 79, 20, 32, 16, (b) -> {
-            if (this.mc.player != null) {
-                EntityPlayerSP player = this.mc.player;
-                CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
-                    List<ResourceLocation> textures = ClientModelManager.MODELS.get(cap.getModelId());
-                    if (textures != null) {
-                        this.mc.displayGuiScreen(new PlayerTextureScreen(this, cap.getModelId(), textures));
-                    }
-                });
-            }
+            CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+                List<ResourceLocation> textures = ClientModelManager.MODELS.get(cap.getModelId());
+                if (textures != null) {
+                    this.mc.displayGuiScreen(new PlayerTextureScreen(this, cap.getModelId(), textures));
+                }
+            });
         }).setTooltips("gui.yes_steve_model.model.texture"));
         this.addButton(new StarButton(this.x + 110, this.y + 5));
 
@@ -172,15 +172,13 @@ public class PlayerModelScreen extends Screen {
             ResourceLocation id = this.modelOrderList.get(modelIndex);
             int xStart = this.x + 143 + 55 * (i % 5);
             int yStart = this.y + 28 + 93 * (i / 5);
-            if (this.mc != null && this.mc.player != null) {
-                CapabilityEvent.getCapability(this.mc.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
-                    if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
-                        this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
-                    } else {
-                        this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id))));
-                    }
-                });
-            }
+            CapabilityEvent.getCapability(this.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+                if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
+                    this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id)), this.player));
+                } else {
+                    this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id)), this.player));
+                }
+            });
         }
     }
 
@@ -188,36 +186,35 @@ public class PlayerModelScreen extends Screen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
 
-        this.drawGradientRect(x, y, x + 135, y + 235, 0xff_222222, 0xff_222222);
-        this.drawGradientRect(x + 138, y, x + 420, y + 235, 0xff_222222, 0xff_222222);
-        this.drawGradientRect(x + 351, y + 7, x + 352, y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
+        this.drawGradientRect(this.x, this.y, this.x + 135, this.y + 235, 0xff_222222, 0xff_222222);
+        this.drawGradientRect(this.x + 138, this.y, this.x + 420, this.y + 235, 0xff_222222, 0xff_222222);
+        this.drawGradientRect(this.x + 351, this.y + 7, this.x + 352, this.y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
 
-        textField.drawTextBox();
-        EntityPlayerSP player = Minecraft.getMinecraft().player;
+        this.textField.drawTextBox();
         RenderUtil.scissor(this.x + 5, this.y + 29, 125, 171);
-        GuiInventory.drawEntityOnScreen(x + 67, y + 190, 70, x + 67 - mouseX, y + 180 - 95 - mouseY, player);
+        GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 190, 70, this.x + 67 - mouseX, this.y + 180 - 95 - mouseY, this.player);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
             String modelName = cap.getModelId().getPath();
             List<String> modelNameSplit = this.fontRenderer.listFormattedStringToWidth(modelName, 125);
-            int lineY = y + 205;
+            int lineY = this.y + 205;
             for (String line : modelNameSplit) {
                 int nameWidth = this.fontRenderer.getStringWidth(line);
-                this.drawString(this.fontRenderer, line, x + (135 - nameWidth) / 2, lineY, 0xF3EFE0);
+                this.drawString(this.fontRenderer, line, this.x + (135 - nameWidth) / 2, lineY, 0xF3EFE0);
                 lineY += 10;
             }
         });
 
-        if (textField.getText().isEmpty() && !textField.isFocused()) {
-            this.drawString(this.fontRenderer, TextFormatting.ITALIC + I18n.format("gui.yes_steve_model.search"), x + 148, y + 10, 0x777777);
+        if (this.textField.getText().isEmpty() && !this.textField.isFocused()) {
+            this.drawString(this.fontRenderer, TextFormatting.ITALIC + I18n.format("gui.yes_steve_model.search"), this.x + 148, this.y + 10, 0x777777);
         }
 
-        String pageInfo = String.format("%d/%d", page + 1, this.maxPage + 1);
-        this.drawString(this.fontRenderer, pageInfo, x + 138 + (282 - this.fontRenderer.getStringWidth(pageInfo)) / 2, y + 223 - this.fontRenderer.FONT_HEIGHT / 2, 0xF3EFE0);
+        String pageInfo = String.format("%d/%d", this.page + 1, this.maxPage + 1);
+        this.drawString(this.fontRenderer, pageInfo, this.x + 138 + (282 - this.fontRenderer.getStringWidth(pageInfo)) / 2, this.y + 223 - this.fontRenderer.FONT_HEIGHT / 2, 0xF3EFE0);
 
         String debugInfo = String.format("%s-%s", ForgeVersion.mcVersion, Tags.VERSION);
-        this.drawString(this.fontRenderer, TextFormatting.DARK_GRAY + debugInfo, x + 2, y + 226, 0xFFFFFFFF);
+        this.drawString(this.fontRenderer, TextFormatting.DARK_GRAY + debugInfo, this.x + 2, this.y + 226, 0xFFFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.buttonList.stream().filter(r -> r instanceof FlatIconButton)

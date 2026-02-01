@@ -1,5 +1,7 @@
 package com.elfmcys.yesstevemodel.client.gui.button;
 
+import com.elfmcys.yesstevemodel.bukkit.message.OpenModelGuiMessage;
+import com.elfmcys.yesstevemodel.bukkit.message.SetNpcModelAndTexture;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
@@ -9,6 +11,7 @@ import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
@@ -19,21 +22,27 @@ public class TextureButton extends Button {
     private final ResourceLocation modelId;
     private final ResourceLocation textureId;
     private final String name;
+    private final EntityPlayer player;
 
-    public TextureButton(int pX, int pY, ResourceLocation modelId, ResourceLocation textureId) {
+    public TextureButton(int pX, int pY, ResourceLocation modelId, ResourceLocation textureId, EntityPlayer player) {
         super(pX, pY, 54, 102, "", (b) -> {
         });
         this.modelId = modelId;
         this.textureId = textureId;
         this.name = ModelIdUtil.getSubNameFromId(textureId);
+        this.player = player;
     }
 
     @Override
     public void onPress() {
-        EntityPlayerSP player = Minecraft.getMinecraft().player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
                 cap.setModelAndTexture(this.modelId, this.textureId));
-        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelId, this.textureId));
+        EntityPlayerSP localPlayer = Minecraft.getMinecraft().player;
+        if (this.player.equals(localPlayer)) {
+            NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelId, this.textureId));
+        } else {
+            NetworkHandler.CHANNEL.sendToServer(new SetNpcModelAndTexture(this.modelId, this.textureId, OpenModelGuiMessage.CURRENT_NPC_ID));
+        }
     }
 
     @Override

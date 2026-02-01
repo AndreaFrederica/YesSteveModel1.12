@@ -81,6 +81,9 @@ public final class YsmFormat {
         Map<String, byte[]> model = Maps.newHashMap();
         model.put("main", getBytes(data, MAIN_MODEL_FILE_NAME));
         model.put("arm", getBytes(data, ARM_MODEL_FILE_NAME));
+        if (data.containsKey(ARROW_MODEL_FILE_NAME)) {
+            model.put("arrow", getBytes(data, ARROW_MODEL_FILE_NAME));
+        }
 
         Map<String, byte[]> texture = Maps.newHashMap();
         data.forEach((name, textureData) -> {
@@ -94,6 +97,7 @@ public final class YsmFormat {
         animation.put("arm", getBytes(data, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(data, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(data, TAC_ANIMATION_FILE_NAME));
+        animation.put("arrow", getBytes(data, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.YSM, model, texture, animation);
     }
@@ -115,8 +119,12 @@ public final class YsmFormat {
             Path filePath = CUSTOM.resolve("default/tac.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
+        if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(ARROW_ANIMATION_FILE_NAME)) {
+            Path filePath = CUSTOM.resolve("default/arrow.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
 
-        if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName)) {
+        if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
             String modelJson = new String(data.get(fileName), StandardCharsets.UTF_8);
             RawGeoModel rawModel = Converter.fromJsonString(modelJson);
             return ObjectStreamUtil.toByteArray(rawModel);

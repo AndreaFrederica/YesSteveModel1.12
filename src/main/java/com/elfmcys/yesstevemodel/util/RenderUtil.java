@@ -7,7 +7,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -37,7 +36,7 @@ player.yHeadRot	- player.rotationYawHead	头部偏航角
 player.yHeadRotO - player.prevRotationYawHead	上一刻头部偏航角
  */
 public final class RenderUtil {
-    public static void renderTextureScreenEntity(float pPosX, float pPosY, float pScale, float pitch, float yaw, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId, boolean showGround, Consumer<CustomPlayerEntity> consumer) {
+    public static void renderTextureScreenEntity(float pPosX, float pPosY, float pScale, float pitch, float yaw, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId, boolean showGround, Consumer<CustomPlayerEntity> consumer) {
         if (player == null) {
             return;
         }
@@ -183,7 +182,7 @@ public final class RenderUtil {
     }
 
     @SuppressWarnings({"DataFlowIssue", "UnnecessaryReturnStatement"})
-    private static void renderExtraEntity(float yaw, EntityPlayerSP player, CustomPlayerEntity playerEntity, RenderManager dispatcher) throws ExecutionException {
+    private static void renderExtraEntity(float yaw, EntityPlayer player, CustomPlayerEntity playerEntity, RenderManager dispatcher) throws ExecutionException {
         if (playerEntity.hasPreviewAnimation("ride")) {
             Entity entity = AnimatableCacheUtil.ENTITIES_CACHE.get(EntityList.getKey(EntityHorse.class), () -> new EntityHorse(player.world));
             renderExtraEntity(yaw, player, dispatcher, entity);
@@ -208,7 +207,7 @@ public final class RenderUtil {
         GlStateManager.enableColorMaterial();
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
+    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
         if (player == null) {
             return;
         }
@@ -224,7 +223,7 @@ public final class RenderUtil {
         }
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayerSP player, ResourceLocation modelId, ResourceLocation textureId) {
+    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId) {
         renderEntityInInventory(pPosX, pPosY, pScale, player, modelId, textureId, entity -> {
             if (entity.hasPreviewAnimation()) {
                 entity.clearPreviewAnimation();
@@ -233,7 +232,7 @@ public final class RenderUtil {
     }
 
     private static void renderModel(
-            double pPosX, double pPosY, float pScale, EntityPlayerSP player,
+            double pPosX, double pPosY, float pScale, EntityPlayer player,
             ResourceLocation modelId, ResourceLocation textureId,
             GeoReplacedEntityRenderer<CustomPlayerEntity> renderer, CustomPlayerEntity entity
     ) {
@@ -305,7 +304,7 @@ public final class RenderUtil {
     }
 
     //TODO：光照；禁用自定义模型，渲染原版玩家时出现严重错误
-    public static void renderPlayerEntity(EntityPlayerSP player, double posX, double posY, float scale, float yawOffset, int z) {
+    public static void renderPlayerEntity(EntityPlayer player, double posX, double posY, float scale, float yawOffset, int z) {
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
         GlStateManager.scale(1, 1, -1);

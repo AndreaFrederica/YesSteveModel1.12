@@ -11,11 +11,13 @@ import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.AbstractHorse;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
+import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
@@ -170,7 +172,6 @@ public class AnimationRegister {
         parser.setValue("query.is_jumping", () -> MolangUtils.booleanToFloat(!player.capabilities.isFlying && !player.isRiding() && !player.onGround && !player.isInWater()));
         parser.setValue("query.is_on_fire", () -> MolangUtils.booleanToFloat(player.isBurning()));
         parser.setValue("query.is_on_ground", () -> MolangUtils.booleanToFloat(player.onGround));
-        parser.setValue("query.is_on_ground", () -> MolangUtils.booleanToFloat(player.onGround));
         parser.setValue("query.is_playing_dead", () -> MolangUtils.booleanToFloat(!player.isEntityAlive()));
         parser.setValue("query.is_riding", () -> MolangUtils.booleanToFloat(player.isRiding()));
         parser.setValue("query.is_sleeping", () -> MolangUtils.booleanToFloat(player.isPlayerSleeping()));
@@ -239,6 +240,15 @@ public class AnimationRegister {
 //        }
     }
 
+    public static void setArrowParserValue(EntityArrow arrow, MolangParser parser) {
+        parser.setValue("query.body_x_rotation", () -> arrow.rotationPitch);
+        parser.setValue("query.body_y_rotation", () -> MathHelper.wrapDegrees(arrow.rotationYaw));
+        parser.setValue("query.is_on_ground", () -> MolangUtils.booleanToFloat(arrow.inGround));
+        parser.setValue("query.ground_speed", () -> getGroundSpeed(arrow));
+        parser.setValue("query.vertical_speed", () -> getVerticalSpeed(arrow));
+        parser.setValue("ysm.on_ground_time", () -> arrow.timeInGround);
+    }
+
     private static boolean hasCape(EntityPlayer player) {
         if (player instanceof EntityPlayerSP clientPlayer) {
             return clientPlayer.hasPlayerInfo() && !player.isInvisible() && clientPlayer.isWearing(EnumPlayerModelParts.CAPE) && clientPlayer.getLocationCape() != null;
@@ -274,11 +284,11 @@ public class AnimationRegister {
         return getViewYRot(player, (float) seekTime - getViewYRot(player, (float) seekTime - 0.1f));
     }
 
-    private static float getGroundSpeed(EntityPlayer player) {
+    private static float getGroundSpeed(Entity player) {
         return 20 * MathHelper.sqrt((float) (player.motionX * player.motionX + player.motionZ * player.motionZ));
     }
 
-    private static float getVerticalSpeed(EntityPlayer player) {
+    private static float getVerticalSpeed(Entity player) {
         return 20 * (float) (player.posY - player.prevPosY);
     }
 

@@ -1,6 +1,8 @@
 package com.elfmcys.yesstevemodel.client.gui.button;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.bukkit.message.OpenModelGuiMessage;
+import com.elfmcys.yesstevemodel.bukkit.message.SetNpcModelAndTexture;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
@@ -12,6 +14,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
@@ -26,14 +29,16 @@ public class ModelButton extends Button {
     private final boolean needAuth;
     private final int color;
     private final @Nullable List<String> tooltips;
+    private final EntityPlayer player;
 
-    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo, @Nullable List<String> tooltips) {
+    public ModelButton(int pX, int pY, boolean needAuth, Pair<ResourceLocation, List<ResourceLocation>> modelInfo, @Nullable List<String> tooltips, EntityPlayer player) {
         super(pX, pY, 52, 90, modelInfo.getLeft().getPath(), (b) -> {
         });
         this.modelInfo = modelInfo;
         this.needAuth = needAuth;
         this.color = needAuth ? 0x7F_000000 : 0xFF_434242;
         this.tooltips = tooltips;
+        this.player = player;
     }
 
     @Override
@@ -41,10 +46,14 @@ public class ModelButton extends Button {
         if (this.needAuth) {
             return;
         }
-        EntityPlayerSP player = Minecraft.getMinecraft().player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
                 cap.setModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
-        NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
+        EntityPlayerSP localPlayer = Minecraft.getMinecraft().player;
+        if (this.player.equals(localPlayer)) {
+            NetworkHandler.CHANNEL.sendToServer(new SetModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
+        } else {
+            NetworkHandler.CHANNEL.sendToServer(new SetNpcModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0), OpenModelGuiMessage.CURRENT_NPC_ID));
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ public class GeneralConfig {
     public static boolean DISABLE_SELF_MODEL = false;
     public static boolean DISABLE_OTHER_MODEL = false;
     public static boolean DISABLE_SELF_HANDS = false;
+    public static boolean DISABLE_ARROWS_MODEL = false;
     public static String DEFAULT_MODEL_ID = "default";
     public static String DEFAULT_MODEL_TEXTURE = "default.png";
 
@@ -44,6 +45,12 @@ public class GeneralConfig {
                 "DisableSelfHands",
                 DISABLE_SELF_HANDS,
                 "Prevents rendering of self player's hand"
+        );
+
+        DISABLE_ARROWS_MODEL = builder.get(
+                "DisableArrowsModel",
+                DISABLE_ARROWS_MODEL,
+                "Prevents rendering of arrows model"
         );
 
         DEFAULT_MODEL_ID = builder.get(

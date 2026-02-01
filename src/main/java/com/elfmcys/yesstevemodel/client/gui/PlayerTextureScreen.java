@@ -9,8 +9,8 @@ import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
@@ -33,6 +33,7 @@ public class PlayerTextureScreen extends Screen {
     private final ResourceLocation modelId;
     private final List<ResourceLocation> textures;
     private final List<String> animations;
+    private final EntityPlayer player;
     private String animation = "";
     private int maxTexturePage;
     private int texturePage;
@@ -56,6 +57,7 @@ public class PlayerTextureScreen extends Screen {
         this.textures.sort(ResourceLocation::compareTo);
         this.animations = new ArrayList<>(ClientModelManager.DEFAULT_ANIMATION_FILE.animations().keySet());
         this.animations.sort(String::compareTo);
+        this.player = parent.player;
     }
 
     @Override
@@ -137,17 +139,12 @@ public class PlayerTextureScreen extends Screen {
             }
             int xStart = this.x + 306 + 56 * (i % 2);
             int yStart = this.y + 5 + 104 * (i / 2);
-            this.addButton(new TextureButton(xStart, yStart, this.modelId, this.textures.get(modelIndex)));
+            this.addButton(new TextureButton(xStart, yStart, this.modelId, this.textures.get(modelIndex), this.player));
         }
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTick) {
-        EntityPlayerSP player = this.mc.player;
-        if (player == null) {
-            return;
-        }
-
         //GlStateManager.translate(0, 0, -1000);
         this.drawDefaultBackground();
         this.drawGradientRect(this.x, this.y + 22, this.x + 90, this.y + 235, 0xff_222222, 0xff_222222);
@@ -155,9 +152,9 @@ public class PlayerTextureScreen extends Screen {
         this.drawGradientRect(this.x + 302, this.y, this.x + 420, this.y + 235, 0xff_222222, 0xff_222222);
         //GlStateManager.translate(0, 0, 1000);
 
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
             RenderUtil.scissor(this.x + 93, this.y, 206, 235);
-            RenderUtil.renderTextureScreenEntity(this.x + 299 / 2.0F + 40 + this.posX, this.y + 235 / 2.0F + 80 + this.posY, this.scale, this.pitch, this.yaw, this.mc.player, this.modelId, cap.getSelectTexture(), this.showGround, entity -> {
+            RenderUtil.renderTextureScreenEntity(this.x + 299 / 2.0F + 40 + this.posX, this.y + 235 / 2.0F + 80 + this.posY, this.scale, this.pitch, this.yaw, this.player, this.modelId, cap.getSelectTexture(), this.showGround, entity -> {
                 if (!entity.hasPreviewAnimation(this.animation)) {
                     entity.setPreviewAnimation(this.animation);
                 }

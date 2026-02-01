@@ -1,4 +1,4 @@
-package com.elfmcys.yesstevemodel.mixin.early;
+package com.elfmcys.yesstevemodel.mixin.early.client;
 
 import com.elfmcys.yesstevemodel.client.event.RenderArmEvent;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// Forge 方案，看 Cleanroom 合不合 PR
+// Cleanroom 的 PR 已经合并了，制作 Cleanroom 版时可以把这个删掉
 @Mixin(RenderPlayer.class)
 public class RenderPlayerMixin {
     @Inject(method = "renderLeftArm", at = @At("HEAD"), cancellable = true)

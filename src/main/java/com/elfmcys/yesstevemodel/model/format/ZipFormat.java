@@ -82,6 +82,9 @@ public final class ZipFormat {
         Map<String, byte[]> model = Maps.newHashMap();
         model.put("main", getBytes(zipFile, MAIN_MODEL_FILE_NAME));
         model.put("arm", getBytes(zipFile, ARM_MODEL_FILE_NAME));
+        if (zipFile.getEntry(ARROW_MODEL_FILE_NAME) != null) {
+            model.put("arrow", getBytes(zipFile, ARROW_MODEL_FILE_NAME));
+        }
 
         Map<String, byte[]> texture = Maps.newHashMap();
         zipFile.stream().forEach(zipEntry -> {
@@ -99,6 +102,7 @@ public final class ZipFormat {
         animation.put("arm", getBytes(zipFile, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(zipFile, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(zipFile, TAC_ANIMATION_FILE_NAME));
+        animation.put("arrow", getBytes(zipFile, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.ZIP, model, texture, animation);
     }
@@ -120,11 +124,15 @@ public final class ZipFormat {
             Path filePath = CUSTOM.resolve("default/tac.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
+        if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(ARROW_ANIMATION_FILE_NAME) == null) {
+            Path filePath = CUSTOM.resolve("default/arrow.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
 
         ZipEntry entry = zipFile.getEntry(fileName);
         try (InputStream stream = zipFile.getInputStream(entry)) {
             byte[] bytes = InputStreamUtils.toBytes(stream);
-            if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName)) {
+            if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
                 String modelJson = new String(bytes, StandardCharsets.UTF_8);
                 RawGeoModel rawModel = Converter.fromJsonString(modelJson);
                 return ObjectStreamUtil.toByteArray(rawModel);

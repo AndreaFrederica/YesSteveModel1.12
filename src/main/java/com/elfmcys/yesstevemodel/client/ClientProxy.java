@@ -4,8 +4,10 @@ import com.elfmcys.yesstevemodel.CommonProxy;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
 import com.elfmcys.yesstevemodel.client.event.ConfigSyncEvent;
 import com.elfmcys.yesstevemodel.client.input.*;
+import com.elfmcys.yesstevemodel.client.renderer.CustomArrowRenderer;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -14,9 +16,14 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 @SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
     private static CustomPlayerRenderer CUSTOM_PLAYER_RENDERER;
+    private static CustomArrowRenderer CUSTOM_ARROW_RENDERER;
 
     public static CustomPlayerRenderer getInstance() {
         return CUSTOM_PLAYER_RENDERER;
+    }
+
+    public static CustomArrowRenderer getArrowInstance() {
+        return CUSTOM_ARROW_RENDERER;
     }
 
     @Override
@@ -36,6 +43,8 @@ public class ClientProxy extends CommonProxy {
         AnimationRegister.registerAnimationState();
         AnimationRegister.registerVariables();
 
-        CUSTOM_PLAYER_RENDERER = new CustomPlayerRenderer(Minecraft.getMinecraft().getRenderManager());
+        RenderManager context = Minecraft.getMinecraft().getRenderManager();
+        CUSTOM_PLAYER_RENDERER = new CustomPlayerRenderer(context);
+        CUSTOM_ARROW_RENDERER = new CustomArrowRenderer(context);
     }
 }

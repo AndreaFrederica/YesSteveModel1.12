@@ -97,6 +97,9 @@ public final class FolderFormat {
         Map<String, byte[]> model = Maps.newHashMap();
         model.put("main", getBytes(modelPath, MAIN_MODEL_FILE_NAME));
         model.put("arm", getBytes(modelPath, ARM_MODEL_FILE_NAME));
+        if (modelPath.resolve(ARROW_MODEL_FILE_NAME).toFile().isFile()) {
+            model.put("arrow", getBytes(modelPath, ARROW_MODEL_FILE_NAME));
+        }
 
 
         Map<String, byte[]> texture = Maps.newHashMap();
@@ -111,6 +114,7 @@ public final class FolderFormat {
         animation.put("arm", getBytes(modelPath, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(modelPath, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(modelPath, TAC_ANIMATION_FILE_NAME));
+        animation.put("arrow", getBytes(modelPath, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.FOLDER, model, texture, animation);
     }
@@ -129,8 +133,11 @@ public final class FolderFormat {
         if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
             filePath = CUSTOM.resolve("default/tac.animation.json");
         }
+        if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
+            filePath = CUSTOM.resolve("default/arrow.animation.json");
+        }
 
-        if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName)) {
+        if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
             String modelJson = FileUtils.readFileToString(filePath.toFile(), StandardCharsets.UTF_8);
             RawGeoModel rawModel = Converter.fromJsonString(modelJson);
             return ObjectStreamUtil.toByteArray(rawModel);

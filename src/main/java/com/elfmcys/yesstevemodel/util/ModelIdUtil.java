@@ -19,6 +19,10 @@ public final class ModelIdUtil {
         return getSubModelId(id, "arm");
     }
 
+    public static ResourceLocation getArrowId(ResourceLocation id) {
+        return getSubModelId(id, "arrow");
+    }
+
     public static ResourceLocation getModelIdFromMainId(ResourceLocation mainId) {
         String newPath = mainId.getPath().substring(0, mainId.getPath().length() - 5);
         return new ResourceLocation(mainId.getNamespace(), newPath);

@@ -1,13 +1,16 @@
 {
-	"package": "com.elfmcys.yesstevemodel.mixin.early",
-	"required": true,
-	"refmap": "mixins.yes_steve_model.refmap.json",
-	"target": "@env(DEFAULT)",
-	"minVersion": "0.8.5",
-	"compatibilityLevel": "JAVA_8",
-	"mixins": [],
-	"server": [],
-	"client": [
-		"RenderPlayerMixin"
-	]
+  "package": "com.elfmcys.yesstevemodel.mixin.early",
+  "required": true,
+  "refmap": "mixins.yes_steve_model.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8.5",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "EntityArrowMixin"
+  ],
+  "server": [],
+  "client": [
+    "client.RenderArrowMixin",
+    "client.RenderPlayerMixin"
+  ]
 }

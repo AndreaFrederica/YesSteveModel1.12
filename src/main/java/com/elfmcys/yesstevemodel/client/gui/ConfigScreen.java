@@ -34,6 +34,8 @@ public class ConfigScreen extends Screen {
                 GeneralConfig.DISABLE_SELF_HANDS, (value) -> GeneralConfig.DISABLE_SELF_HANDS = value));
         this.addButton(new ConfigCheckBox(x + 5, y + 112, "disable_player_render", this.fontRenderer,
                 ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER, (value) -> ExtraPlayerScreenConfig.DISABLE_PLAYER_RENDER = value));
+        this.addButton(new ConfigCheckBox(x + 5, y + 134, "disable_arrows_model", this.fontRenderer,
+                GeneralConfig.DISABLE_ARROWS_MODEL, (value) -> GeneralConfig.DISABLE_ARROWS_MODEL = value));
     }
 
     @Override

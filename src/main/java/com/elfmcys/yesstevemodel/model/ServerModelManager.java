@@ -66,10 +66,12 @@ public final class ServerModelManager {
      */
     public static final String MAIN_MODEL_FILE_NAME = "main.json";
     public static final String ARM_MODEL_FILE_NAME = "arm.json";
+    public static final String ARROW_MODEL_FILE_NAME = "arrow.json";
     public static final String MAIN_ANIMATION_FILE_NAME = "main.animation.json";
     public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
     public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
     public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
+    public static final String ARROW_ANIMATION_FILE_NAME = "arrow.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
         for (EntityPlayerMP player : playerList.getPlayers()) {
@@ -113,12 +115,15 @@ public final class ServerModelManager {
 
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.json"), defaultPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.json"), defaultPath, ARM_MODEL_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arrow.json"), defaultPath, ARROW_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/default.png"), defaultPath, "default.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/blue.png"), defaultPath, "blue.png");
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arrow.png"), defaultPath, "arrow.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.animation.json"), defaultPath, MAIN_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.animation.json"), defaultPath, ARM_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/extra.animation.json"), defaultPath, EXTRA_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/tac.animation.json"), defaultPath, TAC_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arrow.animation.json"), defaultPath, ARROW_ANIMATION_FILE_NAME);
 
         Path defaultBoyPath = CUSTOM.resolve("default_boy");
         createFolder(defaultBoyPath);

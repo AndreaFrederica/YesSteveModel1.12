@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
 import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
 import com.elfmcys.yesstevemodel.client.texture.OuterFileTexture;
 import com.elfmcys.yesstevemodel.data.ModelData;
@@ -99,8 +100,10 @@ public class ClientModelManager {
     public static void registerTexture(ResourceLocation id, Map<String, byte[]> mapData) {
         List<ResourceLocation> textures = Lists.newArrayList();
         for (String name : mapData.keySet()) {
-            ResourceLocation textureId = ModelIdUtil.getSubModelId(id, name);
-            textures.add(textureId);
+            if (!name.equals(IArrowExtraInfo.TEXTURE_NAME)) {
+                ResourceLocation textureId = ModelIdUtil.getSubModelId(id, name);
+                textures.add(textureId);
+            }
         }
         MODELS.put(id, textures);
         for (String name : mapData.keySet()) {
@@ -120,6 +123,14 @@ public class ClientModelManager {
 
     private static void registerAnimations(ResourceLocation id, Map<String, byte[]> mapData) {
         Map<ResourceLocation, AnimationFile> animations = GeckoLibCache.getInstance().getAnimations();
+
+        if (mapData.containsKey("arrow")) {
+            byte[] arrowBytes = mapData.get("arrow");
+            AnimationFile arrowsAnimationFile = getAnimationFile(new String(arrowBytes, StandardCharsets.UTF_8));
+            animations.put(ModelIdUtil.getArrowId(ModelIdUtil.getModelIdFromMainId(id)), arrowsAnimationFile);
+            mapData.remove("arrow");
+        }
+
         AnimationFile main = new AnimationFile();
         mapData.forEach((name, bytes) -> {
             AnimationFile other = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
