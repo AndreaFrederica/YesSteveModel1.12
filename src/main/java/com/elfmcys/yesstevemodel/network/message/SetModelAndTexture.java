@@ -55,7 +55,7 @@ public class SetModelAndTexture implements IPacketBufferMessage {
         }
 
         private static void handleCapability(SetModelAndTexture message, EntityPlayerMP sender) {
-            CapabilityEvent.getCapability(sender, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> CapabilityEvent.getCapability(sender, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
+            CapabilityEvent.getModelInfoCap(sender).ifPresent(modelIdCap -> CapabilityEvent.getAuthModelsCap(sender).ifPresent(ownModelsCap -> {
                 if (!ServerModelManager.AUTH_MODELS.contains(message.modelId.getPath()) || ownModelsCap.containModel(message.modelId)) {
                     modelIdCap.setModelAndTexture(message.modelId, message.selectTexture);
                 }

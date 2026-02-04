@@ -33,7 +33,7 @@ public final class CapabilityEvent {
     @SubscribeEvent
     public static void onAttachCapabilityEvent(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof EntityPlayer player) {
-            if (!CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
+            if (!CapabilityEvent.getModelInfoCap(player).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
                 event.addCapability(MODEL_INFO_CAP, new ModelInfoCapabilityProvider());
             }
             if (!CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(AUTH_MODELS_CAP)) {
@@ -117,19 +117,19 @@ public final class CapabilityEvent {
         }
     }
 
-    private static Optional<ModelInfoCapability> getModelInfoCap(EntityPlayer player) {
+    public static Optional<ModelInfoCapability> getModelInfoCap(EntityPlayer player) {
         return getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP);
     }
 
-    private static Optional<AuthModelsCapability> getAuthModelsCap(EntityPlayer player) {
+    public static Optional<AuthModelsCapability> getAuthModelsCap(EntityPlayer player) {
         return getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP);
     }
 
-    private static Optional<StarModelsCapability> getStarModelsCap(EntityPlayer player) {
+    public static Optional<StarModelsCapability> getStarModelsCap(EntityPlayer player) {
         return getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP);
     }
 
-    public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {
+    private static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {
         return getCapability(provider, capability, null);
     }
 

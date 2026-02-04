@@ -1,9 +1,6 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.Tags;
-import com.elfmcys.yesstevemodel.capability.AuthModelsCapabilityProvider;
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
-import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
@@ -58,7 +55,7 @@ public class PlayerModelScreen extends Screen {
             this.models.putAll(ClientModelManager.MODELS);
         }
         if (this.category == Category.AUTH) {
-            CapabilityEvent.getCapability(this.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+            CapabilityEvent.getAuthModelsCap(this.player).ifPresent(cap -> {
                 for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
                     if (cap.containModel(modelId) || !ClientModelManager.AUTH_MODELS.contains(modelId.getPath())) {
                         this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
@@ -67,7 +64,7 @@ public class PlayerModelScreen extends Screen {
             });
         }
         if (this.category == Category.STAR) {
-            CapabilityEvent.getCapability(this.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+            CapabilityEvent.getStarModelsCap(this.player).ifPresent(cap -> {
                 for (ResourceLocation modelId : ClientModelManager.MODELS.keySet()) {
                     if (cap.containModel(modelId)) {
                         this.models.put(modelId, ClientModelManager.MODELS.get(modelId));
@@ -107,7 +104,7 @@ public class PlayerModelScreen extends Screen {
 
         this.addButton(new TextureCountButton(this.x + 5, this.y + 5));
         this.addButton(new FlatIconButton(this.x + 28, this.y + 5, 79, 20, 32, 16, (b) -> {
-            CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
                 List<ResourceLocation> textures = ClientModelManager.MODELS.get(cap.getModelId());
                 if (textures != null) {
                     this.mc.displayGuiScreen(new PlayerTextureScreen(this, cap.getModelId(), textures));
@@ -172,7 +169,7 @@ public class PlayerModelScreen extends Screen {
             ResourceLocation id = this.modelOrderList.get(modelIndex);
             int xStart = this.x + 143 + 55 * (i % 5);
             int yStart = this.y + 28 + 93 * (i / 5);
-            CapabilityEvent.getCapability(this.player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+            CapabilityEvent.getAuthModelsCap(this.player).ifPresent(cap -> {
                 if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
                     this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getMainId(id)), this.player));
                 } else {
@@ -195,7 +192,7 @@ public class PlayerModelScreen extends Screen {
         GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 190, 70, this.x + 67 - mouseX, this.y + 180 - 95 - mouseY, this.player);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
             String modelName = cap.getModelId().getPath();
             List<String> modelNameSplit = this.fontRenderer.listFormattedStringToWidth(modelName, 125);
             int lineY = this.y + 205;

@@ -32,7 +32,7 @@ public class StarButton extends FlatColorButton {
         int startX = (this.width - 16) / 2;
         int startY = (this.height - 16) / 2;
         EntityPlayerSP player = mc.player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelInfoCap -> CapabilityEvent.getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(starModelsCap -> {
+        CapabilityEvent.getModelInfoCap(player).ifPresent(modelInfoCap -> CapabilityEvent.getStarModelsCap(player).ifPresent(starModelsCap -> {
             ResourceLocation modelId = modelInfoCap.getModelId();
             if (starModelsCap.containModel(modelId)) {
                 this.drawTexturedModalRect(this.x + startX, this.y + startY, 16, 0, 16, 16);
@@ -45,7 +45,7 @@ public class StarButton extends FlatColorButton {
     @Override
     public void onPress() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelInfoCap -> CapabilityEvent.getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(starModelsCap -> {
+        CapabilityEvent.getModelInfoCap(player).ifPresent(modelInfoCap -> CapabilityEvent.getStarModelsCap(player).ifPresent(starModelsCap -> {
             ResourceLocation modelId = modelInfoCap.getModelId();
             if (starModelsCap.containModel(modelId)) {
                 starModelsCap.removeModel(modelId);

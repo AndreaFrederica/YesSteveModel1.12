@@ -58,7 +58,7 @@ public class SyncStarModels implements IPacketBufferMessage {
             Minecraft mc = Minecraft.getMinecraft();
             mc.addScheduledTask(() -> {
                 if (mc.player != null) {
-                    CapabilityEvent.getCapability(mc.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> cap.setStarModels(message.starModels));
+                    CapabilityEvent.getStarModelsCap(mc.player).ifPresent(cap -> cap.setStarModels(message.starModels));
                 }
             });
         }

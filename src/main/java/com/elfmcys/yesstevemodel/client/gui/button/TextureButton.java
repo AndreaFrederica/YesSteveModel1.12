@@ -35,7 +35,7 @@ public class TextureButton extends Button {
 
     @Override
     public void onPress() {
-        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+        CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap ->
                 cap.setModelAndTexture(this.modelId, this.textureId));
         EntityPlayerSP localPlayer = Minecraft.getMinecraft().player;
         if (this.player.equals(localPlayer)) {

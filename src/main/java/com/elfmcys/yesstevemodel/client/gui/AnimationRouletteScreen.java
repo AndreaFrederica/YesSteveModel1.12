@@ -41,7 +41,7 @@ public class AnimationRouletteScreen extends Screen {
         this.y = this.height / 2 - 8;
 
         if (this.mc != null && this.mc.player != null) {
-            CapabilityEvent.getCapability(this.mc.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            CapabilityEvent.getModelInfoCap(this.mc.player).ifPresent(cap -> {
                 ResourceLocation modelId = cap.getModelId();
                 if (ClientModelManager.EXTRA_ANIMATION_NAME.containsKey(ModelIdUtil.getMainId(modelId))) {
                     this.names = ClientModelManager.EXTRA_ANIMATION_NAME.get(ModelIdUtil.getMainId(modelId));

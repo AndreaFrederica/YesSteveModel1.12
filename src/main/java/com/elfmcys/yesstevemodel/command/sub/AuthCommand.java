@@ -77,7 +77,7 @@ public class AuthCommand extends CommandBase {
             sender.sendMessage(new TextComponentTranslation("commands.yes_steve_model.export.not_exist", modelName));
             return;
         }
-        targets.forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+        targets.forEach(player -> CapabilityEvent.getAuthModelsCap(player).ifPresent(cap -> {
             ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, modelName);
             cap.addModel(modelId);
             NetworkHandler.sendToClientPlayer(new SyncAuthModels(cap.getAuthModels()), player);
@@ -87,7 +87,7 @@ public class AuthCommand extends CommandBase {
     }
 
     private void addAllAuthModel(ICommandSender sender, List<EntityPlayerMP> targets) {
-        targets.forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(cap -> {
+        targets.forEach(player -> CapabilityEvent.getAuthModelsCap(player).ifPresent(cap -> {
             ServerModelManager.CACHE_NAME_INFO.keySet().forEach(name -> cap.addModel(new ResourceLocation(YesSteveModel.MOD_ID, name)));
             NetworkHandler.sendToClientPlayer(new SyncAuthModels(cap.getAuthModels()), player);
             notifyCommandListener(sender, this, "commands.yes_steve_model.auth_model.all.info",
@@ -97,9 +97,9 @@ public class AuthCommand extends CommandBase {
 
     private void removeAuthModel(ICommandSender sender, List<EntityPlayerMP> targets, String modelName) {
         ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, modelName);
-        targets.forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
+        targets.forEach(player -> CapabilityEvent.getAuthModelsCap(player).ifPresent(ownModelsCap -> {
             ownModelsCap.removeModel(modelId);
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+            CapabilityEvent.getModelInfoCap(player).ifPresent(modelIdCap -> {
                 if (ServerModelManager.AUTH_MODELS.contains(modelIdCap.getModelId().getPath()) && !ownModelsCap.containModel(modelIdCap.getModelId())) {
                     ResourceLocation defaultModelId = new ResourceLocation(YesSteveModel.MOD_ID, "default");
                     ResourceLocation defaultTextureId = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
@@ -113,9 +113,9 @@ public class AuthCommand extends CommandBase {
     }
 
     private void clearAuthModel(ICommandSender sender, List<EntityPlayerMP> targets) {
-        targets.forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelCap -> {
+        targets.forEach(player -> CapabilityEvent.getAuthModelsCap(player).ifPresent(ownModelCap -> {
             ownModelCap.clear();
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+            CapabilityEvent.getModelInfoCap(player).ifPresent(modelIdCap -> {
                 ResourceLocation defaultModelId = new ResourceLocation(YesSteveModel.MOD_ID, "default");
                 ResourceLocation defaultTextureId = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
                 modelIdCap.setModelAndTexture(defaultModelId, defaultTextureId);

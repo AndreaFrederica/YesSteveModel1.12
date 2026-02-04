@@ -96,7 +96,7 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
 
-        return CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).map(cap -> {
+        return CapabilityEvent.getModelInfoCap(player).map(cap -> {
             if (cap.isPlayAnimation()) {
                 return playAnimation(event, cap.getAnimation());
             }

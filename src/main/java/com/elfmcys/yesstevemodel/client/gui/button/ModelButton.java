@@ -46,7 +46,7 @@ public class ModelButton extends Button {
         if (this.needAuth) {
             return;
         }
-        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
+        CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap ->
                 cap.setModelAndTexture(this.modelInfo.getLeft(), this.modelInfo.getRight().get(0)));
         EntityPlayerSP localPlayer = Minecraft.getMinecraft().player;
         if (this.player.equals(localPlayer)) {
@@ -79,7 +79,7 @@ public class ModelButton extends Button {
             this.drawGradientRect(this.x, this.y + this.height - 1, this.x + this.width, this.y + this.height, 0xff_F3EFE0, 0xff_F3EFE0);
         }
 
-        CapabilityEvent.getCapability(mc.player, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+        CapabilityEvent.getStarModelsCap(mc.player).ifPresent(cap -> {
             if (cap.containModel(this.modelInfo.getLeft())) {
                 mc.getTextureManager().bindTexture(ICON);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);

@@ -152,7 +152,7 @@ public class PlayerTextureScreen extends Screen {
         this.drawGradientRect(this.x + 302, this.y, this.x + 420, this.y + 235, 0xff_222222, 0xff_222222);
         //GlStateManager.translate(0, 0, 1000);
 
-        CapabilityEvent.getCapability(this.player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
             RenderUtil.scissor(this.x + 93, this.y, 206, 235);
             RenderUtil.renderTextureScreenEntity(this.x + 299 / 2.0F + 40 + this.posX, this.y + 235 / 2.0F + 80 + this.posY, this.scale, this.pitch, this.yaw, this.player, this.modelId, cap.getSelectTexture(), this.showGround, entity -> {
                 if (!entity.hasPreviewAnimation(this.animation)) {

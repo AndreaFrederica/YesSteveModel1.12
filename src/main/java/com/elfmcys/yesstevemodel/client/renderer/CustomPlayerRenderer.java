@@ -33,7 +33,7 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
     @Override
     public void doRender(@Nonnull EntityLivingBase entity, double x, double y, double z, float entityYaw, float partialTicks) {
         if (this.animatable != null && entity instanceof EntityPlayer player) {
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
                 this.animatable.setPlayer(player);
                 this.animatable.setMainModel(ModelIdUtil.getMainId(cap.getModelId()));
                 this.animatable.setTexture(cap.getSelectTexture());

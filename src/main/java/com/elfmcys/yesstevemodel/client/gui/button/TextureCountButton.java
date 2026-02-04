@@ -23,7 +23,7 @@ public class TextureCountButton extends FlatColorButton {
 
     private void updateDisplayString() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
             if (ClientModelManager.MODELS.containsKey(modelId)) {
                 this.displayString = String.valueOf(ClientModelManager.MODELS.get(modelId).size());

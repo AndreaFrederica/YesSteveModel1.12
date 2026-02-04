@@ -19,7 +19,7 @@ public class PlayerMoveEvent {
     public static void onKeyboardInput(InputEvent.KeyInputEvent event) {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         if (isMoveKey() && player != null) {
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
                 if (cap.isPlayAnimation()) {
                     NetworkHandler.CHANNEL.sendToServer(SetPlayAnimation.stop());
                 }

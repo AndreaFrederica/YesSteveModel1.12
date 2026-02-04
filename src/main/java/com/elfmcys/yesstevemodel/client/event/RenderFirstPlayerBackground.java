@@ -60,7 +60,7 @@ public class RenderFirstPlayerBackground {
             return;
         }
         ALREADY_RENDERED = true;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
             GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(ModelIdUtil.getArmId(cap.getModelId()));
             if (geoModel == null || !geoModel.hasTopLevelBone(NAME)) {

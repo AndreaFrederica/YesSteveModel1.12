@@ -61,7 +61,7 @@ public class SetStarModel implements IPacketBufferMessage {
         }
 
         private static void handleCapability(SetStarModel message, EntityPlayerMP sender) {
-            CapabilityEvent.getCapability(sender, StarModelsCapabilityProvider.STAR_MODELS_CAP).ifPresent(cap -> {
+            CapabilityEvent.getStarModelsCap(sender).ifPresent(cap -> {
                 if (message.isAdd) {
                     cap.addModel(message.modelId);
                 } else {

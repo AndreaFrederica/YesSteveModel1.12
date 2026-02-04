@@ -45,7 +45,7 @@ public class PlayAnimationCommand extends CommandBase {
     }
 
     private void playAnimation(List<EntityPlayerMP> targets, String animation) throws CommandException {
-        targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        targets.forEach(player -> CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             if (STOP.equals(animation)) {
                 cap.stopAnimation();
             } else {

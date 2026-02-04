@@ -34,7 +34,7 @@ public class EntityArrowMixin implements IArrowExtraInfo {
     @Inject(method = "<init>(Lnet/minecraft/world/World;Lnet/minecraft/entity/EntityLivingBase;)V", at = @At("RETURN"))
     private void setOwner(World world, EntityLivingBase entity, CallbackInfo callbackInfo) {
         if (entity instanceof EntityPlayer player) {
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> this.getYsmEntityData().set(MODEL_ID, cap.getModelId().toString()));
+            CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> this.getYsmEntityData().set(MODEL_ID, cap.getModelId().toString()));
         }
     }
 

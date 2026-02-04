@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.network.message;
 
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapability;
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.util.ThreadTools;
 import net.minecraft.client.Minecraft;
@@ -75,7 +74,7 @@ public class SyncModelInfo implements IPacketBufferMessage {
                                     }
                                     Entity entity = mc.world.getEntityByID(message.entityId);
                                     if (entity instanceof EntityPlayer player) {
-                                        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> cap.copyFrom(message.capability));
+                                        CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> cap.copyFrom(message.capability));
                                     }
                                 } catch (InterruptedException e) {
                                     throw new RuntimeException(e);

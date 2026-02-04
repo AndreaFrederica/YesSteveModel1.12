@@ -55,7 +55,7 @@ public class SetPlayAnimation implements IPacketBufferMessage {
         }
 
         private static void handleCapability(SetPlayAnimation message, EntityPlayerMP sender) {
-            CapabilityEvent.getCapability(sender, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+            CapabilityEvent.getModelInfoCap(sender).ifPresent(modelIdCap -> {
                 if (message.extraAnimationId == STOP) {
                     modelIdCap.stopAnimation();
                 } else {

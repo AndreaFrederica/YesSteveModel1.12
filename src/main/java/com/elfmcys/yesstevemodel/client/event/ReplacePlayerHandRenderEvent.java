@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.client.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
@@ -45,7 +44,7 @@ public class ReplacePlayerHandRenderEvent {
         event.setCanceled(true);
         final Minecraft mc = Minecraft.getMinecraft();
         AbstractClientPlayer player = mc.player;
-        CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+        CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
             GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(ModelIdUtil.getArmId(cap.getModelId()));
             if (geoModel == null || !hasArmBone(event.getArm(), geoModel)) {

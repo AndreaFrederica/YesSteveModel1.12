@@ -105,7 +105,7 @@ public class ModelCommand extends CommandBase {
         ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, textureName);
 
         if (ignoreAuth) {
-            targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap -> {
+            targets.forEach(player -> CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
                 cap.setModelAndTexture(modelId, textureId);
                 notifyCommandListener(sender, this, "message.yes_steve_model.model.set.success",
                         modelName, player.getName());
@@ -113,8 +113,8 @@ public class ModelCommand extends CommandBase {
             return;
         }
 
-        targets.forEach(player -> CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(cap ->
-                CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(authCap -> {
+        targets.forEach(player -> CapabilityEvent.getModelInfoCap(player).ifPresent(cap ->
+                CapabilityEvent.getAuthModelsCap(player).ifPresent(authCap -> {
                     if (!ServerModelManager.AUTH_MODELS.contains(modelName) || authCap.containModel(modelId)) {
                         cap.setModelAndTexture(modelId, textureId);
                         notifyCommandListener(sender, this, "message.yes_steve_model.model.set.success",
@@ -141,8 +141,8 @@ public class ModelCommand extends CommandBase {
         } else {
             ServerModelManager.sendRequestSyncModelMessage(server.getPlayerList());
         }
-        server.getPlayerList().getPlayers().forEach(player -> CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).ifPresent(ownModelsCap -> {
-            CapabilityEvent.getCapability(player, ModelInfoCapabilityProvider.MODEL_INFO_CAP).ifPresent(modelIdCap -> {
+        server.getPlayerList().getPlayers().forEach(player -> CapabilityEvent.getAuthModelsCap(player).ifPresent(ownModelsCap -> {
+            CapabilityEvent.getModelInfoCap(player).ifPresent(modelIdCap -> {
                 if (ServerModelManager.AUTH_MODELS.contains(modelIdCap.getModelId().getPath()) && !ownModelsCap.containModel(modelIdCap.getModelId())) {
                     ResourceLocation defaultModelId = new ResourceLocation(YesSteveModel.MOD_ID, "default");
                     ResourceLocation defaultTextureId = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
