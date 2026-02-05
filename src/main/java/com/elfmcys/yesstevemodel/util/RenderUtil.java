@@ -9,6 +9,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -61,7 +62,9 @@ public final class RenderUtil {
                 GlStateManager.scale(pScale, pScale, pScale);
                 GlStateManager.translate(0, 0.8, 0);
                 GlStateManager.rotate(180.0F, 0, 0, 1);
-                GlStateManager.rotate(-10 + pitch, 1, 0, 0);
+                rotateAndEnableLighting();
+                float xp = -10 + pitch;
+                GlStateManager.rotate(xp, 1, 0, 0);
 
                 float yBodyRot = player.renderYawOffset;
                 float yRot = player.rotationYaw;
@@ -77,8 +80,9 @@ public final class RenderUtil {
                 player.prevRotationYawHead = player.rotationYaw;
 
                 RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
+                xp = 180.0F - xp;
+                dispatcher.setPlayerViewY(xp);
                 dispatcher.setRenderShadow(false);
-                RenderHelper.enableStandardItemLighting();
                 if (entity.hasPreviewAnimation("sleep")) {
                     GlStateManager.rotate(yaw - 90, 0, 1, 0);
                     GlStateManager.translate(0.5, 0.5625, 0);
@@ -103,6 +107,9 @@ public final class RenderUtil {
                     GlStateManager.translate(0, -0.45, 0);
                 }
                 renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+                // 清理实体渲染
+                GlStateManager.enableRescaleNormal();
+                GlStateManager.enableColorMaterial();
                 try {
                     renderExtraEntity(yaw, player, entity, dispatcher);
                 } catch (ExecutionException e) {
@@ -118,7 +125,6 @@ public final class RenderUtil {
                     }
                     renderGround(pScale, pitch, yaw);
                 }
-                RenderHelper.disableStandardItemLighting();
                 dispatcher.setRenderShadow(true);
 
                 player.renderYawOffset = yBodyRot;
@@ -129,6 +135,12 @@ public final class RenderUtil {
                 //player.setPose(pose);
 
                 GlStateManager.popMatrix();
+
+                RenderHelper.disableStandardItemLighting();
+                GlStateManager.disableRescaleNormal();
+                GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+                GlStateManager.disableTexture2D();
+                GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
@@ -203,6 +215,7 @@ public final class RenderUtil {
     private static void renderExtraEntity(float yaw, EntityPlayer player, RenderManager dispatcher, Entity entity) {
         GlStateManager.rotate(yaw, 0, 1, 0);
         dispatcher.renderEntity(entity, 0, -entity.getMountedYOffset() - player.getYOffset(), 0, 0.0F, 1.0F, false);
+        // 清理实体渲染
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableColorMaterial();
     }
@@ -246,7 +259,9 @@ public final class RenderUtil {
         GlStateManager.translate(0.0D, 0.0D, 1000.0D);
         GlStateManager.scale(pScale, pScale, pScale);
         GlStateManager.rotate(180.0F, 0, 0, 1);
-        GlStateManager.rotate(-10, 1, 0, 0);
+        rotateAndEnableLighting();
+        float xp = -10;
+        GlStateManager.rotate(xp, 1, 0, 0);
 
         float yBodyRot = player.renderYawOffset;
         float yRot = player.rotationYaw;
@@ -275,10 +290,10 @@ public final class RenderUtil {
         player.prevRotationYawHead = player.rotationYaw;
 
         RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
+        xp = 180.0F - xp;
+        dispatcher.setPlayerViewY(xp);
         dispatcher.setRenderShadow(false);
-        RenderHelper.enableStandardItemLighting();
         renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
-        RenderHelper.disableStandardItemLighting();
         dispatcher.setRenderShadow(true);
 
         player.renderYawOffset = yBodyRot;
@@ -301,23 +316,42 @@ public final class RenderUtil {
         }
 
         GlStateManager.popMatrix();
+
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
-    //TODO：光照；禁用自定义模型，渲染原版玩家时出现严重错误
     public static void renderPlayerEntity(EntityPlayer player, double posX, double posY, float scale, float yawOffset, int z) {
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
         GlStateManager.scale(1, 1, -1);
         GlStateManager.scale(scale, scale, scale);
         GlStateManager.rotate(180.0F, 0, 0, 1);
-        GlStateManager.rotate(player.renderYawOffset + yawOffset - 180, 0, 1, 0);
+        rotateAndEnableLighting();
+        float yRot = player.renderYawOffset + yawOffset - 180;
+        GlStateManager.rotate(yRot, 0, 1, 0);
         RenderManager renderDispatcher = Minecraft.getMinecraft().getRenderManager();
+        yRot = 180.0F - yRot;
+        renderDispatcher.setPlayerViewY(yRot);
         renderDispatcher.setRenderShadow(false);
-        RenderHelper.enableStandardItemLighting();
         renderDispatcher.renderEntity(player, 0, 0, 0, 0.0F, 1.0F, false); // 最后这个参数是隐藏碰撞箱
-        RenderHelper.disableStandardItemLighting();
         renderDispatcher.setRenderShadow(true);
         GlStateManager.popMatrix();
+
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    private static void rotateAndEnableLighting() {
+        GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
     }
 
     public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
