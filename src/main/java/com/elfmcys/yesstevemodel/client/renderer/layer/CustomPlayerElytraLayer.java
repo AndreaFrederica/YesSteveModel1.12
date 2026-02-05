@@ -80,9 +80,4 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
         RenderUtils.rotateMatrixAroundBone(lastBone);
         RenderUtils.scaleMatrixForBone(lastBone);
     }
-
-    @Override
-    public boolean shouldCombineTextures() {
-        return false;
-    }
 }

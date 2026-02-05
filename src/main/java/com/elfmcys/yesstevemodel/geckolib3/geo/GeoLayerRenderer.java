@@ -11,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
 
-public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable> implements LayerRenderer<T> {
+public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable> {
     protected final IGeoRenderer<T> entityRenderer;
 
     public GeoLayerRenderer(IGeoRenderer<T> entityRendererIn) {
@@ -48,14 +48,6 @@ public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable>
     ) {
         GlStateManager.color(red, green, blue, 1f);
         modelIn.render(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
-    }
-
-    @Override
-    public void doRenderLayer(
-            @Nonnull T entityIn, float limbSwing, float limbSwingAmount,
-            float partialTicks, float ageInTicks,
-            float netHeadYaw, float headPitch, float scaleIn
-    ) {
     }
 
     public IGeoRenderer<T> getRenderer() {

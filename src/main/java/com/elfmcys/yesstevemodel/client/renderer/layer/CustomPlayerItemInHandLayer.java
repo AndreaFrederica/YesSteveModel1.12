@@ -92,9 +92,4 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatabl
             RenderUtils.scaleMatrixForBone(lastBone);
         }
     }
-
-    @Override
-    public boolean shouldCombineTextures() {
-        return false;
-    }
 }

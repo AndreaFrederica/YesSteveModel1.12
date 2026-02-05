@@ -12,29 +12,20 @@ public enum FormatVersion {
     VERSION_1_12_0, VERSION_1_14_0, VERSION_1_8_0;
 
     public static FormatVersion forValue(String value) throws IOException {
-        if ("1.12.0".equals(value)) {
-            return VERSION_1_12_0;
-        }
-        if ("1.14.0".equals(value)) {
-            return VERSION_1_14_0;
-        }
-        if ("1.8.0".equals(value)) {
-            return VERSION_1_8_0;
-        }
-        throw new IOException("Cannot deserialize FormatVersion: " + value);
+        return switch (value) {
+            case "1.12.0" -> VERSION_1_12_0;
+            case "1.14.0" -> VERSION_1_14_0;
+            case "1.8.0" -> VERSION_1_8_0;
+            default -> throw new IOException("Cannot deserialize FormatVersion: " + value);
+        };
     }
 
     public String toValue() {
-        switch (this) {
-            case VERSION_1_12_0:
-                return "1.12.0";
-            case VERSION_1_14_0:
-                return "1.14.0";
-            case VERSION_1_8_0:
-                return "1.8.0";
-            default:
-                throw new IllegalArgumentException();
-        }
+        return switch (this) {
+            case VERSION_1_12_0 -> "1.12.0";
+            case VERSION_1_14_0 -> "1.14.0";
+            case VERSION_1_8_0 -> "1.8.0";
+        };
     }
 
     protected static class Serializer implements JsonSerializer<FormatVersion>, JsonDeserializer<FormatVersion> {

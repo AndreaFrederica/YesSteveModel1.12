@@ -7,23 +7,17 @@ public enum PolysEnum {
     QUAD_LIST, TRI_LIST;
 
     public static PolysEnum forValue(String value) throws IOException {
-        if ("quad_list".equals(value)) {
-            return QUAD_LIST;
-        }
-        if ("tri_list".equals(value)) {
-            return TRI_LIST;
-        }
-        throw new IOException("Cannot deserialize PolysEnum");
+        return switch (value) {
+            case "quad_list" -> QUAD_LIST;
+            case "tri_list" -> TRI_LIST;
+            default -> throw new IOException("Cannot deserialize PolysEnum");
+        };
     }
 
     public String toValue() {
-        switch (this) {
-            case QUAD_LIST:
-                return "quad_list";
-            case TRI_LIST:
-                return "tri_list";
-            default:
-                throw new IllegalArgumentException();
-        }
+        return switch (this) {
+            case QUAD_LIST -> "quad_list";
+            case TRI_LIST -> "tri_list";
+        };
     }
 }
