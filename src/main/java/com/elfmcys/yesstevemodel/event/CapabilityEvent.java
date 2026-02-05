@@ -129,7 +129,7 @@ public final class CapabilityEvent {
         return getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP);
     }
 
-    private static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {
+    public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {
         return getCapability(provider, capability, null);
     }
 

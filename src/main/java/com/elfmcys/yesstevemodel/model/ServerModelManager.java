@@ -71,6 +71,7 @@ public final class ServerModelManager {
     public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
     public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
     public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
+    // FIXME：箭矢动画似乎不该在纹理选择 GUI 显示，可能需要特殊排除
     public static final String ARROW_ANIMATION_FILE_NAME = "arrow.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
