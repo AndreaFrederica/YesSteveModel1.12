@@ -13,7 +13,3 @@ spotless {
         removeUnusedImports()
     }
 }
-
-tasks.withType(Jar).configureEach {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}

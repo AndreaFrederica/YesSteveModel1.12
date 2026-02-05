@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.gui.button;
 
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import net.minecraft.client.Minecraft;

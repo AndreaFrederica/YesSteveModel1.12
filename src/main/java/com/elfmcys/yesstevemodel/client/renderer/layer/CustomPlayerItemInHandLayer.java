@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerHeldItem}。
  */
+//TODO：GL 状态
 public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatable> extends GeoLayerRenderer<T> {
     //private final static String TAC_ID = "tac";
 

@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.renderer;
 
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.model.CustomPlayerModel;
 import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerElytraLayer;

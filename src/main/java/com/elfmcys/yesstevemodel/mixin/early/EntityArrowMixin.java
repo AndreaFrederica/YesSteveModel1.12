@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.mixin.early;
 
 import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

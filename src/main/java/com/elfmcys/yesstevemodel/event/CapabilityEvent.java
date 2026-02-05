@@ -36,10 +36,10 @@ public final class CapabilityEvent {
             if (!CapabilityEvent.getModelInfoCap(player).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
                 event.addCapability(MODEL_INFO_CAP, new ModelInfoCapabilityProvider());
             }
-            if (!CapabilityEvent.getCapability(player, AuthModelsCapabilityProvider.AUTH_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(AUTH_MODELS_CAP)) {
+            if (!CapabilityEvent.getAuthModelsCap(player).isPresent() && !event.getCapabilities().containsKey(AUTH_MODELS_CAP)) {
                 event.addCapability(AUTH_MODELS_CAP, new AuthModelsCapabilityProvider());
             }
-            if (!CapabilityEvent.getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
+            if (!CapabilityEvent.getStarModelsCap(player).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
                 event.addCapability(STAR_MODELS_CAP, new StarModelsCapabilityProvider());
             }
         }

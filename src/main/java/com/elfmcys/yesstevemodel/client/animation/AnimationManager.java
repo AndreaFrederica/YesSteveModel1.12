@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.client.animation.condition.*;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;

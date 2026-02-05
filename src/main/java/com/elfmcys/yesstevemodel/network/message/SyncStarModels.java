@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.network.message;
 
-import com.elfmcys.yesstevemodel.capability.StarModelsCapabilityProvider;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;

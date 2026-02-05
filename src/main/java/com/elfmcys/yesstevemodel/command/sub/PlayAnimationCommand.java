@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.command.sub;
 
-import com.elfmcys.yesstevemodel.capability.ModelInfoCapabilityProvider;
 import com.elfmcys.yesstevemodel.command.argument.AnimationArgument;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import net.minecraft.command.CommandBase;
