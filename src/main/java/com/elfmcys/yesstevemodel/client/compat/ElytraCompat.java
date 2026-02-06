@@ -10,20 +10,19 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 
 public class ElytraCompat {
-    private static final String MekMixin = "mekmixinhelp";
-    private static boolean MekMixin_INSTALLED = false;
+    private static final String MEK_MIXIN = "mekmixinhelp";
+    private static boolean MEK_MIXIN_INSTALLED = false;
 
     public static void init() {
-        MekMixin_INSTALLED = Loader.isModLoaded(MekMixin);
+        MEK_MIXIN_INSTALLED = Loader.isModLoaded(MEK_MIXIN);
     }
 
     public static boolean isElytra(EntityLivingBase player) {
         ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        return (MekMixin_INSTALLED && hasElytra(stack, player)) || stack.getItem() instanceof ItemElytra;
+        return (MEK_MIXIN_INSTALLED && hasElytra(stack, player)) || stack.getItem() instanceof ItemElytra;
     }
 
-
-    @Optional.Method(modid = MekMixin)
+    @Optional.Method(modid = MEK_MIXIN)
     private static boolean hasElytra(ItemStack stack, EntityLivingBase player) {
         if (stack.getItem() instanceof ElytraMixinHelp help) {
             return help.canElytraFly(stack, player);

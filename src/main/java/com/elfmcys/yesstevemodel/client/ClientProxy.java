@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 @SuppressWarnings("unused")
@@ -47,9 +46,9 @@ public class ClientProxy extends CommonProxy {
         ExtraAnimationKey.registerKeyBinding();
 
         CrossbowCompat.init();
+        ElytraCompat.init();
         SwimmingCompat.init();
         TridentCompat.init();
-        ElytraCompat.init();
 
         AnimationRegister.registerAnimationState();
         AnimationRegister.registerVariables();
