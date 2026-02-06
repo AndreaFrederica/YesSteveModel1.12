@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client;
 import com.elfmcys.yesstevemodel.CommonProxy;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
 import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
+import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.event.ConfigSyncEvent;
@@ -48,6 +49,7 @@ public class ClientProxy extends CommonProxy {
         CrossbowCompat.init();
         SwimmingCompat.init();
         TridentCompat.init();
+        ElytraCompat.init();
 
         AnimationRegister.registerAnimationState();
         AnimationRegister.registerVariables();

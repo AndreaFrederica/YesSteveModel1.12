@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
+import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
@@ -15,7 +16,6 @@ import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.client.renderer.entity.layers.LayerArmorBase;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EnumPlayerModelParts;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -37,7 +37,7 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
     @Override
     public void render(@Nonnull T livingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, Color renderColor) {
         ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        if (stack.getItem() == Items.ELYTRA && this.entityRenderer.getGeoModel() != null) {
+        if (ElytraCompat.isElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
             GeoModel geoModel = this.entityRenderer.getGeoModel();
             if (!geoModel.elytraBones.isEmpty()) {
                 ResourceLocation texture;
