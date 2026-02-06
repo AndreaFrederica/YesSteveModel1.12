@@ -116,6 +116,7 @@ public abstract class AnimatedGeoModel<T extends IAnimatable> extends GeoModelPr
 
     @Override
     public double getCurrentTick() {
-        return Minecraft.getSystemTime() / 50d;
+//        return Minecraft.getSystemTime() / 50d;
+        return System.nanoTime() / 1000000000d * 20;
     }
 }

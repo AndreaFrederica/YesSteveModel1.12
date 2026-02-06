@@ -57,4 +57,24 @@ dependencies {
     // implementation ('com.google.code.gson:gson:2.8.6') {
     //     transitive = false
     // }
+
+    runtimeOnly 'curse.maven:ftb-library-237167:2985811'
+    runtimeOnly 'curse.maven:ftb-utilities-237102:3157548'
+
+    // 三叉戟
+    compileOnly rfg.deobf('curse.maven:oceanic-expanse-840576:7009970')
+    compileOnly rfg.deobf('curse.maven:trident-mod-469262:4798618')
+
+    // 弩
+    // jbredwards
+    compileOnly rfg.deobf('maven.modrinth:crossbow:1.1.0')
+    //runtimeOnly rfg.deobf('curse.maven:assetmover-571482:4430763')
+    // SmileycorpMC
+    compileOnly rfg.deobf('curse.maven:crossbows-backport-973881:5749402')
+    //runtimeOnly rfg.deobf('curse.maven:atlas-lib-463826:6981112')
+
+    // 重锤，望远镜
+    //implementation rfg.deobf('curse.maven:deeper-depths-1101129:7061440')
+
+    compileOnly rfg.deobf('curse.maven:aqua-acrobatics-321792:5225456')
 }

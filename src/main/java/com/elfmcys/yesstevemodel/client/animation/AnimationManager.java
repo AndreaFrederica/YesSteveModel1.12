@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
 import com.elfmcys.yesstevemodel.client.animation.condition.*;
+import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
@@ -152,18 +153,17 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
         if (!player.isSwingInProgress && !player.isHandActive()) {
-            // TODO: 与弩模组的兼容
-//            ItemStack mainHandItem = player.getHeldItem(EnumHand.MAIN_HAND);
-//            if (mainHandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(mainHandItem)) {
-//                return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
-//            }
+            ItemStack mainHandItem = player.getHeldItem(EnumHand.MAIN_HAND);
+            if (CrossbowCompat.isCharged(mainHandItem)) {
+                return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
 //            if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGun(mainHandItem)) {
 //                return TacGunRenderer.playGunHoldAnimation(event, mainHandItem);
 //            }
-//            ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
-//            if (offhandItem.getItem() == Items.CROSSBOW && CrossbowItem.isCharged(offhandItem)) {
-//                return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
-//            }
+            ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
+            if (CrossbowCompat.isCharged(offhandItem)) {
+                return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
             if (player.fishEntity != null) {
                 return playAnimation(event, "hold_mainhand:fishing", ILoopType.EDefaultLoopTypes.LOOP);
             }

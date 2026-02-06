@@ -51,6 +51,8 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatabl
 //                TacGunRenderer.renderOffhandGun(offhandItem, geoModel, entityLivingBaseIn, packedLightIn, partialTicks);
 //                GlStateManager.popMatrix();
 //            }
+
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 

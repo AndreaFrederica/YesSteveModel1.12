@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 import com.elfmcys.yesstevemodel.Tags;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
+import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
@@ -12,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -189,6 +191,7 @@ public class PlayerModelScreen extends Screen {
         this.drawGradientRect(this.x + 351, this.y + 7, this.x + 352, this.y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
 
         this.textField.drawTextBox();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         RenderUtil.scissor(this.x + 5, this.y + 29, 125, 171);
         GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 190, 70, this.x + 67 - mouseX, this.y + 180 - 95 - mouseY, this.player);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);

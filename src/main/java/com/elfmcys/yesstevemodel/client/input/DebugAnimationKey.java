@@ -1,6 +1,8 @@
 package com.elfmcys.yesstevemodel.client.input;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
+import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
@@ -146,7 +148,9 @@ public class DebugAnimationKey {
         renderText(gui, y, "query.is_sneaking", player.onGround && player.isSneaking());
         renderText(gui, y, "query.is_spectator", player.isSpectator());
         renderText(gui, y, "query.is_sprinting", player.isSprinting());
-//        renderText(gui, y, "query.is_swimming", player.isSwimming());
+        if (SwimmingCompat.isInstalled()) {
+            renderText(gui, y, "query.is_swimming", SwimmingCompat.isSwimming(player));
+        }
         renderText(gui, y, "query.is_using_item", player.isHandActive());
         renderText(gui, y, "query.item_in_use_duration", () -> player.getItemInUseMaxCount() / 20.0);
         renderText(gui, y, "query.item_max_use_duration", () -> getMaxUseDuration(player) / 20.0);
@@ -179,7 +183,9 @@ public class DebugAnimationKey {
         renderText(gui, y, "ysm.elytra_rot_z", () -> Math.toDegrees(player.rotateElytraZ));
 
         renderText(gui, y, "ysm.is_close_eyes", getEyeCloseState(partialTick, player));
-//        renderText(gui, y, "ysm.is_riptide", player.isAutoSpinAttack());
+        if (TridentCompat.isInstalled()) {
+            renderText(gui, y, "ysm.is_riptide", TridentCompat.isAutoSpinAttack(player));
+        }
         renderText(gui, y, "ysm.food_level", player.getFoodStats().getFoodLevel());
 
 //        if (FirstPersonCompat.isInstalled()) {

@@ -65,6 +65,8 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
                     LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
                 }
                 GlStateManager.popMatrix();
+
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
     }

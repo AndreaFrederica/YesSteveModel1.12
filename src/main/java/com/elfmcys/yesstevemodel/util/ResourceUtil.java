@@ -4,7 +4,7 @@ import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * {@link net.minecraft.util.ResourceLocation} 的辅助方法。验证移植自 1.16.5。
+ * {@link ResourceLocation} 的辅助方法。验证移植自 1.16.5。
  */
 public final class ResourceUtil {
     public static boolean isValidResourceLocation(String resourceName) {
