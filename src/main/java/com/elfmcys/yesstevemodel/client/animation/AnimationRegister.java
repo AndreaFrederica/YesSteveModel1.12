@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
+import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
@@ -20,7 +21,6 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
@@ -214,7 +214,7 @@ public class AnimationRegister {
         parser.setValue("ysm.has_mainhand", () -> getSlotValue(player, EntityEquipmentSlot.MAINHAND));
         parser.setValue("ysm.has_offhand", () -> getSlotValue(player, EntityEquipmentSlot.OFFHAND));
 
-        parser.setValue("ysm.has_elytra", () -> MolangUtils.booleanToFloat(player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() == Items.ELYTRA));
+        parser.setValue("ysm.has_elytra", () -> MolangUtils.booleanToFloat(ElytraCompat.isElytra(player)));
         parser.setValue("ysm.elytra_rot_x", () -> {
             if (player instanceof EntityPlayerSP clientPlayer) {
                 return Math.toDegrees(clientPlayer.rotateElytraX);

@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.input;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
@@ -16,7 +17,6 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
@@ -177,7 +177,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "ysm.has_mainhand", getSlotValue(player, EntityEquipmentSlot.MAINHAND));
         renderText(gui, y, "ysm.has_offhand", getSlotValue(player, EntityEquipmentSlot.OFFHAND));
 
-        renderText(gui, y, "ysm.has_elytra", player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() == Items.ELYTRA);
+        renderText(gui, y, "ysm.has_elytra", ElytraCompat.isElytra(player));
         renderText(gui, y, "ysm.elytra_rot_x", () -> Math.toDegrees(player.rotateElytraX));
         renderText(gui, y, "ysm.elytra_rot_y", () -> Math.toDegrees(player.rotateElytraY));
         renderText(gui, y, "ysm.elytra_rot_z", () -> Math.toDegrees(player.rotateElytraZ));
