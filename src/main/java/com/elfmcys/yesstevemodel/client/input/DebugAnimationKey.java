@@ -204,7 +204,7 @@ public class DebugAnimationKey {
 
     private static double getMaxUseDuration(EntityPlayerSP player) {
         ItemStack useItem = player.getActiveItemStack();
-        if (!player.isHandActive() && useItem.isEmpty()) {
+        if (useItem.isEmpty()) {
             return 0.0;
         } else {
             return useItem.getMaxItemUseDuration();

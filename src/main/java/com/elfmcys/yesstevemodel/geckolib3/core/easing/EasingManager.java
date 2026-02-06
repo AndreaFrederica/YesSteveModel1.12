@@ -3,26 +3,27 @@ package com.elfmcys.yesstevemodel.geckolib3.core.easing;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Memoizer;
 
 import java.util.List;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 
 public class EasingManager {
-    private static final Function<EasingFunctionArgs, Function<Double, Double>> GET_EASING_FUNCTION = Memoizer
+    private static final Function<EasingFunctionArgs, DoubleUnaryOperator> GET_EASING_FUNCTION = Memoizer
             .memoize(EasingManager::getEasingFuncImpl);
 
     public static double ease(double number, EasingType easingType, List<Double> easingArgs) {
         Double firstArg = easingArgs == null || easingArgs.isEmpty() ? null : easingArgs.get(0);
-        return GET_EASING_FUNCTION.apply(new EasingFunctionArgs(easingType, firstArg)).apply(number);
+        return GET_EASING_FUNCTION.apply(new EasingFunctionArgs(easingType, firstArg)).applyAsDouble(number);
     }
 
 
-    private static Function<Double, Double> getEasingFuncImpl(EasingFunctionArgs args) {
+    private static DoubleUnaryOperator getEasingFuncImpl(EasingFunctionArgs args) {
         return switch (args.easingType()) {
             case STEP -> in(step(args.arg0()));
             default -> in(EasingManager::linear);
         };
     }
 
-    private static Function<Double, Double> in(Function<Double, Double> easing) {
+    private static DoubleUnaryOperator in(DoubleUnaryOperator easing) {
         return easing;
     }
 
@@ -31,7 +32,7 @@ public class EasingManager {
     }
 
 
-    private static Function<Double, Double> step(Double stepArg) {
+    private static DoubleUnaryOperator step(Double stepArg) {
         int steps = stepArg != null ? stepArg.intValue() : 2;
         double[] intervals = stepRange(steps);
         return t -> intervals[findIntervalBorderIndex(t, intervals, false)];

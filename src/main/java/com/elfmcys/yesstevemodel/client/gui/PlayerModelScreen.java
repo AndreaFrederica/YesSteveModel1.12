@@ -18,6 +18,7 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.ForgeVersion;
+import net.minecraftforge.fml.common.Loader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
@@ -210,7 +211,7 @@ public class PlayerModelScreen extends Screen {
         String pageInfo = String.format("%d/%d", this.page + 1, this.maxPage + 1);
         this.drawString(this.fontRenderer, pageInfo, this.x + 138 + (282 - this.fontRenderer.getStringWidth(pageInfo)) / 2, this.y + 223 - this.fontRenderer.FONT_HEIGHT / 2, 0xF3EFE0);
 
-        String debugInfo = String.format("%s-%s", ForgeVersion.mcVersion, Tags.VERSION);
+        String debugInfo = String.format("%s-%s", Loader.MC_VERSION, Tags.VERSION);
         this.drawString(this.fontRenderer, TextFormatting.DARK_GRAY + debugInfo, this.x + 2, this.y + 226, 0xFFFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -234,10 +235,7 @@ public class PlayerModelScreen extends Screen {
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
-        if (this.textField.mouseClicked(mouseX, mouseY, button)) {
-            this.textField.setFocused(true);
-            return;
-        }
+        this.textField.mouseClicked(mouseX, mouseY, button);
         super.mouseClicked(mouseX, mouseY, button);
     }
 

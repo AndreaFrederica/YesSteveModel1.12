@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.util;
 
+import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -7,22 +8,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class ResourceUtil {
     public static boolean isValidResourceLocation(String resourceName) {
-        String[] astring = decompose(resourceName, ':');
+        String[] astring = ResourceLocation.splitObjectName(resourceName);
         return isValidNamespace(StringUtils.isEmpty(astring[0]) ? "minecraft" : astring[0]) && isValidPath(astring[1]);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    public static String[] decompose(String resourceName, char splitOn) {
-        String[] astring = new String[]{"minecraft", resourceName};
-        int i = resourceName.indexOf(splitOn);
-        if (i >= 0) {
-            astring[1] = resourceName.substring(i + 1);
-            if (i >= 1) {
-                astring[0] = resourceName.substring(0, i);
-            }
-        }
-
-        return astring;
     }
 
     private static boolean isValidPath(String path) {

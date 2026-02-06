@@ -28,6 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class AnimationController<T extends IAnimatable> {
     public double transitionLengthTicks;
     public boolean isJustStarting = false;
     public double tickOffset;
-    public Function<Double, Double> customEasingMethod;
+    public DoubleUnaryOperator customEasingMethod;
     public double animationSpeed = 1D;
     /**
      * 默认情况下，动画将使用关键帧的 EasingType <br>
@@ -132,7 +133,7 @@ public class AnimationController<T extends IAnimatable> {
      *                              {@link com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingManager}
      */
     public AnimationController(T animatable, String name, float transitionLengthTicks,
-                               Function<Double, Double> customEasingMethod, IAnimationPredicate<T> animationPredicate) {
+                               DoubleUnaryOperator customEasingMethod, IAnimationPredicate<T> animationPredicate) {
         this.animatable = animatable;
         this.name = name;
         this.transitionLengthTicks = transitionLengthTicks;

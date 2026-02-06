@@ -4,7 +4,7 @@ import com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingManager;
 import com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingType;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.AnimationPoint;
 
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 public class MathUtil {
     /**
@@ -14,7 +14,7 @@ public class MathUtil {
      * @return 线性插值
      */
     @SuppressWarnings({"ConstantValue", "unchecked"})
-    public static float lerpValues(AnimationPoint animationPoint, EasingType easingType, Function<Double, Double> customEasingMethod) {
+    public static float lerpValues(AnimationPoint animationPoint, EasingType easingType, DoubleUnaryOperator customEasingMethod) {
         if (animationPoint.currentTick() >= animationPoint.animationEndTick()) {
             return (float) animationPoint.animationEndValue();
         }
@@ -22,7 +22,7 @@ public class MathUtil {
             return (float) animationPoint.animationEndValue();
         }
         if (easingType == EasingType.CUSTOM && customEasingMethod != null) {
-            return lerpValues(customEasingMethod.apply(animationPoint.currentTick() / animationPoint.animationEndTick()),
+            return lerpValues(customEasingMethod.applyAsDouble(animationPoint.currentTick() / animationPoint.animationEndTick()),
                     animationPoint.animationStartValue(), animationPoint.animationEndValue());
         } else if (easingType == EasingType.NONE && animationPoint.keyframe() != null) {
             easingType = animationPoint.keyframe().easingType;
