@@ -110,6 +110,7 @@ public final class RenderUtil {
                 // 清理实体渲染
                 GlStateManager.enableRescaleNormal();
                 GlStateManager.enableColorMaterial();
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
                 try {
                     renderExtraEntity(yaw, player, entity, dispatcher);
                 } catch (ExecutionException e) {
@@ -218,6 +219,7 @@ public final class RenderUtil {
         // 清理实体渲染
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableColorMaterial();
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
     }
 
     public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
