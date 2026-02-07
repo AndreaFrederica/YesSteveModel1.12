@@ -2,10 +2,7 @@ package com.elfmcys.yesstevemodel.client;
 
 import com.elfmcys.yesstevemodel.CommonProxy;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
-import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
-import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
-import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
-import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
+import com.elfmcys.yesstevemodel.client.compat.*;
 import com.elfmcys.yesstevemodel.client.event.ConfigSyncEvent;
 import com.elfmcys.yesstevemodel.client.input.*;
 import com.elfmcys.yesstevemodel.client.renderer.CustomArrowRenderer;
@@ -34,6 +31,12 @@ public class ClientProxy extends CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
         MinecraftForge.EVENT_BUS.register(new ConfigSyncEvent());
+
+        CrossbowCompat.init();
+        ElytraCompat.init();
+        SpyglassCompat.init();
+        SwimmingCompat.init();
+        TridentCompat.init();
     }
 
     @Override
@@ -44,11 +47,6 @@ public class ClientProxy extends CommonProxy {
         ClientRegistry.registerKeyBinding(DebugAnimationKey.DEBUG_ANIMATION_KEY);
         ClientRegistry.registerKeyBinding(ExtraPlayerConfigKey.EXTRA_PLAYER_RENDER_KEY);
         ExtraAnimationKey.registerKeyBinding();
-
-        CrossbowCompat.init();
-        ElytraCompat.init();
-        SwimmingCompat.init();
-        TridentCompat.init();
 
         AnimationRegister.registerAnimationState();
         AnimationRegister.registerVariables();

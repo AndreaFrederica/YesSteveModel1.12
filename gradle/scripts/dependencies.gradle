@@ -64,17 +64,20 @@ dependencies {
     // 三叉戟
     compileOnly rfg.deobf('curse.maven:oceanic-expanse-840576:7009970')
     compileOnly rfg.deobf('curse.maven:trident-mod-469262:4798618')
+    compileOnly rfg.deobf('curse.maven:future-mc-310059:6162819')
+    //runtimeOnly 'curse.maven:forgelin-continuous-456403:7400891'
 
     // 弩
     // jbredwards
-    compileOnly rfg.deobf('maven.modrinth:crossbow:1.1.0')
-    //runtimeOnly rfg.deobf('curse.maven:assetmover-571482:4430763')
+    compileOnly rfg.deobf('curse.maven:crossbow-mod-1304265:7330910')
+    //runtimeOnly 'curse.maven:assetmover-571482:4430763'
     // SmileycorpMC
     compileOnly rfg.deobf('curse.maven:crossbows-backport-973881:5749402')
-    //runtimeOnly rfg.deobf('curse.maven:atlas-lib-463826:6981112')
+    //runtimeOnly 'curse.maven:atlas-lib-463826:6981112'
 
     // 重锤，望远镜
-    //implementation rfg.deobf('curse.maven:deeper-depths-1101129:7061440')
+    compileOnly rfg.deobf('curse.maven:deeper-depths-1101129:7061440')
 
+    // 游泳
     compileOnly rfg.deobf('curse.maven:aqua-acrobatics-321792:5225456')
 }

@@ -1,5 +1,8 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
+import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
+import com.elfmcys.yesstevemodel.client.compat.SpyglassCompat;
+import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,20 +11,21 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class ConditionalUse {
+    private static final Set<String> ACTIONS = new HashSet<>();
     private static final String EMPTY = "";
     private final int preSize;
     private final String idPre;
     //private final String tagPre;
     private final String extraPre;
     private final List<ResourceLocation> idTest = Lists.newArrayList();
-    private final List<ResourceLocation> tagTest = Lists.newArrayList();
-    // UseAction - EnumAction
-    private final List<EnumAction> extraTest = Lists.newArrayList();
+    //private final List<ResourceLocation> tagTest = Lists.newArrayList();
+    private final List<String> extraTest = Lists.newArrayList();
 
     public ConditionalUse(EnumHand hand) {
         if (hand == EnumHand.MAIN_HAND) {
@@ -38,6 +42,7 @@ public class ConditionalUse {
     }
 
     public void addTest(String name) {
+        initActions();
         if (name.length() <= this.preSize) {
             return;
         }
@@ -57,7 +62,7 @@ public class ConditionalUse {
             if (substring.equals(EnumAction.NONE.name().toLowerCase(Locale.US))) {
                 return;
             }
-            Arrays.stream(EnumAction.values()).filter(a -> a.name().toLowerCase(Locale.US).equals(substring)).findFirst().ifPresent(this.extraTest::add);
+            ACTIONS.stream().filter(s -> s.equals(substring)).findFirst().ifPresent(this.extraTest::add);
         }
     }
 
@@ -109,10 +114,28 @@ public class ConditionalUse {
         if (this.extraTest.isEmpty()) {
             return EMPTY;
         }
-        EnumAction anim = player.getHeldItem(hand).getItemUseAction();
+        String anim = getAction(player.getHeldItem(hand));
         if (this.extraTest.contains(anim)) {
-            return this.extraPre + anim.name().toLowerCase(Locale.US);
+            return this.extraPre + anim;
         }
         return EMPTY;
+    }
+
+    private static String getAction(ItemStack stack) {
+        if (CrossbowCompat.isCrossbowAction(stack)) return CrossbowCompat.CROSSBOW_ACTION;
+        else if (SpyglassCompat.isSpyglassAction(stack)) return SpyglassCompat.SPYGLASS_ACTION;
+        else if (TridentCompat.isSpearAction(stack)) return TridentCompat.SPEAR_ACTION;
+        else return stack.getItemUseAction().name().toLowerCase(Locale.US);
+    }
+
+    private static void initActions() {
+        if (!ACTIONS.isEmpty()) return;
+        // 尽量晚地初始化它，这样可以获取到最多的 EnumAction
+        for (EnumAction action : EnumAction.values()) {
+            ACTIONS.add(action.name().toLowerCase(Locale.US));
+        }
+        if (CrossbowCompat.isInstalled()) ACTIONS.add(CrossbowCompat.CROSSBOW_ACTION);
+        if (SpyglassCompat.isInstalled()) ACTIONS.add(SpyglassCompat.SPYGLASS_ACTION);
+        if (TridentCompat.isInstalled()) ACTIONS.add(TridentCompat.SPEAR_ACTION);
     }
 }

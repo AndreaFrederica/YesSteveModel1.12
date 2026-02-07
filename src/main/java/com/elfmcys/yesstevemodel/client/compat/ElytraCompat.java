@@ -18,15 +18,15 @@ public class ElytraCompat {
 
     public static boolean isElytra(EntityLivingBase player) {
         ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        return (MEK_MIXIN_INSTALLED && hasElytra(stack, player)) || stack.getItem() instanceof ItemElytra;
+        return (MEK_MIXIN_INSTALLED && hasMekMixinElytra(stack, player)) ||
+                stack.getItem() instanceof ItemElytra;
     }
 
     @Optional.Method(modid = MEK_MIXIN)
-    private static boolean hasElytra(ItemStack stack, EntityLivingBase player) {
+    private static boolean hasMekMixinElytra(ItemStack stack, EntityLivingBase player) {
         if (stack.getItem() instanceof ElytraMixinHelp help) {
             return help.canElytraFly(stack, player);
         }
         return false;
     }
-
 }
