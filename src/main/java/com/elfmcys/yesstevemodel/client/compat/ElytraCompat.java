@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.compat;
 
-
 import mekanism.api.mixninapi.ElytraMixinHelp;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;
