@@ -1,6 +1,6 @@
 # Yes Steve Model
 
-[旧版Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM)的 Minecraft 1.12.2 完整移植。
+[旧版 Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM)的 Minecraft 1.12.2 完整移植。
 
 ## 概述
 
@@ -15,7 +15,7 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 模组需要 [MixinBooter](https://github.com/CleanroomMC/MixinBooter) 作为前置。
 
 - 模型
-  - 2.0.0 以下版本三种格式的模型
+  - 兼容 2.0.0 以下版本三种格式的模型
   - 暂不兼容 2.0.0 以上版本文件夹和 ZIP 格式的模型
   - 永远不会兼容 2.0.0 以上版本 YSM 加密格式的模型
 
@@ -45,6 +45,6 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 
 - [YSM 开发组](https://github.com/YesSteveModel)开源了旧版 YSM
 - [一只大胡哩](https://github.com/Huli-fox)和[凯西](https://github.com/kaixiten)制作了最初的 [1.7.10 版本](https://github.com/Huli-fox/YesSteveModel-Unofficial)
-- [sddsd2332](https://github.com/sddsd2332)制作了 [1.12.2 移植版](https://github.com/sddsd2332/YesSteveModel-Unofficial)，并为本项目做出了杰出贡献
+- [sddsd2332](https://github.com/sddsd2332) 制作了 [1.12.2 移植版](https://github.com/sddsd2332/YesSteveModel-Unofficial)，并为本项目做出了杰出贡献
 - [GeckoLib](https://github.com/bernie-g/geckolib) 的所有开发者
 - [kappa-maintainer](https://github.com/kappa-maintainer) 制作的 [SauriaLib](https://github.com/kappa-maintainer/geckolib)，GeckoLib 的延续
