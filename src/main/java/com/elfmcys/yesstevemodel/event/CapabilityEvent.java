@@ -1,15 +1,18 @@
 package com.elfmcys.yesstevemodel.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
 import com.elfmcys.yesstevemodel.capability.*;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
+import com.elfmcys.yesstevemodel.network.message.SyncArrowModel;
 import com.elfmcys.yesstevemodel.network.message.SyncAuthModels;
 import com.elfmcys.yesstevemodel.network.message.SyncModelInfo;
 import com.elfmcys.yesstevemodel.network.message.SyncStarModels;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
@@ -29,6 +32,7 @@ public final class CapabilityEvent {
     private static final ResourceLocation MODEL_INFO_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "model_id");
     private static final ResourceLocation AUTH_MODELS_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "own_models");
     private static final ResourceLocation STAR_MODELS_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "star_models");
+    private static final ResourceLocation ARROW_MODEL_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "arrow_model");
 
     @SubscribeEvent
     public static void onAttachCapabilityEvent(AttachCapabilitiesEvent<Entity> event) {
@@ -41,6 +45,12 @@ public final class CapabilityEvent {
             }
             if (!CapabilityEvent.getStarModelsCap(player).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
                 event.addCapability(STAR_MODELS_CAP, new StarModelsCapabilityProvider());
+            }
+            return;
+        }
+        if (event.getObject() instanceof EntityArrow arrow) {
+            if (!CapabilityEvent.getArrowModelCap(arrow).isPresent() && !event.getCapabilities().containsKey(ARROW_MODEL_CAP)) {
+                event.addCapability(ARROW_MODEL_CAP, new ArrowModelCapabilityProvider());
             }
         }
     }
@@ -68,6 +78,13 @@ public final class CapabilityEvent {
                 SyncModelInfo syncMsg = new SyncModelInfo(trackPlayer.getEntityId(), cap);
                 NetworkHandler.sendToClientPlayer(syncMsg, player);
             });
+            return;
+        }
+        if (event.getTarget() instanceof EntityArrow arrow) {
+            String modelId = ((IArrowExtraInfo) arrow).getYsmModelId();
+            if (!IArrowExtraInfo.EMPTY.equals(modelId)) {
+                NetworkHandler.CHANNEL.sendToAllTracking(new SyncArrowModel(arrow.getEntityId(), modelId), arrow);
+            }
         }
     }
 
@@ -127,6 +144,10 @@ public final class CapabilityEvent {
 
     public static Optional<StarModelsCapability> getStarModelsCap(EntityPlayer player) {
         return getCapability(player, StarModelsCapabilityProvider.STAR_MODELS_CAP);
+    }
+
+    public static Optional<ArrowModelCapability> getArrowModelCap(EntityArrow arrow) {
+        return getCapability(arrow, ArrowModelCapabilityProvider.ARROW_MODEL_CAP);
     }
 
     public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {

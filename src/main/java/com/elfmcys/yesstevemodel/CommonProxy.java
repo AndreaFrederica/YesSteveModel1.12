@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel;
 
+import com.elfmcys.yesstevemodel.capability.ArrowModelCapability;
 import com.elfmcys.yesstevemodel.capability.AuthModelsCapability;
 import com.elfmcys.yesstevemodel.capability.ModelInfoCapability;
 import com.elfmcys.yesstevemodel.capability.StarModelsCapability;
@@ -35,5 +36,6 @@ public class CommonProxy {
         CapabilityManager.INSTANCE.register(ModelInfoCapability.class, new ModelInfoCapability.Storage(), ModelInfoCapability::new);
         CapabilityManager.INSTANCE.register(AuthModelsCapability.class, new AuthModelsCapability.Storage(), AuthModelsCapability::new);
         CapabilityManager.INSTANCE.register(StarModelsCapability.class, new StarModelsCapability.Storage(), StarModelsCapability::new);
+        CapabilityManager.INSTANCE.register(ArrowModelCapability.class, new ArrowModelCapability.Storage(), ArrowModelCapability::new);
     }
 }

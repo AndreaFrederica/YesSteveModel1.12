@@ -26,6 +26,7 @@ public final class NetworkHandler {
     public static final int UPDATE_NPC_DATA = 96;
 
     public static void init() {
+        // 最后一个参数是接收端
         CHANNEL.registerMessage(SyncModelFiles.Handler.class, SyncModelFiles.class, 0, Side.SERVER);
         CHANNEL.registerMessage(SendModelFile.Handler.class, SendModelFile.class, 1, Side.CLIENT);
         CHANNEL.registerMessage(RequestSyncModel.Handler.class, RequestSyncModel.class, 2, Side.CLIENT);
@@ -41,6 +42,7 @@ public final class NetworkHandler {
         CHANNEL.registerMessage(CompleteFeedback.Handler.class, CompleteFeedback.class, 12, Side.CLIENT);
         CHANNEL.registerMessage(RefreshModelManage.Handler.class, RefreshModelManage.class, 13, Side.SERVER);
         CHANNEL.registerMessage(HandleFile.Handler.class, HandleFile.class, 14, Side.SERVER);
+        CHANNEL.registerMessage(SyncArrowModel.Handler.class, SyncArrowModel.class, 15, Side.CLIENT);
         initBukkit();
     }
 
