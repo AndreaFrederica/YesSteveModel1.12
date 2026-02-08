@@ -12,8 +12,10 @@ import com.elfmcys.yesstevemodel.geckolib3.util.IRenderCycle;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -24,7 +26,6 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
@@ -72,16 +73,6 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         return renderers.get(animatableClass);
     }
 
-    @SuppressWarnings("unused")
-    private static float getFacingAngle(EnumFacing facingIn) {
-        return switch (facingIn) {
-            case SOUTH -> 90.0F;
-            case WEST -> 0.0F;
-            case NORTH -> 270.0F;
-            case EAST -> 180.0F;
-            default -> 0.0F;
-        };
-    }
 
     @Override
     @Nonnull
@@ -127,13 +118,10 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
 
         this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
         GlStateManager.pushMatrix();
+        GlStateManager.disableCull();
         GlStateManager.translate(x, y, z);
-
-        if (entity instanceof EntityLiving mob) {
-            Entity leashHolder = mob.getLeashHolder();
-            if (leashHolder != null) {
-                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
-            }
+        if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
+            GlStateManager.translate(player.renderOffsetX, player.renderOffsetY, player.renderOffsetZ);
         }
 
         EntityModelData entityModelData = new EntityModelData();
@@ -155,14 +143,6 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
             netHeadYaw = lerpHeadRot - lerpBodyRot;
         }
 
-        /*
-         * TODO: vanilla mobs can't sleep in beds in 1.12.2 and below if
-         * (entity.getPose() == Pose.SLEEPING) { Direction direction =
-         * entity.getBedDirection(); if (direction != null) { float f4 =
-         * entity.getEyeHeight(Pose.STANDING) - 0.1F; stack.translate((double) ((float)
-         * (-direction.getXOffset()) * f4), 0.0D, (double) ((float)
-         * (-direction.getZOffset()) * f4)); } }
-         */
         float lerpedAge = this.handleRotationFloat(entity, partialTick);
         this.applyRotations(entity, lerpedAge, lerpBodyRot, partialTick);
 
@@ -175,6 +155,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 limbSwing *= 3.0F;
             }
         }
+        GlStateManager.enableAlpha();
         float headPitch = Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick);
         entityModelData.headPitch = -headPitch;
         entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
@@ -183,21 +164,32 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 (limbSwingAmount <= -this.getSwingMotionAniMathHelperreshold() || limbSwingAmount <= this.getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
 
         this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
-        //GlStateManager.pushMatrix();
+
+        Minecraft mc = Minecraft.getMinecraft();
         GlStateManager.translate(0, 0.01f, 0);
-        Minecraft.getMinecraft().getTextureManager().bindTexture(this.getEntityTexture(entity));
+        if (this.renderOutlines) {
+            GlStateManager.disableLighting();
+            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GlStateManager.disableTexture2D();
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+
+            GlStateManager.enableColorMaterial();
+            GlStateManager.enableOutlineMode(this.getTeamColor(entity));
+        }
 
         Color renderColor = this.getRenderColor(entity, partialTick);
-
-        if (!entity.isInvisibleToPlayer(Minecraft.getMinecraft().player)) {
+        boolean isVisible = this.isVisible(entity);
+        boolean isGhost = !isVisible && !entity.isInvisibleToPlayer(mc.player);
+        if ((isVisible || isGhost) && this.bindEntityTexture(entity)) {
+            if (isGhost) GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
             this.render(model, entity, partialTick,
                     (float) renderColor.getRed() / 255f, (float) renderColor.getGreen() / 255f,
                     (float) renderColor.getBlue() / 255f, (float) renderColor.getAlpha() / 255);
+            if (isGhost) GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
         }
 
         if (entity instanceof EntityPlayer player && !player.isSpectator()) {
             for (GeoLayerRenderer layerRenderer : this.layerRenderers) {
-                // TODO：原 Gecko 这里用的是 doRenderLayer（原版接口），暂时不知道为什么，先改成 render
                 layerRenderer.render(
                         entity, limbSwing, limbSwingAmount,
                         partialTick, lerpedAge,
@@ -205,9 +197,30 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 );
             }
         }
-        //GlStateManager.popMatrix();
-        GlStateManager.popMatrix();
 
+        if (this.renderOutlines) {
+            GlStateManager.enableLighting();
+            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+            GlStateManager.enableTexture2D();
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+
+            GlStateManager.disableOutlineMode();
+            GlStateManager.disableColorMaterial();
+        }
+
+        if (entity instanceof EntityLiving mob) {
+            Entity leashHolder = mob.getLeashHolder();
+            //noinspection ConstantValue
+            if (leashHolder != null) {
+                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
+            }
+        }
+
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.enableCull();
+        GlStateManager.popMatrix();
         super.doRender(entity, x, y, z, entityYaw, partialTick);
     }
 
@@ -230,26 +243,16 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         if (entity.deathTime > 0) {
             float f = ((float) entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
             f = MathHelper.sqrt(f);
-            if (f > 1.0F) {
-                f = 1.0F;
-            }
+            f = Math.min(1.0F, f);
 
             GlStateManager.rotate(f * this.getDeathMaxRotation(entity), 0, 0, 1);
         }
-        /*
-         * TODO: probably doesn't exist in 1.12.2 as well else if
-         * (entity.isSpinAttacking()) {
-         * matrixStackIn.rotate(Vector3f.XP.rotationDegrees(-90.0F -
-         * entity.rotationPitch));
-         * matrixStackIn.rotate(Vector3f.YP.rotationDegrees(((float)
-         * entity.ticksExisted + partialTicks) * -75.0F)); } else if (pose ==
-         * Pose.SLEEPING) { Direction direction = entity.getBedDirection(); float
-         * f1 = direction != null ? getFacingAngle(direction) : rotationYaw;
-         * matrixStackIn.rotate(Vector3f.YP.rotationDegrees(f1));
-         * matrixStackIn.rotate(Vector3f.ZP.rotationDegrees(this.getDeathMaxRotation(
-         * entity))); matrixStackIn.rotate(Vector3f.YP.rotationDegrees(270.0F)); }
-         */
-        else if (entity.hasCustomName() || entity instanceof EntityPlayer) {
+
+        if (entity instanceof EntityPlayer player && player.isPlayerSleeping()) {
+            GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
+            GlStateManager.rotate(this.getDeathMaxRotation(player), 0, 0, 1);
+            GlStateManager.rotate(270.0F, 0, 1, 0);
+        } else if (entity.hasCustomName() || entity instanceof EntityPlayer) {
             String name = TextFormatting.getTextWithoutFormattingCodes(entity.getName());
             if (entity instanceof EntityPlayer player && player.isWearing(EnumPlayerModelParts.CAPE)) {
                 return;
@@ -262,7 +265,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     }
 
     protected boolean isVisible(EntityLivingBase livingEntityIn) {
-        return !livingEntityIn.isInvisible();
+        return !livingEntityIn.isInvisible() || this.renderOutlines;
     }
 
     protected float getDeathMaxRotation(EntityLivingBase entityLivingBaseIn) {
@@ -332,11 +335,9 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 + (Math.PI / 2D);
         d2 = Math.cos(d9) * (double) entity.width * 0.4D;
         d3 = Math.sin(d9) * (double) entity.width * 0.4D;
-        double d10 = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks)
-                + d2;
+        double d10 = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks) + d2;
         double d11 = Interpolations.lerp(entity.prevPosY, entity.posY, partialTicks);
-        double d12 = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks)
-                + d3;
+        double d12 = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks) + d3;
         x = x + d2;
         z = z + d3;
         double d13 = (float) (d6 - d10);

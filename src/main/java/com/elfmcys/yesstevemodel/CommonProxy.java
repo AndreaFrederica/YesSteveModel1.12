@@ -18,11 +18,11 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.init(event.getSuggestedConfigurationFile());
         ServerModelManager.reloadPacks();
-        NetworkHandler.init();
         registerCapability();
     }
 
     public void init(FMLInitializationEvent event) {
+        NetworkHandler.init();
     }
 
     public void postInit(FMLPostInitializationEvent event) {

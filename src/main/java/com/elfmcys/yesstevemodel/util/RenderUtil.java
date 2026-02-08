@@ -5,6 +5,8 @@ import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
+import net.minecraft.block.BlockFlower;
+import net.minecraft.block.BlockTallGrass;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -20,9 +22,12 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.ExecutionException;
@@ -71,13 +76,17 @@ public final class RenderUtil {
                 float xRot = player.rotationPitch;
                 float yHeadRotO = player.prevRotationYawHead;
                 float yHeadRot = player.rotationYawHead;
-                //Pose pose = player.getPose();
 
                 player.renderYawOffset = -yaw;
                 player.rotationYaw = 180;
                 player.rotationPitch = 0;
                 player.rotationYawHead = player.rotationYaw;
                 player.prevRotationYawHead = player.rotationYaw;
+                boolean sleeping = player.sleeping;
+                BlockPos bedLocation = player.bedLocation;
+                float renderOffsetX = player.renderOffsetX;
+                float renderOffsetY = player.renderOffsetY;
+                float renderOffsetZ = player.renderOffsetZ;
 
                 RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
                 xp = 180.0F - xp;
@@ -86,7 +95,11 @@ public final class RenderUtil {
                 if (entity.hasPreviewAnimation("sleep")) {
                     GlStateManager.rotate(yaw - 90, 0, 1, 0);
                     GlStateManager.translate(0.5, 0.5625, 0);
-                    //player.setPose(Pose.SLEEPING);
+                    player.sleeping = true;
+                    player.bedLocation = null;
+                    player.renderOffsetX = 0;
+                    player.renderOffsetY = 0;
+                    player.renderOffsetZ = 0;
                 }
                 if (entity.hasPreviewAnimation("swim") || entity.hasPreviewAnimation("swim_stand")) {
                     //player.setPose(Pose.SWIMMING);
@@ -110,6 +123,7 @@ public final class RenderUtil {
                 // 清理实体渲染
                 GlStateManager.enableRescaleNormal();
                 GlStateManager.enableColorMaterial();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
                 try {
                     renderExtraEntity(yaw, player, entity, dispatcher);
@@ -133,7 +147,11 @@ public final class RenderUtil {
                 player.rotationPitch = xRot;
                 player.prevRotationYawHead = yHeadRotO;
                 player.rotationYawHead = yHeadRot;
-                //player.setPose(pose);
+                player.sleeping = sleeping;
+                player.bedLocation = bedLocation;
+                player.renderOffsetX = renderOffsetX;
+                player.renderOffsetY = renderOffsetY;
+                player.renderOffsetZ = renderOffsetZ;
 
                 GlStateManager.popMatrix();
 
@@ -155,10 +173,10 @@ public final class RenderUtil {
         GlStateManager.translate(0, 0.8, 0);
         GlStateManager.rotate(180.0F, 0, 0, 1);
         GlStateManager.rotate(-10 + pitch, 1, 0, 0);
-
         GlStateManager.rotate(yaw + 180, 0, 1, 0);
         GlStateManager.translate(-0.5, 0, 0.5);
-        renderSingleBlock(Blocks.BED.getDefaultState());
+        ItemStack stack = new ItemStack(Items.BED, 1, EnumDyeColor.RED.getMetadata());
+        stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack);
         GlStateManager.popMatrix();
     }
 
@@ -180,9 +198,9 @@ public final class RenderUtil {
             GlStateManager.translate(1, 0, -3);
         }
         GlStateManager.translate(-1, 1, 1);
-        renderSingleBlock(Blocks.TALLGRASS.getStateFromMeta(1));
+        renderSingleBlock(Blocks.TALLGRASS.getDefaultState().withProperty(BlockTallGrass.TYPE, BlockTallGrass.EnumType.GRASS));
         GlStateManager.translate(0, 0, 1);
-        renderSingleBlock(Blocks.RED_FLOWER.getStateFromMeta(4));
+        renderSingleBlock(Blocks.RED_FLOWER.getDefaultState().withProperty(Blocks.RED_FLOWER.getTypeProperty(), BlockFlower.EnumFlowerType.RED_TULIP));
         GlStateManager.popMatrix();
     }
 
@@ -215,10 +233,12 @@ public final class RenderUtil {
 
     private static void renderExtraEntity(float yaw, EntityPlayer player, RenderManager dispatcher, Entity entity) {
         GlStateManager.rotate(yaw, 0, 1, 0);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         dispatcher.renderEntity(entity, 0, -entity.getMountedYOffset() - player.getYOffset(), 0, 0.0F, 1.0F, false);
         // 清理实体渲染
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableColorMaterial();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
     }
 
@@ -327,6 +347,8 @@ public final class RenderUtil {
     }
 
     public static void renderPlayerEntity(EntityPlayer player, double posX, double posY, float scale, float yawOffset, int z) {
+        GlStateManager.enableColorMaterial();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) posX + scale * 0.5f, (float) posY + scale * 2, z);
         GlStateManager.scale(1, 1, -1);
@@ -348,6 +370,7 @@ public final class RenderUtil {
         GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.disableTexture2D();
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private static void rotateAndEnableLighting() {

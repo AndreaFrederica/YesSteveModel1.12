@@ -54,8 +54,8 @@ public class SyncAuthModels implements IPacketBufferMessage {
 
         @SideOnly(Side.CLIENT)
         private static void handleCapability(SyncAuthModels message) {
-            Minecraft.getMinecraft().addScheduledTask(() -> {
-                Minecraft mc = Minecraft.getMinecraft();
+            Minecraft mc = Minecraft.getMinecraft();
+            mc.addScheduledTask(() -> {
                 if (mc.player != null) {
                     CapabilityEvent.getAuthModelsCap(mc.player).ifPresent(cap -> cap.setAuthModels(message.authModels));
                 }

@@ -66,21 +66,20 @@ public class SyncModelInfo implements IPacketBufferMessage {
             mc.addScheduledTask(() -> {
                 if (mc.world != null) {
                     ThreadTools.THREAD_POOL.submit(() -> {
-                                try {
-                                    int time = 0;
-                                    while (mc.world.getEntityByID(message.entityId) == null && time < 5) {
-                                        Thread.sleep(500);
-                                        time++;
-                                    }
-                                    Entity entity = mc.world.getEntityByID(message.entityId);
-                                    if (entity instanceof EntityPlayer player) {
-                                        CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> cap.copyFrom(message.capability));
-                                    }
-                                } catch (InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                }
+                        try {
+                            int time = 0;
+                            while (mc.world.getEntityByID(message.entityId) == null && time < 5) {
+                                Thread.sleep(500);
+                                time++;
                             }
-                    );
+                            Entity entity = mc.world.getEntityByID(message.entityId);
+                            if (entity instanceof EntityPlayer player) {
+                                CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> cap.copyFrom(message.capability));
+                            }
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 }
             });
         }

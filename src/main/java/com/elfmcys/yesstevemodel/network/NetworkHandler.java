@@ -19,7 +19,7 @@ import java.util.Map;
 
 public final class NetworkHandler {
     private static final String VERSION = "1.0.0";
-    public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(YesSteveModel.MOD_ID + ":" + "network");
+    public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel("yesstevemodel");
     public static final int OPEN_NPC_MODEL_GUI = 93;
     public static final int SET_NPC_MODEL_ID = 94;
     public static final int SYNC_NPC_DATA = 95;
