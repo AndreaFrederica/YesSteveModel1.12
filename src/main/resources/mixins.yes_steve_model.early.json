@@ -6,7 +6,8 @@
   "minVersion": "0.8.5",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "EntityArrowMixin"
+    "EntityArrowMixin",
+    "client.ForgeHooksClientMixin"
   ],
   "server": [],
   "client": [
