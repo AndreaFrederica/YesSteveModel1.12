@@ -173,6 +173,7 @@ public final class RenderUtil {
         GlStateManager.translate(0, 0.8, 0);
         GlStateManager.rotate(180.0F, 0, 0, 1);
         GlStateManager.rotate(-10 + pitch, 1, 0, 0);
+
         GlStateManager.rotate(yaw + 180, 0, 1, 0);
         GlStateManager.translate(-0.5, 0, 0.5);
         ItemStack stack = new ItemStack(Items.BED, 1, EnumDyeColor.RED.getMetadata());
