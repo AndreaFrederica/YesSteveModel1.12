@@ -214,7 +214,7 @@ public class AnimationRegister {
         parser.setValue("ysm.has_mainhand", () -> getSlotValue(player, EntityEquipmentSlot.MAINHAND));
         parser.setValue("ysm.has_offhand", () -> getSlotValue(player, EntityEquipmentSlot.OFFHAND));
 
-        parser.setValue("ysm.has_elytra", () -> MolangUtils.booleanToFloat(ElytraCompat.isElytra(player)));
+        parser.setValue("ysm.has_elytra", () -> MolangUtils.booleanToFloat(ElytraCompat.isWearingElytra(player)));
         parser.setValue("ysm.elytra_rot_x", () -> {
             if (player instanceof EntityPlayerSP clientPlayer) {
                 return Math.toDegrees(clientPlayer.rotateElytraX);

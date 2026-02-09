@@ -16,14 +16,14 @@ public class ElytraCompat {
         MEK_MIXIN_INSTALLED = Loader.isModLoaded(MEK_MIXIN);
     }
 
-    public static boolean isElytra(EntityLivingBase player) {
+    public static boolean isWearingElytra(EntityLivingBase player) {
         ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        return (MEK_MIXIN_INSTALLED && hasMekMixinElytra(stack, player)) ||
+        return (MEK_MIXIN_INSTALLED && isMekMixinElytra(stack, player)) ||
                 stack.getItem() instanceof ItemElytra;
     }
 
     @Optional.Method(modid = MEK_MIXIN)
-    private static boolean hasMekMixinElytra(ItemStack stack, EntityLivingBase player) {
+    private static boolean isMekMixinElytra(ItemStack stack, EntityLivingBase player) {
         if (stack.getItem() instanceof ElytraMixinHelp help) {
             return help.canElytraFly(stack, player);
         }

@@ -34,14 +34,10 @@ public interface IGeoRenderer<T> {
         return null;
     }
 
-    // TODO
     default void render(
             GeoModel model, T animatable, float partialTicks,
             float red, float green, float blue, float alpha
     ) {
-        GlStateManager.disableCull();
-        GlStateManager.enableRescaleNormal();
-
         this.renderEarly(animatable, partialTicks, red, green, blue, alpha);
         this.renderLate(animatable, partialTicks, red, green, blue, alpha);
 
@@ -55,7 +51,6 @@ public interface IGeoRenderer<T> {
         tess.draw();
         // 由于此时我们至少渲染了一次，因此让我们将循环设置为重复
         this.setCurrentModelRenderCycle(EModelRenderCycle.REPEATED);
-        GlStateManager.enableCull();
     }
 
     default void renderRecursively(

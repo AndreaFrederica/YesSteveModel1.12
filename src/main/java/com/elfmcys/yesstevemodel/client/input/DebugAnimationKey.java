@@ -177,7 +177,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "ysm.has_mainhand", getSlotValue(player, EntityEquipmentSlot.MAINHAND));
         renderText(gui, y, "ysm.has_offhand", getSlotValue(player, EntityEquipmentSlot.OFFHAND));
 
-        renderText(gui, y, "ysm.has_elytra", ElytraCompat.isElytra(player));
+        renderText(gui, y, "ysm.has_elytra", ElytraCompat.isWearingElytra(player));
         renderText(gui, y, "ysm.elytra_rot_x", () -> Math.toDegrees(player.rotateElytraX));
         renderText(gui, y, "ysm.elytra_rot_y", () -> Math.toDegrees(player.rotateElytraY));
         renderText(gui, y, "ysm.elytra_rot_z", () -> Math.toDegrees(player.rotateElytraZ));

@@ -1,7 +1,10 @@
 package com.elfmcys.yesstevemodel.geckolib3.util;
 
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
+import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import net.minecraft.client.renderer.GlStateManager;
+
+import java.util.List;
 
 public final class RenderUtils {
     public static void translateMatrixToBone(GeoBone bone) {
@@ -38,5 +41,17 @@ public final class RenderUtils {
         rotateMatrixAroundBone(bone);
         scaleMatrixForBone(bone);
         translateAwayFromPivotPoint(bone);
+    }
+
+    public static void translateToBones(List<GeoBone> bones) {
+        int size = bones.size();
+        for (int i = 0; i < size - 1; i++) {
+            RenderUtils.prepMatrixForBone(bones.get(i));
+        }
+        GeoBone lastBone = bones.get(size - 1);
+        RenderUtils.translateMatrixToBone(lastBone);
+        RenderUtils.translateToPivotPoint(lastBone);
+        RenderUtils.rotateMatrixAroundBone(lastBone);
+        RenderUtils.scaleMatrixForBone(lastBone);
     }
 }

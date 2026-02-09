@@ -52,6 +52,7 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(this.animatable));
         this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
         GlStateManager.pushMatrix();
+        GlStateManager.disableCull();
         GlStateManager.translate(x, y, z);
         GlStateManager.rotate(Interpolations.lerp(entity.prevRotationYaw, entity.rotationYaw, partialTick) - 90, 0, 1, 0);
         GlStateManager.rotate(Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick), 0, 0, 1);

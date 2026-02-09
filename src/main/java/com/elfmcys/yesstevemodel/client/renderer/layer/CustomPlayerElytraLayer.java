@@ -25,7 +25,6 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerElytra}。
  */
-//TODO：GL 状态
 public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> extends GeoLayerRenderer<T> {
     private static final ResourceLocation WINGS_LOCATION = new ResourceLocation("textures/entity/elytra.png");
     private final ModelElytra elytraModel = new ModelElytra();
@@ -36,8 +35,7 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
 
     @Override
     public void render(@Nonnull T livingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, Color renderColor) {
-        ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        if (ElytraCompat.isElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
+        if (ElytraCompat.isWearingElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
             GeoModel geoModel = this.entityRenderer.getGeoModel();
             if (!geoModel.elytraBones.isEmpty()) {
                 ResourceLocation texture;
@@ -64,7 +62,8 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
                 final float scale = 1 / 16F;
                 this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
                 this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
-                if (stack.isItemEnchanted()) {
+                ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+                if (stack.hasEffect()) {
                     RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
                     LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
                 }
@@ -77,14 +76,6 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
     }
 
     protected static void translateToElytra(GeoModel geoModel) {
-        int size = geoModel.elytraBones.size();
-        for (int i = 0; i < size - 1; i++) {
-            RenderUtils.prepMatrixForBone(geoModel.elytraBones.get(i));
-        }
-        GeoBone lastBone = geoModel.elytraBones.get(size - 1);
-        RenderUtils.translateMatrixToBone(lastBone);
-        RenderUtils.translateToPivotPoint(lastBone);
-        RenderUtils.rotateMatrixAroundBone(lastBone);
-        RenderUtils.scaleMatrixForBone(lastBone);
+        RenderUtils.translateToBones(geoModel.elytraBones);
     }
 }

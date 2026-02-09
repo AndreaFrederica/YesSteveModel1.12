@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerHeldItem}。
  */
-//TODO：GL 状态
 public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatable> extends GeoLayerRenderer<T> {
     //private final static String TAC_ID = "tac";
 
@@ -73,26 +72,6 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatabl
     }
 
     protected static void translateToHand(EnumHandSide arm, GeoModel geoModel) {
-        if (arm == EnumHandSide.LEFT) {
-            int size = geoModel.leftHandBones.size();
-            for (int i = 0; i < size - 1; i++) {
-                RenderUtils.prepMatrixForBone(geoModel.leftHandBones.get(i));
-            }
-            GeoBone lastBone = geoModel.leftHandBones.get(size - 1);
-            RenderUtils.translateMatrixToBone(lastBone);
-            RenderUtils.translateToPivotPoint(lastBone);
-            RenderUtils.rotateMatrixAroundBone(lastBone);
-            RenderUtils.scaleMatrixForBone(lastBone);
-        } else {
-            int size = geoModel.rightHandBones.size();
-            for (int i = 0; i < size - 1; i++) {
-                RenderUtils.prepMatrixForBone(geoModel.rightHandBones.get(i));
-            }
-            GeoBone lastBone = geoModel.rightHandBones.get(size - 1);
-            RenderUtils.translateMatrixToBone(lastBone);
-            RenderUtils.translateToPivotPoint(lastBone);
-            RenderUtils.rotateMatrixAroundBone(lastBone);
-            RenderUtils.scaleMatrixForBone(lastBone);
-        }
+        RenderUtils.translateToBones(arm == EnumHandSide.LEFT ? geoModel.leftHandBones : geoModel.rightHandBones);
     }
 }
