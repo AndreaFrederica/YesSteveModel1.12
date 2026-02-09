@@ -13,11 +13,9 @@ import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
@@ -29,9 +27,11 @@ import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
+import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.nio.FloatBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -73,26 +73,8 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         return renderers.get(animatableClass);
     }
 
-
-    @Override
-    @Nonnull
-    public IRenderCycle getCurrentModelRenderCycle() {
-        return this.currentModelRenderCycle;
-    }
-
-    @Override
-    public void setCurrentModelRenderCycle(IRenderCycle currentModelRenderCycle) {
-        this.currentModelRenderCycle = currentModelRenderCycle;
-    }
-
-    @Override
-    public float getWidthScale(Object animatable) {
-        return this.widthScale;
-    }
-
-    @Override
-    public float getHeightScale(Object entity) {
-        return this.heightScale;
+    public final boolean addLayer(GeoLayerRenderer<? extends EntityLivingBase> layer) {
+        return this.layerRenderers.add(layer);
     }
 
     @Override
@@ -120,6 +102,9 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
         GlStateManager.translate(x, y, z);
+        /**
+         * {@link net.minecraft.client.renderer.entity.RenderPlayer#renderLivingAt(AbstractClientPlayer, double, double, double)}
+         */
         if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
             GlStateManager.translate(player.renderOffsetX, player.renderOffsetY, player.renderOffsetZ);
         }
@@ -132,6 +117,9 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         float lerpHeadRot = Interpolations.lerpYaw(entity.prevRotationYawHead, entity.rotationYawHead, partialTick);
         float netHeadYaw = lerpHeadRot - lerpBodyRot;
 
+        /**
+         * {@link RenderLivingBase#doRender(EntityLivingBase, double, double, double, float, float)}
+         */
         if (shouldSit && entity.getRidingEntity() instanceof EntityLivingBase vehicle) {
             lerpBodyRot = Interpolations.lerpYaw(vehicle.prevRenderYawOffset, vehicle.renderYawOffset, partialTick);
             netHeadYaw = lerpHeadRot - lerpBodyRot;
@@ -155,7 +143,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 limbSwing *= 3.0F;
             }
         }
-        GlStateManager.enableAlpha();
+
         float headPitch = Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick);
         entityModelData.headPitch = -headPitch;
         entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
@@ -166,15 +154,17 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
 
         Minecraft mc = Minecraft.getMinecraft();
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableAlpha();
         GlStateManager.translate(0, 0.01f, 0);
+        boolean scoreTeamColor = false;
+        boolean mainBrightness = false;
         if (this.renderOutlines) {
-            GlStateManager.disableLighting();
-            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GlStateManager.disableTexture2D();
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-
+            scoreTeamColor = this.setScoreTeamColor(entity);
             GlStateManager.enableColorMaterial();
             GlStateManager.enableOutlineMode(this.getTeamColor(entity));
+        } else {
+            mainBrightness = this.setDoRenderBrightness(entity, partialTick);
         }
 
         Color renderColor = this.getRenderColor(entity, partialTick);
@@ -188,78 +178,45 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
             if (isGhost) GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
         }
 
-        if (entity instanceof EntityPlayer player && !player.isSpectator()) {
+        if (!this.renderOutlines) {
+            if (mainBrightness) this.unsetBrightness();
+            GlStateManager.depthMask(true);
+        }
+
+        if (!(entity instanceof EntityPlayer player) || !player.isSpectator()) {
             for (GeoLayerRenderer layerRenderer : this.layerRenderers) {
+                boolean layerBrightness = this.setBrightness(entity, partialTick, layerRenderer.shouldCombineTextures());
                 layerRenderer.render(
                         entity, limbSwing, limbSwingAmount,
                         partialTick, lerpedAge,
                         netHeadYaw, headPitch, renderColor
                 );
+                if (layerBrightness) this.unsetBrightness();
             }
         }
 
         if (this.renderOutlines) {
-            GlStateManager.enableLighting();
-            GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-            GlStateManager.enableTexture2D();
-            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-
+            if (scoreTeamColor) this.unsetScoreTeamColor();
             GlStateManager.disableOutlineMode();
             GlStateManager.disableColorMaterial();
         }
 
-        if (entity instanceof EntityLiving mob) {
-            Entity leashHolder = mob.getLeashHolder();
-            //noinspection ConstantValue
-            if (leashHolder != null) {
-                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
-            }
-        }
-
+        GlStateManager.disableRescaleNormal();
         GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.enableTexture2D();
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.enableCull();
         GlStateManager.popMatrix();
         super.doRender(entity, x, y, z, entityYaw, partialTick);
-    }
 
-    @Override
-    protected ResourceLocation getEntityTexture(@Nullable EntityLivingBase entity) {
-        return this.modelProvider.getTextureLocation(this.currentAnimatable);
-    }
-
-    @Override
-    public AnimatedGeoModel getGeoModelProvider() {
-        return this.modelProvider;
-    }
-
-    protected void applyRotations(EntityLivingBase entity, float ageInTicks,
-                                  float rotationYaw, float partialTicks) {
-        if (!entity.isPlayerSleeping()) {
-            GlStateManager.rotate(180.0F - rotationYaw, 0, 1, 0);
-        }
-
-        if (entity.deathTime > 0) {
-            float f = ((float) entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
-            f = MathHelper.sqrt(f);
-            f = Math.min(1.0F, f);
-
-            GlStateManager.rotate(f * this.getDeathMaxRotation(entity), 0, 0, 1);
-        }
-
-        if (entity instanceof EntityPlayer player && player.isPlayerSleeping()) {
-            GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
-            GlStateManager.rotate(this.getDeathMaxRotation(player), 0, 0, 1);
-            GlStateManager.rotate(270.0F, 0, 1, 0);
-        } else if (entity.hasCustomName() || entity instanceof EntityPlayer) {
-            String name = TextFormatting.getTextWithoutFormattingCodes(entity.getName());
-            if (entity instanceof EntityPlayer player && player.isWearing(EnumPlayerModelParts.CAPE)) {
-                return;
-            }
-            if ("Dinnerbone".equals(name) || "Grumm".equals(name)) {
-                GlStateManager.translate(0.0D, entity.height + 0.1F, 0.0D);
-                GlStateManager.rotate(180, 0, 0, 1);
+        /**
+         * {@link net.minecraft.client.renderer.entity.RenderLiving#doRender(EntityLiving, double, double, double, float, float)}
+         */
+        if (!this.renderOutlines && entity instanceof EntityLiving mob) {
+            Entity leashHolder = mob.getLeashHolder();
+            //noinspection ConstantValue
+            if (leashHolder != null) {
+                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
             }
         }
     }
@@ -268,141 +225,384 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         return !livingEntityIn.isInvisible() || this.renderOutlines;
     }
 
+    /*
+    部分预留的覆盖用方法，对应原版部分方法
+     */
+
+    /**
+     * {@link RenderLivingBase#applyRotations(EntityLivingBase, float, float, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected void applyRotations(EntityLivingBase entity, float ageInTicks, float rotationYaw, float partialTicks) {
+        /**
+         * {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
+         */
+        if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
+            GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
+            GlStateManager.rotate(this.getDeathMaxRotation(player), 0, 0, 1);
+            GlStateManager.rotate(270.0F, 0, 1, 0);
+            return;
+        }
+        GlStateManager.rotate(180.0F - rotationYaw, 0, 1, 0);
+        if (entity.deathTime > 0) {
+            float f = ((float) entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
+            f = MathHelper.sqrt(f);
+            f = Math.min(1.0F, f);
+            GlStateManager.rotate(f * this.getDeathMaxRotation(entity), 0, 0, 1);
+        } else {
+            if (entity instanceof EntityPlayer player && player.isWearing(EnumPlayerModelParts.CAPE)) {
+                return;
+            }
+            String name = TextFormatting.getTextWithoutFormattingCodes(entity.getName());
+            if ("Dinnerbone".equals(name) || "Grumm".equals(name)) {
+                GlStateManager.translate(0.0F, entity.height + 0.1F, 0.0F);
+                GlStateManager.rotate(180.0F, 0, 0, 1);
+            }
+        }
+    }
+
+    /**
+     * {@link RenderLivingBase#setScoreTeamColor(EntityLivingBase)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected boolean setScoreTeamColor(EntityLivingBase entityLivingBaseIn) {
+        GlStateManager.disableLighting();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        return true;
+    }
+
+    /**
+     * {@link RenderLivingBase#unsetScoreTeamColor()}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected void unsetScoreTeamColor() {
+        GlStateManager.enableLighting();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    /**
+     * {@link RenderLivingBase#getDeathMaxRotation(EntityLivingBase)}
+     */
+    @SuppressWarnings("JavadocReference")
     protected float getDeathMaxRotation(EntityLivingBase entityLivingBaseIn) {
         return 90.0F;
     }
 
     /**
-     * Returns where in the swing animation the living entity is (from 0 to 1). Args
-     * : entity, partialTickTime
+     * Gets an RGBA int color multiplier to apply.<br>
+     * {@link RenderLivingBase#getColorMultiplier(EntityLivingBase, float, float)}
      */
-    protected float getSwingProgress(EntityLivingBase livingBase, float partialTickTime) {
-        return livingBase.getSwingProgress(partialTickTime);
+    @SuppressWarnings("JavadocReference")
+    protected int getColorMultiplier(EntityLivingBase entitylivingbaseIn, float lightBrightness, float partialTickTime) {
+        return 0;
     }
+
+//    /**
+//     * Returns where in the swing animation the living entity is (from 0 to 1). Args
+//     * : entity, partialTickTime
+//     */
+//    protected float getSwingProgress(EntityLivingBase livingBase, float partialTickTime) {
+//        return livingBase.getSwingProgress(partialTickTime);
+//    }
 
     protected float getSwingMotionAniMathHelperreshold() {
-        return 0.15f;
+        return 0.15F;
     }
 
+    /**
+     * Defines what float the third param in setRotationAngles of ModelBase is<br>
+     * {@link RenderLivingBase#handleRotationFloat(EntityLivingBase, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected float handleRotationFloat(EntityLivingBase livingBase, float partialTicks) {
+        return (float) livingBase.ticksExisted + partialTicks;
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.RenderLiving#renderLeash(EntityLiving, double, double, double, float, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected <E extends Entity> void renderLeash(
+            EntityLiving entity, double x, double y, double z,
+            float entityYaw, float partialTicks, @Nonnull E leashHolder
+    ) {
+        y = y - (1.6D - (double) entity.height) * 0.5D;
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+
+        double holderYawRad = Interpolations.lerp(leashHolder.prevRotationYaw, leashHolder.rotationYaw, partialTicks * 0.5F) * 0.01745329238474369D;
+        double holderPitchRad = Interpolations.lerp(leashHolder.prevRotationPitch, leashHolder.rotationPitch, partialTicks * 0.5F) * 0.01745329238474369D;
+        double cosHolderYaw = Math.cos(holderYawRad);
+        double sinHolderYaw = Math.sin(holderYawRad);
+        double sinHolderPitch = Math.sin(holderPitchRad);
+        if (leashHolder instanceof EntityHanging) {
+            cosHolderYaw = 0.0D;
+            sinHolderYaw = 0.0D;
+            sinHolderPitch = -1.0D;
+        }
+        double cosHolderPitch = Math.cos(holderPitchRad);
+
+        double holderX = Interpolations.lerp(leashHolder.prevPosX, leashHolder.posX, partialTicks)
+                - cosHolderYaw * 0.7D - sinHolderYaw * 0.5D * cosHolderPitch;
+        double holderY = Interpolations.lerp(leashHolder.prevPosY + (double) leashHolder.getEyeHeight() * 0.7D,
+                leashHolder.posY + (double) leashHolder.getEyeHeight() * 0.7D, partialTicks)
+                - sinHolderPitch * 0.5D - 0.25D;
+        double holderZ = Interpolations.lerp(leashHolder.prevPosZ, leashHolder.posZ, partialTicks)
+                - sinHolderYaw * 0.7D + cosHolderYaw * 0.5D * cosHolderPitch;
+
+        double entityYawRad = Interpolations.lerp(entity.prevRenderYawOffset, entity.renderYawOffset, partialTicks) * 0.01745329238474369D + (Math.PI / 2D);
+
+        double neckOffsetX = Math.cos(entityYawRad) * (double) entity.width * 0.4D;
+        double neckOffsetZ = Math.sin(entityYawRad) * (double) entity.width * 0.4D;
+        double entityNeckX = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks) + neckOffsetX;
+        double entityNeckY = Interpolations.lerp(entity.prevPosY, entity.posY, partialTicks);
+        double entityNeckZ = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks) + neckOffsetZ;
+        x += neckOffsetX;
+        z += neckOffsetZ;
+        double diffX = (float) (holderX - entityNeckX);
+        double diffY = (float) (holderY - entityNeckY);
+        double diffZ = (float) (holderZ - entityNeckZ);
+
+        GlStateManager.disableTexture2D();
+        GlStateManager.disableLighting();
+        GlStateManager.disableCull();
+
+        // 拴绳的一个面
+        buffer.begin(GL11.GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+        for (int segment = 0; segment <= 24; ++segment) {
+            // 初始颜色
+            float r = 0.5F;
+            float g = 0.4F;
+            float b = 0.3F;
+
+            // 偶数段颜色减深
+            if (segment % 2 == 0) {
+                r *= 0.7F;
+                g *= 0.7F;
+                b *= 0.7F;
+            }
+
+            float progress = (float) segment / 24.0F;
+            double hangOffset = progress * progress + progress;
+            double yOffset = (24.0F - (float) segment) / 18.0F + 0.125F;
+
+            buffer.pos(x + diffX * (double) progress + 0.0D,
+                            y + diffY * hangOffset * 0.5D + yOffset,
+                            z + diffZ * (double) progress)
+                    .color(r, g, b, 1.0F).endVertex();
+            buffer.pos(x + diffX * (double) progress + 0.025D,
+                            y + diffY * hangOffset * 0.5D + yOffset + 0.025D,
+                            z + diffZ * (double) progress)
+                    .color(r, g, b, 1.0F).endVertex();
+        }
+        tessellator.draw();
+
+        // 拴绳的另一个面
+        buffer.begin(GL11.GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+        for (int segment = 0; segment <= 24; ++segment) {
+            float r = 0.5F;
+            float g = 0.4F;
+            float b = 0.3F;
+
+            if (segment % 2 == 0) {
+                r *= 0.7F;
+                g *= 0.7F;
+                b *= 0.7F;
+            }
+
+            float progress = (float) segment / 24.0F;
+            double hangOffset = progress * progress + progress;
+            double yOffset = (24.0F - (float) segment) / 18.0F + 0.125F;
+
+            buffer.pos(x + diffX * (double) progress + 0.0D,
+                            y + diffY * hangOffset * 0.5D + yOffset + 0.025D,
+                            z + diffZ * (double) progress)
+                    .color(r, g, b, 1.0F).endVertex();
+            buffer.pos(x + diffX * (double) progress + 0.025D,
+                            y + diffY * hangOffset * 0.5D + yOffset,
+                            z + diffZ * (double) progress + 0.025D)
+                    .color(r, g, b, 1.0F).endVertex();
+        }
+        tessellator.draw();
+
+        GlStateManager.enableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableCull();
+    }
+
+    protected FloatBuffer brightnessBuffer = GLAllocation.createDirectFloatBuffer(4); // 4 个通道
+
+    /**
+     * {@link RenderLivingBase#setDoRenderBrightness(EntityLivingBase, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected boolean setDoRenderBrightness(EntityLivingBase entityLivingBaseIn, float partialTicks) {
+        return this.setBrightness(entityLivingBaseIn, partialTicks, true);
+    }
+
+    /**
+     * 渲染受击时的红光<br>
+     * {@link RenderLivingBase#setBrightness(EntityLivingBase, float, boolean)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected boolean setBrightness(EntityLivingBase entitylivingbaseIn, float partialTicks, boolean combineTextures) {
+        float brightness = entitylivingbaseIn.getBrightness();
+        int colorMultiplier = this.getColorMultiplier(entitylivingbaseIn, brightness, partialTicks);
+        boolean hasCustomColor = (colorMultiplier >> 24 & 255) > 0;
+        boolean isHurtOrDying = entitylivingbaseIn.hurtTime > 0 || entitylivingbaseIn.deathTime > 0;
+        if (!hasCustomColor && (!isHurtOrDying || !combineTextures)) return false;
+
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.defaultTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PRIMARY_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.defaultTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, OpenGlHelper.GL_INTERPOLATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.GL_CONSTANT);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE2_RGB, OpenGlHelper.GL_CONSTANT);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND2_RGB, GL11.GL_SRC_ALPHA);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        this.brightnessBuffer.position(0);
+
+        if (isHurtOrDying) {
+            this.brightnessBuffer.put(1.0F); // R
+            this.brightnessBuffer.put(0.0F); // G
+            this.brightnessBuffer.put(0.0F); // B
+            this.brightnessBuffer.put(0.3F); // A
+        } else {
+            float red = (float) (colorMultiplier >> 16 & 255) / 255.0F;
+            float green = (float) (colorMultiplier >> 8 & 255) / 255.0F;
+            float blue = (float) (colorMultiplier & 255) / 255.0F;
+            float alpha = (float) (colorMultiplier >> 24 & 255) / 255.0F;
+            this.brightnessBuffer.put(red);
+            this.brightnessBuffer.put(green);
+            this.brightnessBuffer.put(blue);
+            this.brightnessBuffer.put(1.0F - alpha);
+        }
+
+        this.brightnessBuffer.flip();
+        GlStateManager.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, this.brightnessBuffer);
+        GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
+        GlStateManager.enableTexture2D();
+        GlStateManager.bindTexture(RenderLivingBase.TEXTURE_BRIGHTNESS.getGlTextureId());
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.lightmapTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        return true;
+    }
+
+    /**
+     * {@link RenderLivingBase#unsetBrightness()}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected void unsetBrightness() {
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.defaultTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PRIMARY_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.defaultTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_ALPHA, OpenGlHelper.GL_PRIMARY_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, GL11.GL_TEXTURE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
+        GlStateManager.disableTexture2D();
+        GlStateManager.bindTexture(0);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, GL11.GL_TEXTURE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
+        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    /*
+    IGeoRenderer
+     */
+
+    @Override
+    public AnimatedGeoModel getGeoModelProvider() {
+        return this.modelProvider;
+    }
+
+    // 供 Geo 渲染器调用
     @Override
     public ResourceLocation getTextureLocation(Object animatable) {
         return this.modelProvider.getTextureLocation((IAnimatable) animatable);
     }
 
-    public final boolean addLayer(GeoLayerRenderer<? extends EntityLivingBase> layer) {
-        return this.layerRenderers.add(layer);
+    @Override
+    @Nonnull
+    public IRenderCycle getCurrentModelRenderCycle() {
+        return this.currentModelRenderCycle;
     }
 
-    /**
-     * Defines what float the third param in setRotationAngles of ModelBase is
+    @Override
+    public void setCurrentModelRenderCycle(IRenderCycle currentModelRenderCycle) {
+        this.currentModelRenderCycle = currentModelRenderCycle;
+    }
+
+    @Override
+    public float getWidthScale(Object animatable) {
+        return this.widthScale;
+    }
+
+    @Override
+    public float getHeightScale(Object entity) {
+        return this.heightScale;
+    }
+
+    /*
+    原版 Render
      */
-    protected float handleRotationFloat(EntityLivingBase livingBase, float partialTicks) {
-        return (float) livingBase.ticksExisted + partialTicks;
-    }
 
-    protected <E extends Entity> void renderLeash(
-            EntityLiving entity,
-            double x, double y, double z,
-            float entityYaw, float partialTicks,
-            @Nonnull E leashHolder
-    ) {
-        y = y - (1.6D - (double) entity.height) * 0.5D;
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferbuilder = tessellator.getBuffer();
-        double d0 = Interpolations.lerp(leashHolder.prevRotationYaw, leashHolder.rotationYaw, partialTicks * 0.5F)
-                * 0.01745329238474369D;
-        double d1 = Interpolations.lerp(leashHolder.prevRotationPitch, leashHolder.rotationPitch, partialTicks * 0.5F)
-                * 0.01745329238474369D;
-        double d2 = Math.cos(d0);
-        double d3 = Math.sin(d0);
-        double d4 = Math.sin(d1);
-
-        if (leashHolder instanceof EntityHanging) {
-            d2 = 0.0D;
-            d3 = 0.0D;
-            d4 = -1.0D;
-        }
-
-        double d5 = Math.cos(d1);
-        double d6 = Interpolations.lerp(leashHolder.prevPosX, leashHolder.posX, partialTicks) - d2 * 0.7D
-                - d3 * 0.5D * d5;
-        double d7 = Interpolations.lerp(leashHolder.prevPosY + (double) leashHolder.getEyeHeight() * 0.7D,
-                leashHolder.posY + (double) leashHolder.getEyeHeight() * 0.7D, partialTicks) - d4 * 0.5D - 0.25D;
-        double d8 = Interpolations.lerp(leashHolder.prevPosZ, leashHolder.posZ, partialTicks) - d3 * 0.7D
-                + d2 * 0.5D * d5;
-        double d9 = Interpolations.lerp(entity.prevRenderYawOffset,
-                entity.renderYawOffset, partialTicks) * 0.01745329238474369D
-                + (Math.PI / 2D);
-        d2 = Math.cos(d9) * (double) entity.width * 0.4D;
-        d3 = Math.sin(d9) * (double) entity.width * 0.4D;
-        double d10 = Interpolations.lerp(entity.prevPosX, entity.posX, partialTicks) + d2;
-        double d11 = Interpolations.lerp(entity.prevPosY, entity.posY, partialTicks);
-        double d12 = Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks) + d3;
-        x = x + d2;
-        z = z + d3;
-        double d13 = (float) (d6 - d10);
-        double d14 = (float) (d7 - d11);
-        double d15 = (float) (d8 - d12);
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableLighting();
-        GlStateManager.disableCull();
-        bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-        for (int j = 0; j <= 24; ++j) {
-            float f = 0.5F;
-            float f1 = 0.4F;
-            float f2 = 0.3F;
-
-            if (j % 2 == 0) {
-                f *= 0.7F;
-                f1 *= 0.7F;
-                f2 *= 0.7F;
-            }
-
-            float f3 = (float) j / 24.0F;
-            bufferbuilder
-                    .pos(x + d13 * (double) f3 + 0.0D,
-                            y + d14 * (double) (f3 * f3 + f3) * 0.5D
-                                    + (double) ((24.0F - (float) j) / 18.0F + 0.125F),
-                            z + d15 * (double) f3)
-                    .color(f, f1, f2, 1.0F).endVertex();
-            bufferbuilder
-                    .pos(x + d13 * (double) f3 + 0.025D,
-                            y + d14 * (double) (f3 * f3 + f3) * 0.5D
-                                    + (double) ((24.0F - (float) j) / 18.0F + 0.125F) + 0.025D,
-                            z + d15 * (double) f3)
-                    .color(f, f1, f2, 1.0F).endVertex();
-        }
-
-        tessellator.draw();
-        bufferbuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
-
-        for (int k = 0; k <= 24; ++k) {
-            float f4 = 0.5F;
-            float f5 = 0.4F;
-            float f6 = 0.3F;
-
-            if (k % 2 == 0) {
-                f4 *= 0.7F;
-                f5 *= 0.7F;
-                f6 *= 0.7F;
-            }
-
-            float f7 = (float) k / 24.0F;
-            bufferbuilder
-                    .pos(x + d13 * (double) f7 + 0.0D,
-                            y + d14 * (double) (f7 * f7 + f7) * 0.5D
-                                    + (double) ((24.0F - (float) k) / 18.0F + 0.125F) + 0.025D,
-                            z + d15 * (double) f7)
-                    .color(f4, f5, f6, 1.0F).endVertex();
-            bufferbuilder.pos(x + d13 * (double) f7 + 0.025D,
-                    y + d14 * (double) (f7 * f7 + f7) * 0.5D + (double) ((24.0F - (float) k) / 18.0F + 0.125F),
-                    z + d15 * (double) f7 + 0.025D).color(f4, f5, f6, 1.0F).endVertex();
-        }
-
-        tessellator.draw();
-        GlStateManager.enableLighting();
-        GlStateManager.enableTexture2D();
-        GlStateManager.enableCull();
+    // 实际绑定纹理
+    @Override
+    protected ResourceLocation getEntityTexture(@Nullable EntityLivingBase entity) {
+        return this.modelProvider.getTextureLocation(this.currentAnimatable);
     }
 }

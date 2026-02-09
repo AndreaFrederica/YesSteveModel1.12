@@ -143,8 +143,11 @@ public final class ServerModelManager {
 
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.json"), wineFoxPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arm.json"), wineFoxPath, ARM_MODEL_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arrow.json"), wineFoxPath, ARROW_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/skin.png"), wineFoxPath, "skin.png");
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arrow.png"), wineFoxPath, "arrow.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.animation.json"), wineFoxPath, MAIN_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/extra.animation.json"), wineFoxPath, EXTRA_ANIMATION_FILE_NAME);
     }
 
     private static void copyVanillaModel() {

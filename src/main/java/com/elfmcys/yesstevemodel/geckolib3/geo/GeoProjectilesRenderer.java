@@ -12,9 +12,11 @@ import com.elfmcys.yesstevemodel.geckolib3.util.IRenderCycle;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
@@ -34,11 +36,11 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
         });
     }
 
-    private final AnimatedGeoModel modelProvider;
+    protected final AnimatedGeoModel<IAnimatable> modelProvider;
     protected T animatable;
     private IRenderCycle currentModelRenderCycle = EModelRenderCycle.INITIAL;
 
-    public GeoProjectilesRenderer(RenderManager renderManager, AnimatedGeoModel<T> modelProvider, T animatable) {
+    public GeoProjectilesRenderer(RenderManager renderManager, AnimatedGeoModel<IAnimatable> modelProvider, T animatable) {
         super(renderManager);
         this.modelProvider = modelProvider;
         this.animatable = animatable;
@@ -69,19 +71,74 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
 
         AnimationEvent<T> predicate = new AnimationEvent<>(this.animatable, 0, 0, partialTick, false, Collections.singletonList(new EntityModelData()));
         this.modelProvider.setCustomAnimations(this.animatable, this.getInstanceId(entity), predicate);
+
         Minecraft mc = Minecraft.getMinecraft();
-        mc.getTextureManager().bindTexture(this.getTextureLocation(entity));
-        Color renderColor = this.getRenderColor(entity, partialTick);
-        if (mc.player != null && !entity.isInvisibleToPlayer(mc.player)) {
-            this.render(
-                    model, entity, partialTick,
-                    (float) renderColor.getRed() / 255f, (float) renderColor.getBlue() / 255f,
-                    (float) renderColor.getGreen() / 255f, (float) renderColor.getAlpha() / 255
-            );
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableAlpha();
+        GlStateManager.translate(0, 0.01f, 0);
+        boolean scoreTeamColor = false;
+        if (this.renderOutlines) {
+            scoreTeamColor = this.setScoreTeamColor(entity);
+            GlStateManager.enableColorMaterial();
+            GlStateManager.enableOutlineMode(this.getTeamColor(entity));
         }
+
+        Color renderColor = this.getRenderColor(entity, partialTick);
+        boolean isVisible = this.isVisible(entity);
+        boolean isGhost = !isVisible && !entity.isInvisibleToPlayer(mc.player);
+        if ((isVisible || isGhost) && this.bindEntityTexture(entity)) {
+            if (isGhost) GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+            this.render(model, entity, partialTick,
+                    (float) renderColor.getRed() / 255f, (float) renderColor.getGreen() / 255f,
+                    (float) renderColor.getBlue() / 255f, (float) renderColor.getAlpha() / 255);
+            if (isGhost) GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+        }
+
+        if (this.renderOutlines) {
+            if (scoreTeamColor) this.unsetScoreTeamColor();
+            GlStateManager.disableOutlineMode();
+            GlStateManager.disableColorMaterial();
+        }
+
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.enableCull();
         GlStateManager.popMatrix();
         super.doRender(entity, x, y, z, yaw, partialTick);
     }
+
+    protected boolean isVisible(Entity livingEntityIn) {
+        return !livingEntityIn.isInvisible() || this.renderOutlines;
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.RenderLivingBase#setScoreTeamColor(EntityLivingBase)}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected boolean setScoreTeamColor(Entity entityIn) {
+        GlStateManager.disableLighting();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        return true;
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.RenderLivingBase#unsetScoreTeamColor()}
+     */
+    @SuppressWarnings("JavadocReference")
+    protected void unsetScoreTeamColor() {
+        GlStateManager.enableLighting();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    /*
+    IGeoRenderer
+     */
 
     @Override
     public AnimatedGeoModel getGeoModelProvider() {
@@ -90,7 +147,7 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
 
     @Override
     public ResourceLocation getTextureLocation(Object instance) {
-        return this.modelProvider.getTextureLocation(instance);
+        return this.modelProvider.getTextureLocation((IAnimatable) instance);
     }
 
     @Override
@@ -103,6 +160,10 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
     public void setCurrentModelRenderCycle(IRenderCycle currentModelRenderCycle) {
         this.currentModelRenderCycle = currentModelRenderCycle;
     }
+
+    /*
+    原版 Render
+     */
 
     @Override
     public ResourceLocation getEntityTexture(@Nullable Entity instance) {

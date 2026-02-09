@@ -62,9 +62,21 @@ public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable>
         return this.entityRenderer.getTextureLocation(entityIn);
     }
 
+    /**
+     * 核心渲染方法，会在主模型渲染后调用。<br>
+     * {@link net.minecraft.client.renderer.entity.layers.LayerRenderer#doRenderLayer(EntityLivingBase, float, float, float, float, float, float, float)}
+     */
     public abstract void render(
             @Nonnull T entityLivingBaseIn, float limbSwing, float limbSwingAmount,
             float partialTicks, float ageInTicks,
             float netHeadYaw, float headPitch, Color renderColor
     );
+
+    /**
+     * 由外部调用，可影响是否要加上额外效果，如受击红光。<br>
+     * {@link net.minecraft.client.renderer.entity.layers.LayerRenderer#shouldCombineTextures()}
+     */
+    public boolean shouldCombineTextures() {
+        return false;
+    }
 }
