@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -153,7 +154,15 @@ public class ModelCommand extends CommandBase {
     }
 
     private void checkModelFiles(ICommandSender sender, Path rootPath) {
-        Collection<File> dirs = FileUtils.listFiles(rootPath.toFile(), DirectoryFileFilter.INSTANCE, null);
+        File folder = rootPath.toFile();
+        if (!folder.isDirectory()) {
+            try {
+                Files.createDirectories(folder.toPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        Collection<File> dirs = FileUtils.listFiles(folder, DirectoryFileFilter.INSTANCE, null);
         for (File dir : dirs) {
             String dirName = dir.getName();
             if (!ResourceUtil.isValidResourceLocation(dirName)) {
@@ -177,12 +186,13 @@ public class ModelCommand extends CommandBase {
                     }
                 }
             }
-            if (noMainModelFile)
+            if (noMainModelFile) {
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_main_file", dirName));
-            if (noArmModelFile)
+            } else if (noArmModelFile) {
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_arm_file", dirName));
-            if (noTextureFile)
+            } else if (noTextureFile) {
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_texture_file", dirName));
+            }
         }
     }
 
