@@ -86,6 +86,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         this.doRender(entity, this.animatable, x, y, z, entityYaw, partialTicks);
     }
 
+    @SuppressWarnings("DanglingJavadoc")
     public void doRender(
             @Nonnull EntityLivingBase entity, T animatable,
             double x, double y, double z,
@@ -232,7 +233,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     /**
      * {@link RenderLivingBase#applyRotations(EntityLivingBase, float, float, float)}
      */
-    @SuppressWarnings("JavadocReference")
+    @SuppressWarnings({"JavadocReference", "DanglingJavadoc"})
     protected void applyRotations(EntityLivingBase entity, float ageInTicks, float rotationYaw, float partialTicks) {
         /**
          * {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
@@ -434,7 +435,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.enableCull();
     }
 
-    protected FloatBuffer brightnessBuffer = GLAllocation.createDirectFloatBuffer(4); // 4 个通道
+    protected static final FloatBuffer brightnessBuffer = GLAllocation.createDirectFloatBuffer(4); // 4 个通道
 
     /**
      * {@link RenderLivingBase#setDoRenderBrightness(EntityLivingBase, float)}
@@ -480,26 +481,26 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
         GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.GL_PREVIOUS);
         GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        this.brightnessBuffer.position(0);
+        brightnessBuffer.position(0);
 
         if (isHurtOrDying) {
-            this.brightnessBuffer.put(1.0F); // R
-            this.brightnessBuffer.put(0.0F); // G
-            this.brightnessBuffer.put(0.0F); // B
-            this.brightnessBuffer.put(0.3F); // A
+            brightnessBuffer.put(1.0F); // R
+            brightnessBuffer.put(0.0F); // G
+            brightnessBuffer.put(0.0F); // B
+            brightnessBuffer.put(0.3F); // A
         } else {
             float red = (float) (colorMultiplier >> 16 & 255) / 255.0F;
             float green = (float) (colorMultiplier >> 8 & 255) / 255.0F;
             float blue = (float) (colorMultiplier & 255) / 255.0F;
             float alpha = (float) (colorMultiplier >> 24 & 255) / 255.0F;
-            this.brightnessBuffer.put(red);
-            this.brightnessBuffer.put(green);
-            this.brightnessBuffer.put(blue);
-            this.brightnessBuffer.put(1.0F - alpha);
+            brightnessBuffer.put(red);
+            brightnessBuffer.put(green);
+            brightnessBuffer.put(blue);
+            brightnessBuffer.put(1.0F - alpha);
         }
 
-        this.brightnessBuffer.flip();
-        GlStateManager.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, this.brightnessBuffer);
+        brightnessBuffer.flip();
+        GlStateManager.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, brightnessBuffer);
         GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
         GlStateManager.enableTexture2D();
         GlStateManager.bindTexture(RenderLivingBase.TEXTURE_BRIGHTNESS.getGlTextureId());

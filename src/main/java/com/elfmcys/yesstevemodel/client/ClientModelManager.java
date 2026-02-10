@@ -71,7 +71,6 @@ public class ClientModelManager {
 
     public static void registerGeo(ResourceLocation id, Map<String, byte[]> mapData) {
         byte[] infoData = mapData.get("info");
-        if (infoData != null) YesSteveModel.LOGGER.info("FINE");
         for (String name : mapData.keySet()) {
             if ("info".equals(name)) continue;
             byte[] data = mapData.get(name);
@@ -90,7 +89,6 @@ public class ClientModelManager {
                     SCALE_INFO.put(id, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
                     ExtraInfo extraInfo = rawGeometryTree.properties.getExtraInfo();
                     if (infoData != null && ObjectStreamUtil.toObject(infoData) instanceof ExtraInfo info) {
-                        YesSteveModel.LOGGER.info("REPLACE");
                         extraInfo = info;
                     }
                     EXTRA_INFO.put(id, handleExtraInfo(id, extraInfo));
