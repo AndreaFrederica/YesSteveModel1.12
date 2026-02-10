@@ -16,9 +16,9 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 
 - 模型
   - 兼容 1.1.6 及以下版本三种格式的模型
-  - 对 1.2.0 的模型存在兼容问题
+  - 对 1.2.0 的非加密模型存在兼容问题
   - 暂不兼容 2.2.1 及以上版本文件夹和 ZIP 格式的模型
-  - 永远不会兼容 2.2.1 及以上版本 YSM 加密格式的模型
+  - 永远不会兼容 1.2.0 及以上版本 YSM 加密格式的模型
 
 - 模组
   - 兼容 [Aqua Acrobatics](https://github.com/embeddedt/aquaacrobatics) 的游泳动作
