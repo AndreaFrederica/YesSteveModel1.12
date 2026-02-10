@@ -51,16 +51,16 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
 
     @Override
     public float getWidthScale(Object animatable) {
-        if (this.animatable != null) {
-            return this.animatable.getWidthScale();
+        if (this.currentAnimatable != null) {
+            return this.currentAnimatable.getWidthScale();
         }
         return super.getWidthScale(animatable);
     }
 
     @Override
     public float getHeightScale(Object animatable) {
-        if (this.animatable != null) {
-            return this.animatable.getHeightScale();
+        if (this.currentAnimatable != null) {
+            return this.currentAnimatable.getHeightScale();
         }
         return super.getHeightScale(animatable);
     }

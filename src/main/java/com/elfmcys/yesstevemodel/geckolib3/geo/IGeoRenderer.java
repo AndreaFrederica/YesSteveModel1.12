@@ -170,7 +170,7 @@ public interface IGeoRenderer<T> {
         return 1F;
     }
 
-    default float getHeightScale(T entity) {
+    default float getHeightScale(T animatable) {
         return 1F;
     }
 }

@@ -29,7 +29,7 @@ public class CustomArrowRenderer extends GeoProjectilesRenderer<CustomArrowEntit
     }
 
     @Override
-    public float getHeightScale(Object entity) {
+    public float getHeightScale(Object animatable) {
         return 0.7f;
     }
 }

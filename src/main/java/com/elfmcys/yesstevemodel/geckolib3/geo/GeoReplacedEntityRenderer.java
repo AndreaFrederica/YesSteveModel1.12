@@ -51,21 +51,23 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     protected final AnimatedGeoModel<IAnimatable> modelProvider;
     protected final List<GeoLayerRenderer> layerRenderers = new ObjectArrayList<>();
     protected T animatable;
-    protected IAnimatable currentAnimatable;
+    protected T currentAnimatable;
     protected float widthScale = 1;
     protected float heightScale = 1;
     private IRenderCycle currentModelRenderCycle = EModelRenderCycle.INITIAL;
 
-    public GeoReplacedEntityRenderer(RenderManager renderManager,
-                                     AnimatedGeoModel<IAnimatable> modelProvider, T animatable) {
+    public GeoReplacedEntityRenderer(
+            RenderManager renderManager, AnimatedGeoModel<IAnimatable> modelProvider, T animatable
+    ) {
         super(renderManager);
         this.modelProvider = modelProvider;
         this.animatable = animatable;
         renderers.putIfAbsent(animatable.getClass(), this);
     }
 
-    public static void registerReplacedEntity(Class<? extends IAnimatable> itemClass,
-                                              GeoReplacedEntityRenderer renderer) {
+    public static void registerReplacedEntity(
+            Class<? extends IAnimatable> itemClass, GeoReplacedEntityRenderer renderer
+    ) {
         renderers.put(itemClass, renderer);
     }
 
@@ -593,7 +595,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     }
 
     @Override
-    public float getHeightScale(Object entity) {
+    public float getHeightScale(Object animatable) {
         return this.heightScale;
     }
 
