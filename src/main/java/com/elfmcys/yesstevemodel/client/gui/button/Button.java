@@ -10,14 +10,15 @@ import net.minecraft.util.math.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 /**
- * 改良版的按钮，具有新版按钮长文本滚动的特性，同时舍弃了 ID 系统（ID 均为 -1），改为和新版类似的 {@link OnPress}，故可用 lamba。
+ * 改良版的按钮，具有新版按钮长文本滚动的特性，同时舍弃了 ID 系统（ID 均为 -1），改为和新版类似的 lamba。
  */
 public class Button extends GuiButton {
-    protected final OnPress onPress;
+    protected final Consumer<Button> onPress;
 
-    public Button(int x, int y, int width, int height, String message, OnPress onPress) {
+    public Button(int x, int y, int width, int height, String message, Consumer<Button> onPress) {
         super(-1, x, y, width, height, message);
         this.onPress = onPress;
     }
@@ -94,10 +95,6 @@ public class Button extends GuiButton {
      * 应被 Gui 调用，而不是按钮自我调用。
      */
     public void onPress() {
-        this.onPress.onPress(this);
-    }
-
-    public interface OnPress {
-        void onPress(Button button);
+        this.onPress.accept(this);
     }
 }

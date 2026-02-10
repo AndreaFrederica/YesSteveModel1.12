@@ -9,12 +9,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class FlatColorButton extends Button {
     private boolean isSelect = false;
     private @Nullable List<String> tooltips;
 
-    public FlatColorButton(int pX, int pY, int pWidth, int pHeight, String pMessage, OnPress pOnPress) {
+    public FlatColorButton(int pX, int pY, int pWidth, int pHeight, String pMessage, Consumer<Button> pOnPress) {
         super(pX, pY, pWidth, pHeight, pMessage, pOnPress);
     }
 

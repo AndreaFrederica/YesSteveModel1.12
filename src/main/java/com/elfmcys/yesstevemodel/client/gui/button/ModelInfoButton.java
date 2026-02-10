@@ -8,12 +8,13 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 public class ModelInfoButton extends Button {
     private final RequestServerModelInfo.Info info;
     private boolean isSelect = false;
 
-    public ModelInfoButton(int pX, int pY, int pHeight, RequestServerModelInfo.Info info, OnPress pOnPress) {
+    public ModelInfoButton(int pX, int pY, int pHeight, RequestServerModelInfo.Info info, Consumer<Button> pOnPress) {
         super(pX, pY, 250, pHeight, "", pOnPress);
         this.info = info;
     }
