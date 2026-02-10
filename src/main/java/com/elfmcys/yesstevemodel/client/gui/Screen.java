@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Screen extends GuiScreen {
-    protected static final int LEFT_MOUSE_BUTTON = 0;
-    protected static final int RIGHT_MOUSE_BUTTON = 1;
-
     @Override
     protected void actionPerformed(@Nonnull GuiButton guiButton) throws IOException {
         if (guiButton instanceof Button button) {
@@ -26,6 +23,8 @@ public class Screen extends GuiScreen {
         super.actionPerformed(guiButton);
     }
 
+    protected static final int LEFT_MOUSE_BUTTON = 0;
+    protected static final int RIGHT_MOUSE_BUTTON = 1;
     private int lastMouseX;
     private int laseMouseY;
 

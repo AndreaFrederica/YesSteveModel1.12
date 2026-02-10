@@ -3,8 +3,10 @@ package com.elfmcys.yesstevemodel.mclib.math;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 操作符
+ */
 public enum Operation {
-    // 操作符
     ADD("+", 1) {
         @Override
         public double calculate(double a, double b) {

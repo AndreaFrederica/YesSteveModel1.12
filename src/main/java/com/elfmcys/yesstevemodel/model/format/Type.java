@@ -1,6 +1,8 @@
 package com.elfmcys.yesstevemodel.model.format;
 
+/**
+ * 文件形式
+ */
 public enum Type {
-    // 文件形式
     FOLDER, YSM, ZIP, UNKNOWN
 }

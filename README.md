@@ -15,9 +15,10 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 模组需要 [MixinBooter](https://github.com/CleanroomMC/MixinBooter) 作为前置。
 
 - 模型
-  - 兼容 2.0.0 以下版本三种格式的模型
-  - 暂不兼容 2.0.0 以上版本文件夹和 ZIP 格式的模型
-  - 永远不会兼容 2.0.0 以上版本 YSM 加密格式的模型
+  - 兼容 1.1.6 及以下版本三种格式的模型
+  - 对 1.2.0 的模型存在兼容问题
+  - 暂不兼容 2.2.1 及以上版本文件夹和 ZIP 格式的模型
+  - 永远不会兼容 2.2.1 及以上版本 YSM 加密格式的模型
 
 - 模组
   - 兼容 [Aqua Acrobatics](https://github.com/embeddedt/aquaacrobatics) 的游泳动作
@@ -28,10 +29,10 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 
 ### 已知问题
 
+- MCLib 版本过低，导致部分 1.2.0 模型炸 Molang，待更新
 - 模型状态似乎有污染问题，导致有时模型块变换有误
 - 视角旋转过快时，头部角度会跳变
 - 模型预览界花和草光照不对
-- 箭矢动画似乎不应出现在模型预览界面
 - 部分文字颜色不对，这是因为新版文本组件会自动重置颜色，旧版 I18n 处理 String 时不会
 - RenderFirstPlayerBackground 未经测试，暂未启用，需要找模型案例
 - 自发光纹理未经测试，需要找模型案例

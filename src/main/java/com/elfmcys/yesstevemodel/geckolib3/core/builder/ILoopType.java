@@ -43,10 +43,10 @@ public interface ILoopType {
      */
     boolean isRepeatingAfterEnd();
 
+    /**
+     * 动画播放类型
+     */
     enum EDefaultLoopTypes implements ILoopType {
-        /**
-         * 动画播放类型
-         */
         LOOP(true),
         PLAY_ONCE,
         HOLD_ON_LAST_FRAME;

@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 public class MathBuilder {
-    public Map<String, Variable> variables = new HashMap<String, Variable>();
+    public Map<String, Variable> variables = new HashMap<>();
 
-    public Map<String, Class<? extends Function>> functions = new HashMap<String, Class<? extends Function>>();
+    public Map<String, Class<? extends Function>> functions = new HashMap<>();
 
     public MathBuilder() {
         /* 默认值 */

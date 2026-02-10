@@ -2,8 +2,10 @@ package com.elfmcys.yesstevemodel.geckolib3.core.easing;
 
 import java.util.Locale;
 
+/**
+ * 插值类型
+ */
 public enum EasingType {
-    // 插值类型
     NONE, CUSTOM, LINEAR, STEP;
 
     public static EasingType getEasingTypeFromString(String search) {

@@ -25,9 +25,6 @@ public class PlayerTextureScreen extends Screen {
     private static final float PITCH_MAX = 90f;
     private static final float PITCH_MIN = -90f;
 
-    private static final int LEFT_MOUSE_BUTTON = 0;
-    private static final int RIGHT_MOUSE_BUTTON = 1;
-
     private final PlayerModelScreen parent;
     private final ResourceLocation modelId;
     private final List<ResourceLocation> textures;

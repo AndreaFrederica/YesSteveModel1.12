@@ -4,7 +4,6 @@ import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.util.RenderUtils;
 import net.minecraft.client.Minecraft;

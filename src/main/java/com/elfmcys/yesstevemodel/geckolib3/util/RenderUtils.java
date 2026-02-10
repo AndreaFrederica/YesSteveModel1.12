@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.util;
 
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import net.minecraft.client.renderer.GlStateManager;
 
 import java.util.List;

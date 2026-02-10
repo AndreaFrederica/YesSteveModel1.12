@@ -15,7 +15,7 @@ public class ConditionalHold {
     private final String idPre;
     //private final String tagPre;
     private final List<ResourceLocation> idTest = Lists.newArrayList();
-    private final List<ResourceLocation> tagTest = Lists.newArrayList();
+    //private final List<ResourceLocation> tagTest = Lists.newArrayList();
 
     public ConditionalHold(EnumHand hand) {
         if (hand == EnumHand.MAIN_HAND) {

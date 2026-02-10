@@ -43,7 +43,7 @@ public final class YesModelUtils {
 
     public static Map<String, byte[]> input(File ysmFile) throws IOException {
         String fileName = removeExtension(ysmFile.getName());
-        if (!ServerModelManager.isValidResourceLocation(fileName)) {
+        if (!ResourceUtil.isValidResourceLocation(fileName)) {
             return Collections.emptyMap();
         }
         byte[] data = FileUtils.readFileToByteArray(ysmFile);
@@ -127,7 +127,7 @@ public final class YesModelUtils {
 
     public static void export(File dir) throws IOException {
         String dirName = dir.getName();
-        if (!ServerModelManager.isValidResourceLocation(dirName)) {
+        if (!ResourceUtil.isValidResourceLocation(dirName)) {
             return;
         }
         boolean noMainModelFile = true;

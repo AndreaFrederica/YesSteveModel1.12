@@ -161,8 +161,8 @@ public class AnimationRegister {
         parser.setValue("query.cardinal_facing_2d", () -> player.getHorizontalFacing().getIndex());
         parser.setValue("query.distance_from_camera", () -> Objects.requireNonNull(mc.getRenderViewEntity()).getDistance(player));
         parser.setValue("query.equipment_count", () -> getEquipmentCount(player));
-        parser.setValue("query.eye_target_x_rotation", () -> player.rotationPitch);
-        parser.setValue("query.eye_target_y_rotation", () -> player.rotationYawHead);
+        parser.setValue("query.eye_target_x_rotation", () -> getViewXRot(player, 0));
+        parser.setValue("query.eye_target_y_rotation", () -> getViewYRot(player, 0));
         parser.setValue("query.ground_speed", () -> getGroundSpeed(player));
 
         parser.setValue("query.has_cape", () -> MolangUtils.booleanToFloat(hasCape(player)));
@@ -284,6 +284,10 @@ public class AnimationRegister {
         } else {
             return useItem.getMaxItemUseDuration();
         }
+    }
+
+    private static float getViewXRot(EntityPlayer player, float partialTick) {
+        return partialTick == 1.0F ? player.rotationPitch : Interpolations.lerp(player.prevRotationPitch, player.rotationPitch, partialTick);
     }
 
     private static float getViewYRot(EntityPlayer player, float partialTick) {

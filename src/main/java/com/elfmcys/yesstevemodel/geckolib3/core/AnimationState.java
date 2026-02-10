@@ -5,7 +5,9 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core;
 
+/**
+ * 动画状态
+ */
 public enum AnimationState {
-    // 动画状态
     RUNNING, TRANSITIONING, STOPPED
 }

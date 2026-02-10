@@ -54,6 +54,7 @@ public class ClientModelManager {
     public static Map<ResourceLocation, List<String>> EXTRA_INFO = Maps.newHashMap();
     public static Map<ResourceLocation, String[]> EXTRA_ANIMATION_NAME = Maps.newHashMap();
     public static AnimationFile DEFAULT_ANIMATION_FILE = new AnimationFile();
+    public static AnimationFile DEFAULT_ARROW_ANIMATION_FILE = new AnimationFile();
     public static List<String> CACHE_MD5 = Lists.newArrayList();
     public static List<String> AUTH_MODELS = Lists.newArrayList();
     public static byte[] PASSWORD;
@@ -69,13 +70,16 @@ public class ClientModelManager {
     }
 
     public static void registerGeo(ResourceLocation id, Map<String, byte[]> mapData) {
+        byte[] infoData = mapData.get("info");
+        if (infoData != null) YesSteveModel.LOGGER.info("FINE");
         for (String name : mapData.keySet()) {
+            if ("info".equals(name)) continue;
             byte[] data = mapData.get(name);
-            registerGeo(ModelIdUtil.getSubModelId(id, name), data);
+            registerGeo(ModelIdUtil.getSubModelId(id, name), data, "main".equals(name) ? infoData : null);
         }
     }
 
-    private static void registerGeo(ResourceLocation id, byte[] data) {
+    private static void registerGeo(ResourceLocation id, byte[] data, @Nullable byte[] infoData) {
         Map<ResourceLocation, GeoModel> geoModels = GeckoLibCache.getInstance().getGeoModels();
         try {
             Object obj = ObjectStreamUtil.toObject(data);
@@ -85,6 +89,10 @@ public class ClientModelManager {
                     GeoModel geoModel = GeoBuilder.getGeoBuilder(id.getNamespace()).constructGeoModel(rawGeometryTree);
                     SCALE_INFO.put(id, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
                     ExtraInfo extraInfo = rawGeometryTree.properties.getExtraInfo();
+                    if (infoData != null && ObjectStreamUtil.toObject(infoData) instanceof ExtraInfo info) {
+                        YesSteveModel.LOGGER.info("REPLACE");
+                        extraInfo = info;
+                    }
                     EXTRA_INFO.put(id, handleExtraInfo(id, extraInfo));
                     if (extraInfo != null && extraInfo.getExtraAnimationNames() != null && extraInfo.getExtraAnimationNames().length > 0) {
                         EXTRA_ANIMATION_NAME.put(id, extraInfo.getExtraAnimationNames());
@@ -174,7 +182,11 @@ public class ClientModelManager {
             ModelData data = FolderFormat.getModelData(ServerModelManager.CUSTOM, "default", false);
             data.getAnimation().forEach((name, bytes) -> {
                 AnimationFile animationFile = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
-                mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
+                if ("arrow".equals(name)) {
+                    mergeAnimationFile(DEFAULT_ARROW_ANIMATION_FILE, animationFile);
+                } else {
+                    mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
+                }
             });
             ClientModelManager.registerAll(data);
         } catch (IOException e) {

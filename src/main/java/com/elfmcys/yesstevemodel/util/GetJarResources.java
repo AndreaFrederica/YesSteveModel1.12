@@ -8,9 +8,6 @@ import java.net.URL;
 import java.nio.file.Path;
 
 public final class GetJarResources {
-    private GetJarResources() {
-    }
-
     /**
      * 复制本模组的文件到指定文件夹
      *

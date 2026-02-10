@@ -1,13 +1,15 @@
 package com.elfmcys.yesstevemodel.model.format;
 
+import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
-import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.util.InputStreamUtils;
 import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
+import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -32,7 +34,7 @@ public final class ZipFormat {
         Collection<File> zipFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"zip"}, false);
         for (File file : zipFiles) {
             String modelId = removeExtension(file.getName());
-            if (!ServerModelManager.isValidResourceLocation(modelId)) {
+            if (!ResourceUtil.isValidResourceLocation(modelId)) {
                 continue;
             }
             try (ZipFile zipFile = new ZipFile(file)) {
@@ -80,6 +82,9 @@ public final class ZipFormat {
     @Nonnull
     private static ModelData getModelData(ZipFile zipFile, String modelId, boolean isAuth) throws IOException {
         Map<String, byte[]> model = Maps.newHashMap();
+        if (zipFile.getEntry(INFO_FILE_NAME) != null) {
+            model.put("info", getBytes(zipFile, INFO_FILE_NAME));
+        }
         model.put("main", getBytes(zipFile, MAIN_MODEL_FILE_NAME));
         model.put("arm", getBytes(zipFile, ARM_MODEL_FILE_NAME));
         if (zipFile.getEntry(ARROW_MODEL_FILE_NAME) != null) {
@@ -132,6 +137,11 @@ public final class ZipFormat {
         ZipEntry entry = zipFile.getEntry(fileName);
         try (InputStream stream = zipFile.getInputStream(entry)) {
             byte[] bytes = InputStreamUtils.toBytes(stream);
+            if (INFO_FILE_NAME.equals(fileName)) {
+                String infoJson = new String(bytes, StandardCharsets.UTF_8);
+                ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
+                return ObjectStreamUtil.toByteArray(info);
+            }
             if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
                 String modelJson = new String(bytes, StandardCharsets.UTF_8);
                 RawGeoModel rawModel = Converter.fromJsonString(modelJson);

@@ -48,8 +48,7 @@ public class FlatColorButton extends Button {
             this.drawGradientRect(this.x + this.width - 1, this.y + 1, this.x + this.width, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
             this.drawGradientRect(this.x, this.y + this.height - 1, this.x + this.width, this.y + this.height, 0xff_F3EFE0, 0xff_F3EFE0);
         }
-        //this.renderString(font, 0xF3EFE0);
-        this.drawCenteredString(font, this.displayString, this.x + this.width / 2, this.y + (this.height - 8) / 2, 0xF3EFE0);
+        this.renderString(font, 0xF3EFE0);
     }
 
     public void setSelect(boolean select) {

@@ -8,8 +8,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class ResourceUtil {
     public static boolean isValidResourceLocation(String resourceName) {
-        String[] astring = ResourceLocation.splitObjectName(resourceName);
-        return isValidNamespace(StringUtils.isEmpty(astring[0]) ? "minecraft" : astring[0]) && isValidPath(astring[1]);
+        String[] decompose = ResourceLocation.splitObjectName(resourceName);
+        return isValidNamespace(StringUtils.isEmpty(decompose[0]) ? "minecraft" : decompose[0]) && isValidPath(decompose[1]);
     }
 
     private static boolean isValidPath(String path) {
@@ -18,7 +18,6 @@ public final class ResourceUtil {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -32,7 +31,6 @@ public final class ResourceUtil {
                 return false;
             }
         }
-
         return true;
     }
 

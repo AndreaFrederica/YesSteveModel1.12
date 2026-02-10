@@ -1,6 +1,8 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.util;
 
+/**
+ * 角度
+ */
 public enum Axis {
-    // 角度
     X, Y, Z
 }

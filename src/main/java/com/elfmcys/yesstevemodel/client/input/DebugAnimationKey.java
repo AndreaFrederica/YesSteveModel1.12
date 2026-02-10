@@ -124,8 +124,8 @@ public class DebugAnimationKey {
         // TODO
         renderText(gui, y, "query.distance_from_camera", () -> Objects.requireNonNull(mc.getRenderViewEntity()).getDistance(player));
         renderText(gui, y, "query.equipment_count", getEquipmentCount(player));
-        renderText(gui, y, "query.eye_target_x_rotation", () -> player.rotationPitch);
-        renderText(gui, y, "query.eye_target_y_rotation", () -> player.rotationYawHead);
+        renderText(gui, y, "query.eye_target_x_rotation", () -> getViewXRot(player, partialTick));
+        renderText(gui, y, "query.eye_target_y_rotation", () -> getViewYRot(player, partialTick));
         renderText(gui, y, "query.ground_speed", () -> getGroundSpeed(player));
 
         renderText(gui, y, "query.has_cape", hasCape(player));

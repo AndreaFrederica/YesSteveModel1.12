@@ -1,7 +1,9 @@
 package com.elfmcys.yesstevemodel.mclib.utils;
 
+/**
+ * 插值类型
+ */
 public enum Interpolation {
-    // 插值类型
     LINEAR("linear") {
         @Override
         public float interpolate(float a, float b, float x) {

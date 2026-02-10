@@ -20,7 +20,7 @@ public class ConditionArmor {
     private static final String EMPTY = "";
 
     private final Map<EntityEquipmentSlot, List<ResourceLocation>> idTest = Maps.newHashMap();
-    private final Map<EntityEquipmentSlot, List<ResourceLocation>> tagTest = Maps.newHashMap();
+    //private final Map<EntityEquipmentSlot, List<ResourceLocation>> tagTest = Maps.newHashMap();
 
     public void addTest(String name) {
         Matcher matcherId = ID_PRE_REG.matcher(name);

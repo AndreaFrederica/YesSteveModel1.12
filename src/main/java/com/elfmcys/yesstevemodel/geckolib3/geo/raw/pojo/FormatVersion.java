@@ -6,9 +6,11 @@ import com.google.gson.annotations.JsonAdapter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
+/**
+ * 版本
+ */
 @JsonAdapter(FormatVersion.Serializer.class)
 public enum FormatVersion {
-    // 版本
     VERSION_1_12_0, VERSION_1_14_0, VERSION_1_8_0;
 
     public static FormatVersion forValue(String value) throws IOException {

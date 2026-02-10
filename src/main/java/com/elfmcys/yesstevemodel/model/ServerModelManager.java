@@ -16,7 +16,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -64,6 +63,7 @@ public final class ServerModelManager {
     /**
      * 特定文件名
      */
+    public static final String INFO_FILE_NAME = "info.json";
     public static final String MAIN_MODEL_FILE_NAME = "main.json";
     public static final String ARM_MODEL_FILE_NAME = "arm.json";
     public static final String ARROW_MODEL_FILE_NAME = "arrow.json";
@@ -71,7 +71,7 @@ public final class ServerModelManager {
     public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
     public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
     public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
-    // FIXME：箭矢动画似乎不该在纹理选择 GUI 显示，可能需要特殊排除
+    //public static final String CARRY_ON_ANIMATION_FILE_NAME = "carryon.animation.json";
     public static final String ARROW_ANIMATION_FILE_NAME = "arrow.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
@@ -174,6 +174,7 @@ public final class ServerModelManager {
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/qingluka/texture.png"), qinglukaPath, "texture.png");
     }
 
+    // 入口方法，此处开始序列化模型
     private static void cacheAllModels(Path rootPath) {
         YsmFormat.cacheAllModels(rootPath);
         ZipFormat.cacheAllModels(rootPath);
@@ -215,48 +216,5 @@ public final class ServerModelManager {
             fileName = fileName.substring(0, lastIndex);
         }
         return fileName;
-    }
-
-    public static boolean isValidResourceLocation(String pResourceName) {
-        String[] decompose = decompose(pResourceName, ':');
-        return isValidNamespace(StringUtils.isEmpty(decompose[0]) ? "minecraft" : decompose[0]) && isValidPath(decompose[1]);
-    }
-
-    private static String[] decompose(String res, char split) {
-        String[] strings = new String[]{"minecraft", res};
-        int i = res.indexOf(split);
-        if (i >= 0) {
-            strings[1] = res.substring(i + 1);
-            if (i >= 1) {
-                strings[0] = res.substring(0, i);
-            }
-        }
-        return strings;
-    }
-
-    private static boolean isValidNamespace(String pNamespace) {
-        for (int i = 0; i < pNamespace.length(); ++i) {
-            if (!validNamespaceChar(pNamespace.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean validNamespaceChar(char pCharValue) {
-        return pCharValue == '_' || pCharValue == '-' || pCharValue >= 'a' && pCharValue <= 'z' || pCharValue >= '0' && pCharValue <= '9' || pCharValue == '.';
-    }
-
-    private static boolean isValidPath(String pPath) {
-        for (int i = 0; i < pPath.length(); ++i) {
-            if (!validPathChar(pPath.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean validPathChar(char pCharValue) {
-        return pCharValue == '_' || pCharValue == '-' || pCharValue >= 'a' && pCharValue <= 'z' || pCharValue >= '0' && pCharValue <= '9' || pCharValue == '/' || pCharValue == '.';
     }
 }
