@@ -11,6 +11,10 @@ public final class ModelIdUtil {
         return new ResourceLocation(id.getNamespace(), newPath);
     }
 
+    public static ResourceLocation getInfoId(ResourceLocation id) {
+        return getSubModelId(id, "info");
+    }
+
     public static ResourceLocation getMainId(ResourceLocation id) {
         return getSubModelId(id, "main");
     }

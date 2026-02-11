@@ -69,33 +69,32 @@ public class ClientModelManager {
         ClientModelManager.registerTexture(modelId, data.getTexture());
     }
 
-    public static void registerGeo(ResourceLocation id, Map<String, byte[]> mapData) {
-        byte[] infoData = mapData.get("info");
-        for (String name : mapData.keySet()) {
-            if ("info".equals(name)) continue;
-            byte[] data = mapData.get(name);
-            registerGeo(ModelIdUtil.getSubModelId(id, name), data, "main".equals(name) ? infoData : null);
+    public static void registerGeo(ResourceLocation modelId, Map<String, byte[]> modelData) {
+        for (Map.Entry<String, byte[]> entry : modelData.entrySet()) {
+            String partName = entry.getKey();
+            if ("info".equals(partName)) continue;
+            registerGeo(modelId, partName, entry.getValue());
+        }
+        byte[] infoData = modelData.get("info");
+        if (infoData != null && ObjectStreamUtil.toObject(infoData) instanceof ExtraInfo extraInfo) {
+            addExtraInfo(modelId, extraInfo);
         }
     }
 
-    private static void registerGeo(ResourceLocation id, byte[] data, @Nullable byte[] infoData) {
+    private static void registerGeo(ResourceLocation modelId, String partName, byte[] partData) {
         Map<ResourceLocation, GeoModel> geoModels = GeckoLibCache.getInstance().getGeoModels();
         try {
-            Object obj = ObjectStreamUtil.toObject(data);
+            Object obj = ObjectStreamUtil.toObject(partData);
             if (obj instanceof RawGeoModel rawModel) {
                 if (rawModel.getFormatVersion() == FormatVersion.VERSION_1_12_0) {
                     RawGeometryTree rawGeometryTree = RawGeometryTree.parseHierarchy(rawModel);
-                    GeoModel geoModel = GeoBuilder.getGeoBuilder(id.getNamespace()).constructGeoModel(rawGeometryTree);
-                    SCALE_INFO.put(id, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
-                    ExtraInfo extraInfo = rawGeometryTree.properties.getExtraInfo();
-                    if (infoData != null && ObjectStreamUtil.toObject(infoData) instanceof ExtraInfo info) {
-                        extraInfo = info;
+                    ResourceLocation partId = ModelIdUtil.getSubModelId(modelId, partName);
+                    GeoModel geoModel = GeoBuilder.getGeoBuilder(partId.getNamespace()).constructGeoModel(rawGeometryTree);
+                    if ("main".equals(partName)) {
+                        SCALE_INFO.put(partId, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
+                        addExtraInfo(modelId, rawGeometryTree.properties.getExtraInfo());
                     }
-                    EXTRA_INFO.put(id, handleExtraInfo(id, extraInfo));
-                    if (extraInfo != null && extraInfo.getExtraAnimationNames() != null && extraInfo.getExtraAnimationNames().length > 0) {
-                        EXTRA_ANIMATION_NAME.put(id, extraInfo.getExtraAnimationNames());
-                    }
-                    geoModels.put(id, geoModel);
+                    geoModels.put(partId, geoModel);
                 }
             }
         } catch (Exception e) {
@@ -103,37 +102,36 @@ public class ClientModelManager {
         }
     }
 
-    public static void registerTexture(ResourceLocation id, Map<String, byte[]> mapData) {
+    public static void registerTexture(ResourceLocation modelId, Map<String, byte[]> mapData) {
         List<ResourceLocation> textures = Lists.newArrayList();
         for (String name : mapData.keySet()) {
             if (!name.equals(IArrowExtraInfo.TEXTURE_NAME)) {
-                ResourceLocation textureId = ModelIdUtil.getSubModelId(id, name);
+                ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, name);
                 textures.add(textureId);
             }
         }
-        MODELS.put(id, textures);
-        for (String name : mapData.keySet()) {
-            byte[] data = mapData.get(name);
-            ResourceLocation textureId = ModelIdUtil.getSubModelId(id, name);
-            registerTexture(textureId, data);
+        MODELS.put(modelId, textures);
+        for (Map.Entry<String, byte[]> entry : mapData.entrySet()) {
+            ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, entry.getKey());
+            registerTexture(textureId, entry.getValue());
         }
     }
 
-    private static void registerTexture(ResourceLocation id, byte[] data) {
+    private static void registerTexture(ResourceLocation textureId, byte[] data) {
         // 确保主线程上传
         final Minecraft mc = Minecraft.getMinecraft();
         mc.addScheduledTask(() -> {
-            mc.getTextureManager().loadTexture(id, new OuterFileTexture(data));
+            mc.getTextureManager().loadTexture(textureId, new OuterFileTexture(data));
         });
     }
 
-    private static void registerAnimations(ResourceLocation id, Map<String, byte[]> mapData) {
+    private static void registerAnimations(ResourceLocation mainId, Map<String, byte[]> mapData) {
         Map<ResourceLocation, AnimationFile> animations = GeckoLibCache.getInstance().getAnimations();
 
         if (mapData.containsKey("arrow")) {
             byte[] arrowBytes = mapData.get("arrow");
             AnimationFile arrowsAnimationFile = getAnimationFile(new String(arrowBytes, StandardCharsets.UTF_8));
-            animations.put(ModelIdUtil.getArrowId(ModelIdUtil.getModelIdFromMainId(id)), arrowsAnimationFile);
+            animations.put(ModelIdUtil.getArrowId(ModelIdUtil.getModelIdFromMainId(mainId)), arrowsAnimationFile);
             mapData.remove("arrow");
         }
 
@@ -147,8 +145,8 @@ public class ClientModelManager {
                 main.putAnimation(name, action);
             }
         });
-        main.animations().forEach((name, animation) -> ConditionManager.addTest(id, name));
-        animations.put(id, main);
+        main.animations().forEach((name, animation) -> ConditionManager.addTest(mainId, name));
+        animations.put(mainId, main);
     }
 
     private static AnimationFile getAnimationFile(String file) {
@@ -177,7 +175,7 @@ public class ClientModelManager {
 
     public static void loadDefaultModel() {
         try {
-            ModelData data = FolderFormat.getModelData(ServerModelManager.CUSTOM, "default", false);
+            ModelData data = FolderFormat.getModelData(ServerModelManager.BUILTIN, "default", false);
             data.getAnimation().forEach((name, bytes) -> {
                 AnimationFile animationFile = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
                 if ("arrow".equals(name)) {
@@ -229,8 +227,20 @@ public class ClientModelManager {
         return FileUtils.readFileToByteArray(root.resolve(fileName).toFile());
     }
 
+    private static void addExtraInfo(ResourceLocation modelId, @Nullable ExtraInfo extraInfo) {
+        if (extraInfo == null) return;
+        ResourceLocation infoId = ModelIdUtil.getInfoId(modelId);
+        EXTRA_INFO.put(infoId, handleExtraInfo(extraInfo));
+        if (extraInfo.getFree()) {
+            AUTH_MODELS.remove(modelId.getPath());
+        }
+        if (extraInfo.getExtraAnimationNames() != null && extraInfo.getExtraAnimationNames().length > 0) {
+            EXTRA_ANIMATION_NAME.put(infoId, extraInfo.getExtraAnimationNames());
+        }
+    }
+
     @Nullable
-    private static List<String> handleExtraInfo(ResourceLocation id, @Nullable ExtraInfo extraInfo) {
+    private static List<String> handleExtraInfo(@Nullable ExtraInfo extraInfo) {
         if (extraInfo == null || StringUtils.isBlank(extraInfo.getName())) {
             return null;
         }

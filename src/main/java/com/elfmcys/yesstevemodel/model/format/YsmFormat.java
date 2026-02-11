@@ -47,17 +47,11 @@ public final class YsmFormat {
                     continue;
                 }
 
-                if (rootPath.equals(AUTH)) {
-                    ServerModelInfo info = cacheModel(data, modelId, true);
-                    if (info != null) {
-                        CACHE_NAME_INFO.put(modelId, info);
-                        AUTH_MODELS.add(modelId);
-                    }
-                } else {
-                    ServerModelInfo info = cacheModel(data, modelId, false);
-                    if (info != null) {
-                        CACHE_NAME_INFO.put(modelId, info);
-                    }
+                boolean isAuth = rootPath.equals(AUTH);
+                ServerModelInfo info = cacheModel(data, modelId, isAuth);
+                if (info != null) {
+                    CACHE_NAME_INFO.put(modelId, info);
+                    if (isAuth) AUTH_MODELS.add(modelId);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -102,6 +96,7 @@ public final class YsmFormat {
         animation.put("arm", getBytes(data, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(data, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(data, TAC_ANIMATION_FILE_NAME));
+        animation.put("carryon", getBytes(data, CARRY_ON_ANIMATION_FILE_NAME));
         animation.put("arrow", getBytes(data, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.YSM, model, texture, animation);
@@ -109,23 +104,27 @@ public final class YsmFormat {
 
     private static byte[] getBytes(Map<String, byte[]> data, String fileName) throws IOException {
         if (MAIN_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(MAIN_ANIMATION_FILE_NAME)) {
-            Path filePath = CUSTOM.resolve("default/main.animation.json");
+            Path filePath = BUILTIN.resolve("default/main.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (ARM_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(ARM_ANIMATION_FILE_NAME)) {
-            Path filePath = CUSTOM.resolve("default/arm.animation.json");
+            Path filePath = BUILTIN.resolve("default/arm.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(EXTRA_ANIMATION_FILE_NAME)) {
-            Path filePath = CUSTOM.resolve("default/extra.animation.json");
+            Path filePath = BUILTIN.resolve("default/extra.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(TAC_ANIMATION_FILE_NAME)) {
-            Path filePath = CUSTOM.resolve("default/tac.animation.json");
+            Path filePath = BUILTIN.resolve("default/tac.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
+        if (CARRY_ON_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(CARRY_ON_ANIMATION_FILE_NAME)) {
+            Path filePath = BUILTIN.resolve("default/carryon.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && !data.containsKey(ARROW_ANIMATION_FILE_NAME)) {
-            Path filePath = CUSTOM.resolve("default/arrow.animation.json");
+            Path filePath = BUILTIN.resolve("default/arrow.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
 

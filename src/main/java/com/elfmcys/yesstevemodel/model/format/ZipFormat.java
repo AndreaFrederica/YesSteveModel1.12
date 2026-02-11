@@ -48,17 +48,11 @@ public final class ZipFormat {
                     continue;
                 }
 
-                if (rootPath.equals(AUTH)) {
-                    ServerModelInfo info = cacheModel(zipFile, modelId, true);
-                    if (info != null) {
-                        CACHE_NAME_INFO.put(modelId, info);
-                        AUTH_MODELS.add(modelId);
-                    }
-                } else {
-                    ServerModelInfo info = cacheModel(zipFile, modelId, false);
-                    if (info != null) {
-                        CACHE_NAME_INFO.put(modelId, info);
-                    }
+                boolean isAuth = rootPath.equals(AUTH);
+                ServerModelInfo info = cacheModel(zipFile, modelId, isAuth);
+                if (info != null) {
+                    CACHE_NAME_INFO.put(modelId, info);
+                    if (isAuth) AUTH_MODELS.add(modelId);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -107,6 +101,7 @@ public final class ZipFormat {
         animation.put("arm", getBytes(zipFile, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(zipFile, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(zipFile, TAC_ANIMATION_FILE_NAME));
+        animation.put("carryon", getBytes(zipFile, CARRY_ON_ANIMATION_FILE_NAME));
         animation.put("arrow", getBytes(zipFile, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.ZIP, model, texture, animation);
@@ -114,23 +109,27 @@ public final class ZipFormat {
 
     private static byte[] getBytes(ZipFile zipFile, String fileName) throws IOException {
         if (MAIN_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(MAIN_ANIMATION_FILE_NAME) == null) {
-            Path filePath = CUSTOM.resolve("default/main.animation.json");
+            Path filePath = BUILTIN.resolve("default/main.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (ARM_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(ARM_ANIMATION_FILE_NAME) == null) {
-            Path filePath = CUSTOM.resolve("default/arm.animation.json");
+            Path filePath = BUILTIN.resolve("default/arm.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(EXTRA_ANIMATION_FILE_NAME) == null) {
-            Path filePath = CUSTOM.resolve("default/extra.animation.json");
+            Path filePath = BUILTIN.resolve("default/extra.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (TAC_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(TAC_ANIMATION_FILE_NAME) == null) {
-            Path filePath = CUSTOM.resolve("default/tac.animation.json");
+            Path filePath = BUILTIN.resolve("default/tac.animation.json");
+            return FileUtils.readFileToByteArray(filePath.toFile());
+        }
+        if (CARRY_ON_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(CARRY_ON_ANIMATION_FILE_NAME) == null) {
+            Path filePath = BUILTIN.resolve("default/carryon.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
         if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(ARROW_ANIMATION_FILE_NAME) == null) {
-            Path filePath = CUSTOM.resolve("default/arrow.animation.json");
+            Path filePath = BUILTIN.resolve("default/arrow.animation.json");
             return FileUtils.readFileToByteArray(filePath.toFile());
         }
 

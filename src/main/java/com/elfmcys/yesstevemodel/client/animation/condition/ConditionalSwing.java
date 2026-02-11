@@ -1,77 +1,42 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import com.elfmcys.yesstevemodel.util.ResourceUtil;
-import com.google.common.collect.Lists;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ConditionalSwing {
-    private static final String ID_PRE = "swing$";
-    //private static final String TAG_PRE = "swing#";
-    private static final String EMPTY = "";
-    private static final int PRE_SIZE = 6;
-    private final List<ResourceLocation> idTest = Lists.newArrayList();
-    //private final List<ResourceLocation> tagTest = Lists.newArrayList();
+public class ConditionalSwing extends ConditionItem {
+    private static final Map<String, IItemStackMatcher> TOOL_TYPES = new HashMap<>();
 
-    public void addTest(String name) {
-        if (name.length() <= PRE_SIZE) {
-            return;
-        }
-        String substring = name.substring(PRE_SIZE);
-        if (name.startsWith(ID_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
-            this.idTest.add(new ResourceLocation(name.substring(PRE_SIZE)));
-        }
-//        if (name.startsWith(TAG_PRE) && ResourceUtil.isValidResourceLocation(substring)) {
-//            ResourceLocation res = new ResourceLocation(substring);
-//            ITag<Item> tag = ItemTags.getAllTags().getTag(res);
-//            if (tag == null) {
-//                return;
-//            }
-//            tagTest.add(res);
-//        }
+    public ConditionalSwing(EnumHand hand) {
+        super(hand == EnumHand.MAIN_HAND ? "swing" : "swing_offhand");
     }
 
-    public String doTest(EntityPlayer player, EnumHand hand) {
-        if (player.getHeldItem(hand).isEmpty()) {
-            return EMPTY;
-        }
-        String result = this.doIdTest(player, hand);
-//        if (result.isEmpty()) {
-//            return doTagTest(player, hand);
-//        }
-        return result;
+    @Override
+    protected Map<String, IItemStackMatcher> getExtras() {
+        initToolTypes();
+        return TOOL_TYPES;
     }
 
-    private String doIdTest(EntityPlayer player, EnumHand hand) {
-        if (this.idTest.isEmpty()) {
-            return EMPTY;
-        }
-        ItemStack itemInHand = player.getHeldItem(hand);
-        ResourceLocation registryName = itemInHand.getItem().getRegistryName();
-        if (registryName == null) {
-            return EMPTY;
-        }
-        if (this.idTest.contains(registryName)) {
-            return ID_PRE + registryName;
-        }
-        return EMPTY;
-    }
+    private static void initToolTypes() {
+        if (!TOOL_TYPES.isEmpty()) return;
 
-//    private String doTagTest(EntityPlayer player, EnumHand hand) {
-//        if (tagTest.isEmpty()) {
-//            return EMPTY;
-//        }
-//        Item itemInHand = player.getHeldItem(hand).getItem();
-//        return tagTest.stream().filter(itemTagKey -> {
-//            ITag<Item> tag = ItemTags.getAllTags().getTag(itemTagKey);
-//            if (tag != null) {
-//                return tag.contains(itemInHand);
-//            }
-//            return false;
-//        }).findFirst().map(itemTagKey -> TAG_PRE + itemTagKey).orElse(EMPTY);
-//    }
+        TOOL_TYPES.put("sword", (player, stack) ->
+                stack.getItem() instanceof ItemSword);
+        TOOL_TYPES.put("axe", (player, stack) ->
+                stack.getItem() instanceof ItemAxe);
+        TOOL_TYPES.put("pickaxe", (player, stack) ->
+                stack.getItem() instanceof ItemPickaxe);
+        TOOL_TYPES.put("shovel", (player, stack) ->
+                stack.getItem() instanceof ItemSpade);
+        TOOL_TYPES.put("hoe", (player, stack) ->
+                stack.getItem() instanceof ItemHoe);
+        TOOL_TYPES.put("shield", (player, stack) ->
+                stack.getItem() instanceof ItemShield);
+        TOOL_TYPES.put("throwable_potion", (player, stack) ->
+                stack.getItem() instanceof ItemSplashPotion || stack.getItem() instanceof ItemLingeringPotion);
+        TOOL_TYPES.put("fishing_rod", (player, stack) ->
+                stack.getItem() instanceof ItemFishingRod);
+    }
 }

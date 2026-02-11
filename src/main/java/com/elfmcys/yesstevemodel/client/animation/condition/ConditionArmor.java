@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -16,10 +17,12 @@ import java.util.regex.Pattern;
 
 public class ConditionArmor {
     private static final Pattern ID_PRE_REG = Pattern.compile("^(.+?)\\$(.*?)$");
+    private static final Pattern ORE_PRE_REG = Pattern.compile("^(.+?)~(.*?)$");
     //private static final Pattern TAG_PRE_REG = Pattern.compile("^(.+?)#(.*?)$");
     private static final String EMPTY = "";
 
     private final Map<EntityEquipmentSlot, List<ResourceLocation>> idTest = Maps.newHashMap();
+    private final Map<EntityEquipmentSlot, List<String>> oreTest = Maps.newHashMap();
     //private final Map<EntityEquipmentSlot, List<ResourceLocation>> tagTest = Maps.newHashMap();
 
     public void addTest(String name) {
@@ -39,6 +42,25 @@ public class ConditionArmor {
             } else {
                 this.idTest.put(type, Lists.newArrayList(res));
             }
+            return;
+        }
+
+        Matcher matcherOre = ORE_PRE_REG.matcher(name);
+        if (matcherOre.find()) {
+            EntityEquipmentSlot type = getType(matcherOre.group(1));
+            if (type == null) {
+                return;
+            }
+            String id = matcherOre.group(2);
+            if (!OreDictionary.doesOreNameExist(id)) {
+                return;
+            }
+            if (this.oreTest.containsKey(type)) {
+                this.oreTest.get(type).add(id);
+            } else {
+                this.oreTest.put(type, Lists.newArrayList(id));
+            }
+            //return;
         }
 
 //        Matcher matcherTag = TAG_PRE_REG.matcher(name);
@@ -56,11 +78,12 @@ public class ConditionArmor {
 //            if (tag == null) {
 //                return;
 //            }
-//            if (tagTest.containsKey(type)) {
-//                tagTest.get(type).add(res);
+//            if (this.tagTest.containsKey(type)) {
+//                this.tagTest.get(type).add(res);
 //            } else {
-//                tagTest.put(type, Lists.newArrayList(res));
+//                this.tagTest.put(type, Lists.newArrayList(res));
 //            }
+//            //return;
 //        }
     }
 
@@ -69,11 +92,14 @@ public class ConditionArmor {
         if (item.isEmpty()) {
             return EMPTY;
         }
-        String result = this.doIdTest(player, slot);
-//        if (result.isEmpty()) {
-//            return doTagTest(player, slot);
-//        }
-        return result;
+        String result;
+        result = this.doIdTest(player, slot);
+        if (!result.isEmpty()) return result;
+        result = this.doOreTest(player, slot);
+        if (!result.isEmpty()) return result;
+//        result = this.doTagTest(player, slot);
+//        if (!result.isEmpty()) return result;
+        return EMPTY;
     }
 
     private String doIdTest(EntityPlayer player, EntityEquipmentSlot slot) {
@@ -95,14 +121,33 @@ public class ConditionArmor {
         return EMPTY;
     }
 
+    private String doOreTest(EntityPlayer player, EntityEquipmentSlot slot) {
+        if (this.oreTest.isEmpty()) {
+            return EMPTY;
+        }
+        if (!this.oreTest.containsKey(slot) || this.oreTest.get(slot).isEmpty()) {
+            return EMPTY;
+        }
+        List<String> tagListTest = this.oreTest.get(slot);
+        ItemStack item = player.getItemStackFromSlot(slot);
+        for (int id : OreDictionary.getOreIDs(item)) {
+            String name = OreDictionary.getOreName(id);
+            if ("Unknown".equals(name)) continue;
+            if (tagListTest.contains(name)) {
+                return slot.getName() + "~" + name;
+            }
+        }
+        return EMPTY;
+    }
+
 //    private String doTagTest(EntityPlayer player, EntityEquipmentSlot slot) {
-//        if (tagTest.isEmpty()) {
+//        if (this.tagTest.isEmpty()) {
 //            return EMPTY;
 //        }
-//        if (!tagTest.containsKey(slot) || tagTest.get(slot).isEmpty()) {
+//        if (!this.tagTest.containsKey(slot) || this.tagTest.get(slot).isEmpty()) {
 //            return EMPTY;
 //        }
-//        List<ResourceLocation> tagListTest = tagTest.get(slot);
+//        List<ResourceLocation> tagListTest = this.tagTest.get(slot);
 //        Item item = player.getItemStackFromSlot(slot).getItem();
 //        return tagListTest.stream().filter(itemTagKey -> {
 //            ITag<Item> tag = ItemTags.getAllTags().getTag(itemTagKey);
@@ -112,7 +157,6 @@ public class ConditionArmor {
 //            return false;
 //        }).findFirst().map(itemTagKey -> slot.getName() + "#" + itemTagKey).orElse(EMPTY);
 //    }
-
 
     @Nullable
     public static EntityEquipmentSlot getType(String type) {

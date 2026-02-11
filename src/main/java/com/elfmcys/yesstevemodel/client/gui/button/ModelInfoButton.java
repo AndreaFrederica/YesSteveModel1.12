@@ -22,11 +22,8 @@ public class ModelInfoButton extends Button {
     @Override
     public void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float pPartialTick) {
         FontRenderer font = mc.fontRenderer;
-        if (this.isSelect) {
-            this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xff_1E90FF, 0xff_1E90FF);
-        } else {
-            this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xff_434242, 0xff_434242);
-        }
+        int color = this.isSelect ? 0xff_1E90FF : 0xff_434242;
+        this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, color, color);
         if (this.isMouseOver()) {
             this.drawGradientRect(this.x, this.y + 1, this.x + 1, this.y + this.height - 1, 0xff_F3EFE0, 0xff_F3EFE0);
             this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + 1, 0xff_F3EFE0, 0xff_F3EFE0);

@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.client.animation;
 
 import com.elfmcys.yesstevemodel.client.animation.condition.*;
-import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
+import com.elfmcys.yesstevemodel.client.compat.CarryOnCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
@@ -79,6 +79,7 @@ public final class AnimationManager {
         }
     }
 
+    @Nonnull
     public PlayState predicateParallel(AnimationEvent<CustomPlayerEntity> event, String animationName) {
         if (Minecraft.getMinecraft().isGamePaused()) {
             return PlayState.STOP;
@@ -86,6 +87,7 @@ public final class AnimationManager {
         return playLoopAnimation(event, animationName);
     }
 
+    @Nonnull
     public PlayState predicateCap(AnimationEvent<CustomPlayerEntity> event) {
         CustomPlayerEntity animatable = event.getAnimatable();
         EntityPlayer player = animatable.getPlayer();
@@ -129,12 +131,13 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    @Nonnull
     public PlayState predicateOffhandHold(AnimationEvent<CustomPlayerEntity> event) {
         EntityPlayer player = event.getAnimatable().getPlayer();
         if (player == null) {
             return PlayState.STOP;
         }
-        if (!player.getHeldItemOffhand().isEmpty() && this.checkSwingAndUse(player, EnumHand.OFF_HAND)) {
+        if (this.checkSwingAndUse(player, EnumHand.OFF_HAND)) {
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
             if (conditionalHold != null) {
@@ -147,29 +150,19 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    @Nonnull
     public PlayState predicateMainhandHold(AnimationEvent<CustomPlayerEntity> event) {
         EntityPlayer player = event.getAnimatable().getPlayer();
         if (player == null) {
             return PlayState.STOP;
         }
-        if (!player.isSwingInProgress && !player.isHandActive()) {
-            ItemStack mainHandItem = player.getHeldItem(EnumHand.MAIN_HAND);
-            if (CrossbowCompat.isCharged(mainHandItem)) {
-                return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
-            }
-//            if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGun(mainHandItem)) {
-//                return TacGunRenderer.playGunHoldAnimation(event, mainHandItem);
-//            }
-            ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
-            if (CrossbowCompat.isCharged(offhandItem)) {
-                return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
-            }
-            if (player.fishEntity != null) {
-                return playAnimation(event, "hold_mainhand:fishing", ILoopType.EDefaultLoopTypes.LOOP);
+        if (CarryOnCompat.isInstalled()) {
+            String carryName = CarryOnCompat.getCarryOnString(player);
+            if (StringUtils.isNoneBlank(carryName)) {
+                return playAnimation(event, "carryon:" + carryName, ILoopType.EDefaultLoopTypes.LOOP);
             }
         }
-
-        if (!player.getHeldItemMainhand().isEmpty() && this.checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
+        if (this.checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
             if (conditionalHold != null) {
@@ -182,6 +175,7 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    @Nonnull
     public PlayState predicateSwing(AnimationEvent<CustomPlayerEntity> event) {
         EntityPlayer player = event.getAnimatable().getPlayer();
         if (player == null) {
@@ -189,22 +183,33 @@ public final class AnimationManager {
         }
         if (player.isSwingInProgress && !player.isPlayerSleeping()) {
             if (player.swingProgressInt == 0) {
-                event.getController().shouldResetTick = true;
-                event.getController().adjustTick(0);
+                event.getController().markNeedsReload();
             }
-            ResourceLocation id = event.getAnimatable().getAnimation();
-            ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
-            if (conditionalSwing != null) {
-                String name = conditionalSwing.doTest(player, player.swingingHand);
-                if (StringUtils.isNoneBlank(name)) {
-                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
+            if (player.swingingHand == EnumHand.MAIN_HAND) {
+                ResourceLocation id = event.getAnimatable().getAnimation();
+                ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
+                if (conditionalSwing != null) {
+                    String name = conditionalSwing.doTest(player, EnumHand.MAIN_HAND);
+                    if (StringUtils.isNoneBlank(name)) {
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+                    }
+                }
+            } else {
+                ResourceLocation id = event.getAnimatable().getAnimation();
+                ConditionalSwing conditionalSwing = ConditionManager.getSwingOffhand(id);
+                if (conditionalSwing != null) {
+                    String name = conditionalSwing.doTest(player, EnumHand.OFF_HAND);
+                    if (StringUtils.isNoneBlank(name)) {
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+                    }
                 }
             }
-            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
+            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
         }
-        return PlayState.STOP;
+        return event.getController().getAnimationState() == com.elfmcys.yesstevemodel.geckolib3.core.AnimationState.STOPPED ? PlayState.STOP : PlayState.CONTINUE;
     }
 
+    @Nonnull
     public PlayState predicateUse(AnimationEvent<CustomPlayerEntity> event) {
         EntityPlayer player = event.getAnimatable().getPlayer();
         if (player == null) {
@@ -243,6 +248,7 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    @Nonnull
     public PlayState predicateArmor(AnimationEvent<CustomPlayerEntity> event, EntityEquipmentSlot slot) {
         EntityPlayer player = event.getAnimatable().getPlayer();
         if (player == null) {

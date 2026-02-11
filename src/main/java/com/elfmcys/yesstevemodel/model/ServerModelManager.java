@@ -31,6 +31,10 @@ public final class ServerModelManager {
     public static final Path FOLDER = Paths.get("config", YesSteveModel.MOD_ID);
 
     /**
+     * 内置模型输出的文件夹
+     */
+    public static final Path BUILTIN = FOLDER.resolve("builtin");
+    /**
      * 自定义模型所放置的文件夹
      */
     public static final Path CUSTOM = FOLDER.resolve("custom");
@@ -71,7 +75,7 @@ public final class ServerModelManager {
     public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
     public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
     public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
-    //public static final String CARRY_ON_ANIMATION_FILE_NAME = "carryon.animation.json";
+    public static final String CARRY_ON_ANIMATION_FILE_NAME = "carryon.animation.json";
     public static final String ARROW_ANIMATION_FILE_NAME = "arrow.animation.json";
 
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
@@ -91,8 +95,10 @@ public final class ServerModelManager {
     public static void reloadPacks() {
         CACHE_NAME_INFO.clear();
         AUTH_MODELS.clear();
+        deleteFolder(BUILTIN);
 
         createFolder(FOLDER);
+        createFolder(BUILTIN);
         createFolder(CUSTOM);
         createFolder(AUTH);
         createFolder(EXPORT);
@@ -106,14 +112,16 @@ public final class ServerModelManager {
         copyWineFoxModel();
         copyVanillaModel();
         initPassword();
+        cacheAllModels(BUILTIN);
         cacheAllModels(CUSTOM);
         cacheAllModels(AUTH);
     }
 
     private static void copyDefaultModel() {
-        Path defaultPath = CUSTOM.resolve("default");
+        Path defaultPath = BUILTIN.resolve("default");
         createFolder(defaultPath);
 
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/info.json"), defaultPath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/main.json"), defaultPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arm.json"), defaultPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arrow.json"), defaultPath, ARROW_MODEL_FILE_NAME);
@@ -125,10 +133,12 @@ public final class ServerModelManager {
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/extra.animation.json"), defaultPath, EXTRA_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/tac.animation.json"), defaultPath, TAC_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/arrow.animation.json"), defaultPath, ARROW_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default/carryon.animation.json"), defaultPath, CARRY_ON_ANIMATION_FILE_NAME);
 
-        Path defaultBoyPath = CUSTOM.resolve("default_boy");
+        Path defaultBoyPath = BUILTIN.resolve("default_boy");
         createFolder(defaultBoyPath);
 
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/info.json"), defaultBoyPath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/main.json"), defaultBoyPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/arm.json"), defaultBoyPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/default_boy/red.png"), defaultBoyPath, "red.png");
@@ -138,37 +148,44 @@ public final class ServerModelManager {
     }
 
     private static void copyWineFoxModel() {
-        Path wineFoxPath = CUSTOM.resolve("wine_fox");
+        Path wineFoxPath = BUILTIN.resolve("wine_fox");
         createFolder(wineFoxPath);
 
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/info.json"), wineFoxPath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.json"), wineFoxPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arm.json"), wineFoxPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arrow.json"), wineFoxPath, ARROW_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/skin.png"), wineFoxPath, "skin.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arrow.png"), wineFoxPath, "arrow.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/main.animation.json"), wineFoxPath, MAIN_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/arm.animation.json"), wineFoxPath, ARM_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/extra.animation.json"), wineFoxPath, EXTRA_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/tac.animation.json"), wineFoxPath, TAC_ANIMATION_FILE_NAME);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/wine_fox/carryon.animation.json"), wineFoxPath, CARRY_ON_ANIMATION_FILE_NAME);
     }
 
     private static void copyVanillaModel() {
-        Path stevePath = CUSTOM.resolve("steve");
+        Path stevePath = BUILTIN.resolve("steve");
         createFolder(stevePath);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/info.json"), stevePath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/main.json"), stevePath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/arm.json"), stevePath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/tartaric_acid.png"), stevePath, "tartaric_acid.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/main.animation.json"), stevePath, MAIN_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/steve/tac.animation.json"), stevePath, TAC_ANIMATION_FILE_NAME);
 
-        Path alexPath = CUSTOM.resolve("alex");
+        Path alexPath = BUILTIN.resolve("alex");
         createFolder(alexPath);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/info.json"), alexPath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/main.json"), alexPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/arm.json"), alexPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/gsl.png"), alexPath, "gsl.png");
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/main.animation.json"), alexPath, MAIN_ANIMATION_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/alex/tac.animation.json"), alexPath, TAC_ANIMATION_FILE_NAME);
 
-        Path qinglukaPath = CUSTOM.resolve("qingluka");
+        Path qinglukaPath = BUILTIN.resolve("qingluka");
         createFolder(qinglukaPath);
+        GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/qingluka/info.json"), qinglukaPath, INFO_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/qingluka/main.json"), qinglukaPath, MAIN_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/qingluka/arm.json"), qinglukaPath, ARM_MODEL_FILE_NAME);
         GetJarResources.copyYesSteveModelFile(getCustomFiles("custom/qingluka/texture.png"), qinglukaPath, "texture.png");
@@ -203,10 +220,18 @@ public final class ServerModelManager {
         File folder = path.toFile();
         if (!folder.isDirectory()) {
             try {
-                Files.createDirectories(folder.toPath());
+                Files.createDirectories(path);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private static void deleteFolder(Path path) {
+        try {
+            Files.delete(path);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

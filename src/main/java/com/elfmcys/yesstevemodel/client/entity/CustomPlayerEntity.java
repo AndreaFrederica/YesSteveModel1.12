@@ -35,11 +35,9 @@ public class CustomPlayerEntity implements IAnimatable {
         return PlayState.CONTINUE;
     }
 
-    /**
-     * 越往后优先级越高
-     */
     @Override
     public void registerControllers(AnimationData data) {
+        // 越往后优先级越高
         AnimationManager manager = AnimationManager.getInstance();
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("pre_parallel_%d_controller", i);

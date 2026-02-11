@@ -21,7 +21,7 @@ public final class ResourceUtil {
         return true;
     }
 
-    public static boolean validPathChar(char charValue) {
+    private static boolean validPathChar(char charValue) {
         return validNamespaceChar(charValue) || charValue == '/';
     }
 

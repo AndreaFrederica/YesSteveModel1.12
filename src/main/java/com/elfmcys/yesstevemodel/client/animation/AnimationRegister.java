@@ -21,6 +21,7 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntitySpectralArrow;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
@@ -251,13 +252,16 @@ public class AnimationRegister {
 //        }
     }
 
+    // TODO：补全
     public static void setArrowParserValue(EntityArrow arrow, MolangParser parser) {
         parser.setValue("query.body_x_rotation", () -> arrow.rotationPitch);
         parser.setValue("query.body_y_rotation", () -> MathHelper.wrapDegrees(arrow.rotationYaw));
         parser.setValue("query.is_on_ground", () -> MolangUtils.booleanToFloat(arrow.inGround));
         parser.setValue("query.ground_speed", () -> getGroundSpeed(arrow));
         parser.setValue("query.vertical_speed", () -> getVerticalSpeed(arrow));
+        parser.setValue("ysm.in_ground", () -> MolangUtils.booleanToFloat(arrow.inGround));
         parser.setValue("ysm.on_ground_time", () -> arrow.timeInGround);
+        parser.setValue("ysm.is_spectral_arrow", () -> MolangUtils.booleanToFloat(arrow instanceof EntitySpectralArrow));
     }
 
     private static boolean hasCape(EntityPlayer player) {

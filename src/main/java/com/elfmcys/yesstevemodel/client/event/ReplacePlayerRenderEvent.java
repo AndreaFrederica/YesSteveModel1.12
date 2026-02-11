@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.ClientProxy;
+import com.elfmcys.yesstevemodel.client.compat.CarryOnCompat;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -25,5 +26,6 @@ public class ReplacePlayerRenderEvent {
         }
         event.setCanceled(true);
         ClientProxy.getInstance().doRender(playerRender, event.getX(), event.getY(), event.getZ(), playerRender.rotationYaw, event.getPartialRenderTick());
+        CarryOnCompat.renderCarryOn(playerRender, event.getRenderer(), event.getPartialRenderTick(), event.getX(), event.getY(), event.getZ());
     }
 }

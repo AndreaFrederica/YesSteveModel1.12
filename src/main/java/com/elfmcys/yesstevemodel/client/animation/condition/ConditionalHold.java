@@ -1,90 +1,95 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import com.elfmcys.yesstevemodel.util.ResourceUtil;
-import com.google.common.collect.Lists;
+import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
+import com.elfmcys.yesstevemodel.client.compat.SpyglassCompat;
+import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 
-public class ConditionalHold {
-    private static final String EMPTY = "";
-    private final int preSize;
-    private final String idPre;
-    //private final String tagPre;
-    private final List<ResourceLocation> idTest = Lists.newArrayList();
-    //private final List<ResourceLocation> tagTest = Lists.newArrayList();
+public class ConditionalHold extends ConditionItem {
+    /**
+     * 代表一种特殊的动画，空手时应用，要求为空，用于刷新动画<br>
+     * 根据 YSM Wiki，只有手持有这个
+     */
+    private static final String EMPTY_ANIM = "empty";
+    private static final LinkedHashMap<String, IItemStackMatcher> EXTRAS = new LinkedHashMap<>();
 
     public ConditionalHold(EnumHand hand) {
-        if (hand == EnumHand.MAIN_HAND) {
-            this.idPre = "hold_mainhand$";
-            //tagPre = "hold_mainhand#";
-            this.preSize = 14;
-        } else {
-            this.idPre = "hold_offhand$";
-            //tagPre = "hold_offhand#";
-            this.preSize = 13;
-        }
+        super("hold_" + (hand == EnumHand.MAIN_HAND ? "mainhand" : "offhand"));
     }
 
-    public void addTest(String name) {
-        if (name.length() <= this.preSize) {
-            return;
-        }
-        String substring = name.substring(this.preSize);
-        if (name.startsWith(this.idPre) && ResourceUtil.isValidResourceLocation(substring)) {
-            this.idTest.add(new ResourceLocation(substring));
-        }
-        // TODO: Tag 转矿词系统，道阻且长
-//        if (name.startsWith(tagPre) && ResourceUtil.isValidResourceLocation(substring)) {
-//            ResourceLocation res = new ResourceLocation(substring);
-//            ITag<Item> tag = ItemTags.getAllTags().getTag(res);
-//            if (tag == null) {
-//                return;
-//            }
-//            tagTest.add(res);
-//        }
-    }
-
+    /**
+     * @return 不会返回 {@code ""}，而是返回 {@link #EMPTY_ANIM}，以刷新动画
+     */
+    @Override
     public String doTest(EntityPlayer player, EnumHand hand) {
-        if (player.getHeldItem(hand).isEmpty()) {
-            return EMPTY;
-        }
-        String result = this.doIdTest(player, hand);
-//        if (result.isEmpty()) {
-//            return doTagTest(player, hand);
-//        }
-        return result;
+        String anim = super.doTest(player, hand);
+        return anim.isEmpty() ? this.extraPre + EMPTY_ANIM : anim;
     }
 
-    private String doIdTest(EntityPlayer player, EnumHand hand) {
-        if (this.idTest.isEmpty()) {
-            return EMPTY;
-        }
-        ItemStack itemInHand = player.getHeldItem(hand);
-        ResourceLocation registryName = itemInHand.getItem().getRegistryName();
-        if (registryName == null) {
-            return EMPTY;
-        }
-        if (this.idTest.contains(registryName)) {
-            return this.idPre + registryName;
-        }
-        return EMPTY;
+    @Override
+    protected LinkedHashMap<String, IItemStackMatcher> getExtras() {
+        initToolTypes();
+        return EXTRAS;
     }
 
-//    private String doTagTest(EntityPlayer player, EnumHand hand) {
-//        if (tagTest.isEmpty()) {
-//            return EMPTY;
-//        }
-//        Item itemInHand = player.getHeldItem(hand).getItem();
-//        return tagTest.stream().filter(itemTagKey -> {
-//            ITag<Item> tag = ItemTags.getAllTags().getTag(itemTagKey);
-//            if (tag != null) {
-//                return tag.contains(itemInHand);
-//            }
-//            return false;
-//        }).findFirst().map(itemTagKey -> tagPre + itemTagKey).orElse(EMPTY);
-//    }
+    private static void initToolTypes() {
+        if (!EXTRAS.isEmpty()) return;
+
+        // 越往上优先级越高
+        if (CrossbowCompat.isInstalled()) {
+            EXTRAS.put("charged_crossbow", (player, stack) ->
+                    CrossbowCompat.isCharged(stack));
+            EXTRAS.put("crossbow", (player, stack) ->
+                    CrossbowCompat.isCrossbowAction(stack) || isSameActionName(stack, CrossbowCompat.CROSSBOW_ACTION));
+        }
+        EXTRAS.put("fishing", (player, stack) ->
+                player.fishEntity != null);
+        EXTRAS.put("fishing_rod", (player, stack) ->
+                stack.getItem() instanceof ItemFishingRod);
+        EXTRAS.put("sword", (player, stack) ->
+                stack.getItem() instanceof ItemSword);
+        EXTRAS.put("axe", (player, stack) ->
+                stack.getItem() instanceof ItemAxe);
+        EXTRAS.put("pickaxe", (player, stack) ->
+                stack.getItem() instanceof ItemPickaxe);
+        EXTRAS.put("shovel", (player, stack) ->
+                stack.getItem() instanceof ItemSpade);
+        EXTRAS.put("hoe", (player, stack) ->
+                stack.getItem() instanceof ItemHoe);
+        EXTRAS.put("shield", (player, stack) ->
+                stack.getItem() instanceof ItemShield || isSameActionName(stack, "shield"));
+        EXTRAS.put("throwable_potion", (player, stack) ->
+                stack.getItem() instanceof ItemSplashPotion || stack.getItem() instanceof ItemLingeringPotion);
+        if (TridentCompat.isInstalled()) {
+            EXTRAS.put(TridentCompat.SPEAR_ACTION, (player, stack) ->
+                    TridentCompat.isSpearAction(stack) || isSameActionName(stack, TridentCompat.SPEAR_ACTION));
+        }
+        if (SpyglassCompat.isInstalled()) {
+            EXTRAS.put(SpyglassCompat.SPYGLASS_ACTION, (player, stack) ->
+                    SpyglassCompat.isSpyglassAction(stack) || isSameActionName(stack, SpyglassCompat.SPYGLASS_ACTION));
+        }
+        for (EnumAction action : EnumAction.values()) {
+            // YSM Wiki 没有这两个
+            if (action == EnumAction.NONE || action == EnumAction.BLOCK) continue;
+            if (action == EnumAction.BOW) {
+                EXTRAS.put(action.name().toLowerCase(Locale.US), (player, stack) ->
+                        stack.getItem() instanceof ItemBow || isSameActionName(stack, action));
+            }
+            EXTRAS.putIfAbsent(action.name().toLowerCase(Locale.US), (player, stack) ->
+                    isSameActionName(stack, action));
+        }
+    }
+
+    private static boolean isSameActionName(ItemStack stack, EnumAction action) {
+        return isSameActionName(stack, action.name());
+    }
+
+    private static boolean isSameActionName(ItemStack stack, String action) {
+        return stack.getItemUseAction().name().equalsIgnoreCase(action);
+    }
 }

@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class ConditionManager {
     public static Map<ResourceLocation, ConditionalSwing> SWING = Maps.newHashMap();
+    public static Map<ResourceLocation, ConditionalSwing> SWING_OFFHAND = Maps.newHashMap();
     public static Map<ResourceLocation, ConditionalUse> USE_MAINHAND = Maps.newHashMap();
     public static Map<ResourceLocation, ConditionalUse> USE_OFFHAND = Maps.newHashMap();
     public static Map<ResourceLocation, ConditionalHold> HOLD_MAINHAND = Maps.newHashMap();
@@ -15,7 +16,8 @@ public class ConditionManager {
     public static Map<ResourceLocation, ConditionArmor> ARMOR = Maps.newHashMap();
 
     public static void addTest(ResourceLocation id, String name) {
-        SWING.putIfAbsent(id, new ConditionalSwing());
+        SWING.putIfAbsent(id, new ConditionalSwing(EnumHand.MAIN_HAND));
+        SWING_OFFHAND.putIfAbsent(id, new ConditionalSwing(EnumHand.OFF_HAND));
         USE_MAINHAND.putIfAbsent(id, new ConditionalUse(EnumHand.MAIN_HAND));
         USE_OFFHAND.putIfAbsent(id, new ConditionalUse(EnumHand.OFF_HAND));
         HOLD_MAINHAND.putIfAbsent(id, new ConditionalHold(EnumHand.MAIN_HAND));
@@ -23,6 +25,7 @@ public class ConditionManager {
         ARMOR.putIfAbsent(id, new ConditionArmor());
 
         ConditionalSwing conditionalSwing = SWING.get(id);
+        ConditionalSwing conditionalSwingOffhand = SWING_OFFHAND.get(id);
         ConditionalUse conditionalUseMainhand = USE_MAINHAND.get(id);
         ConditionalUse conditionalUseOffhand = USE_OFFHAND.get(id);
         ConditionalHold conditionalHoldMainhand = HOLD_MAINHAND.get(id);
@@ -30,6 +33,7 @@ public class ConditionManager {
         ConditionArmor conditionArmor = ARMOR.get(id);
 
         conditionalSwing.addTest(name);
+        conditionalSwingOffhand.addTest(name);
         conditionalUseMainhand.addTest(name);
         conditionalUseOffhand.addTest(name);
         conditionalHoldMainhand.addTest(name);
@@ -39,12 +43,17 @@ public class ConditionManager {
 
     public static void clear() {
         SWING.clear();
+        SWING_OFFHAND.clear();
         USE_MAINHAND.clear();
         USE_OFFHAND.clear();
     }
 
     public static ConditionalSwing getSwing(ResourceLocation id) {
         return SWING.get(id);
+    }
+
+    public static ConditionalSwing getSwingOffhand(ResourceLocation id) {
+        return SWING_OFFHAND.get(id);
     }
 
     public static ConditionalUse getUseMainhand(ResourceLocation id) {

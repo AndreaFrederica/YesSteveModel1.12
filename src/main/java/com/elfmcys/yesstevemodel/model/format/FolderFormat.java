@@ -64,17 +64,12 @@ public final class FolderFormat {
             if (noTextureFile) {
                 continue;
             }
-            if (rootPath.equals(AUTH)) {
-                ServerModelInfo info = cacheModel(AUTH, dirName, true);
-                if (info != null) {
-                    CACHE_NAME_INFO.put(dirName, info);
-                    AUTH_MODELS.add(dirName);
-                }
-            } else {
-                ServerModelInfo info = cacheModel(CUSTOM, dirName, false);
-                if (info != null) {
-                    CACHE_NAME_INFO.put(dirName, info);
-                }
+
+            boolean isAuth = rootPath.equals(AUTH);
+            ServerModelInfo info = cacheModel(rootPath, dirName, isAuth);
+            if (info != null) {
+                CACHE_NAME_INFO.put(dirName, info);
+                if (isAuth) AUTH_MODELS.add(dirName);
             }
         }
     }
@@ -118,6 +113,7 @@ public final class FolderFormat {
         animation.put("arm", getBytes(modelPath, ARM_ANIMATION_FILE_NAME));
         animation.put("extra", getBytes(modelPath, EXTRA_ANIMATION_FILE_NAME));
         animation.put("tac", getBytes(modelPath, TAC_ANIMATION_FILE_NAME));
+        animation.put("carryon", getBytes(modelPath, CARRY_ON_ANIMATION_FILE_NAME));
         animation.put("arrow", getBytes(modelPath, ARROW_ANIMATION_FILE_NAME));
 
         return new ModelData(modelId, isAuth, Type.FOLDER, model, texture, animation);
@@ -126,19 +122,22 @@ public final class FolderFormat {
     private static byte[] getBytes(Path root, String fileName) throws IOException {
         Path filePath = root.resolve(fileName);
         if (MAIN_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = CUSTOM.resolve("default/main.animation.json");
+            filePath = BUILTIN.resolve("default/main.animation.json");
         }
         if (ARM_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = CUSTOM.resolve("default/arm.animation.json");
+            filePath = BUILTIN.resolve("default/arm.animation.json");
         }
         if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = CUSTOM.resolve("default/extra.animation.json");
+            filePath = BUILTIN.resolve("default/extra.animation.json");
         }
         if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = CUSTOM.resolve("default/tac.animation.json");
+            filePath = BUILTIN.resolve("default/tac.animation.json");
+        }
+        if (CARRY_ON_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
+            filePath = BUILTIN.resolve("default/carryon.animation.json");
         }
         if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = CUSTOM.resolve("default/arrow.animation.json");
+            filePath = BUILTIN.resolve("default/arrow.animation.json");
         }
 
         if (INFO_FILE_NAME.equals(fileName)) {

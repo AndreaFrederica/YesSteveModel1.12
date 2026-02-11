@@ -15,19 +15,25 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class RequestServerModelInfo implements IPacketBufferMessage {
+    private List<Info> builtinModels;
     private List<Info> customModels;
     private List<Info> authModels;
 
     public RequestServerModelInfo() {
     }
 
-    public RequestServerModelInfo(List<Info> customModels, List<Info> authModels) {
+    public RequestServerModelInfo(List<Info> builtinModels, List<Info> customModels, List<Info> authModels) {
+        this.builtinModels = builtinModels;
         this.customModels = customModels;
         this.authModels = authModels;
     }
 
     @Override
     public void toBytes(PacketBuffer buf) {
+        buf.writeVarInt(this.builtinModels.size());
+        for (Info info : this.builtinModels) {
+            infoToBuffer(buf, info);
+        }
         buf.writeVarInt(this.customModels.size());
         for (Info info : this.customModels) {
             infoToBuffer(buf, info);
@@ -40,6 +46,11 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
 
     @Override
     public void fromBytes(PacketBuffer buf) {
+        this.builtinModels = Lists.newArrayList();
+        int builtinSize = buf.readVarInt();
+        for (int i = 0; i < builtinSize; i++) {
+            this.builtinModels.add(bufferToInfo(buf));
+        }
         this.customModels = Lists.newArrayList();
         int customSize = buf.readVarInt();
         for (int i = 0; i < customSize; i++) {

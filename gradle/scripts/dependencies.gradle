@@ -14,6 +14,10 @@ repositories {
         name 'Modrinth'
         url 'https://api.modrinth.com/maven'
     }
+    maven {
+        name 'BlameJared'
+        url 'https://maven.blamejared.com'
+    }
     mavenLocal() // Must be last for caching to work
 }
 
@@ -80,4 +84,7 @@ dependencies {
 
     // 游泳
     compileOnly rfg.deobf('curse.maven:aqua-acrobatics-321792:5225456')
+
+    // Carry On
+    compileOnly rfg.deobf('tschipp.carryon:carryon-1.12.2:1.12.7.23')
 }

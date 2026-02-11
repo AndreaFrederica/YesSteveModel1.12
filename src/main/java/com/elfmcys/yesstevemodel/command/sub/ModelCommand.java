@@ -132,6 +132,7 @@ public class ModelCommand extends CommandBase {
 
     private void reloadAllPack(MinecraftServer server, ICommandSender sender) {
         StopWatch watch = StopWatch.createStarted();
+        this.checkModelFiles(sender, BUILTIN);
         this.checkModelFiles(sender, CUSTOM);
         this.checkModelFiles(sender, AUTH);
         ServerModelManager.reloadPacks();
@@ -186,13 +187,12 @@ public class ModelCommand extends CommandBase {
                     }
                 }
             }
-            if (noMainModelFile) {
+            if (noMainModelFile) 
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_main_file", dirName));
-            } else if (noArmModelFile) {
+            if (noArmModelFile)
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_arm_file", dirName));
-            } else if (noTextureFile) {
+            if (noTextureFile)
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_texture_file", dirName));
-            }
         }
     }
 

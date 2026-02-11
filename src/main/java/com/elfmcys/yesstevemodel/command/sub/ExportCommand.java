@@ -46,6 +46,18 @@ public class ExportCommand extends CommandBase {
     }
 
     private void exportModel(ICommandSender sender, String modelName) {
+        File builtinFolder = ServerModelManager.BUILTIN.resolve(modelName).toFile();
+        if (builtinFolder.isDirectory()) {
+            try {
+                YesModelUtils.export(builtinFolder);
+                notifyCommandListener(sender, this, "commands.yes_steve_model.export.success",
+                        YesSteveModel.MOD_ID, modelName);
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         File customFolder = ServerModelManager.CUSTOM.resolve(modelName).toFile();
         if (customFolder.isDirectory()) {
             try {

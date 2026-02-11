@@ -16,6 +16,8 @@ public class ExtraInfo implements Serializable {
     private String[] authors = null;
     @SerializedName("license")
     private String license = "All Rights Reserved";
+    @SerializedName("free")
+    private boolean free = false;
 
     public String getName() {
         return this.name;
@@ -55,5 +57,13 @@ public class ExtraInfo implements Serializable {
 
     public void setLicense(String license) {
         this.license = license;
+    }
+
+    public boolean getFree() {
+        return this.free;
+    }
+
+    public void setFree(boolean free) {
+        this.free = free;
     }
 }

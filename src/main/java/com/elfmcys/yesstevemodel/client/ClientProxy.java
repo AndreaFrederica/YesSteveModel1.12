@@ -32,6 +32,7 @@ public class ClientProxy extends CommonProxy {
         super.preInit(event);
         MinecraftForge.EVENT_BUS.register(new ConfigSyncEvent());
 
+        CarryOnCompat.init();
         CrossbowCompat.init();
         ElytraCompat.init();
         SpyglassCompat.init();

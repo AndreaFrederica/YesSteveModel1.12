@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -45,14 +46,24 @@ public class ManageCommand extends CommandBase {
     private void exportModel(ICommandSender sender) throws CommandException {
         if (sender.canUseCommand(4, this.getName())) {
             EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+            List<RequestServerModelInfo.Info> builtinInfo = getFilesInfo(ServerModelManager.BUILTIN);
             List<RequestServerModelInfo.Info> customInfo = getFilesInfo(ServerModelManager.CUSTOM);
             List<RequestServerModelInfo.Info> authInfo = getFilesInfo(ServerModelManager.AUTH);
-            NetworkHandler.sendToClientPlayer(new RequestServerModelInfo(customInfo, authInfo), player);
+            NetworkHandler.sendToClientPlayer(new RequestServerModelInfo(builtinInfo, customInfo, authInfo), player);
         }
     }
 
     public static List<RequestServerModelInfo.Info> getFilesInfo(Path rootPath) {
         List<RequestServerModelInfo.Info> out = Lists.newArrayList();
+        File folder = rootPath.toFile();
+        if (!folder.isDirectory()) {
+            try {
+                Files.createDirectories(folder.toPath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return out;
+        }
         File[] dirs = rootPath.toFile().listFiles();
         if (dirs != null) {
             for (File dir : dirs) {
