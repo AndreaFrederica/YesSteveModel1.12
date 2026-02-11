@@ -3,8 +3,12 @@ package com.elfmcys.yesstevemodel.client.gui;
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nonnull;
@@ -63,6 +67,16 @@ public class Screen extends GuiScreen {
     protected void mouseScrolled(int mouseX, int mouseY, int delta) {
     }
 
+    @Override
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (this.canGuiClose(keyCode)) super.keyTyped(typedChar, Keyboard.KEY_ESCAPE);
+        else if (keyCode != Keyboard.KEY_ESCAPE) super.keyTyped(typedChar, keyCode); // 保留兼容
+    }
+
+    protected boolean canGuiClose(int keyCode) {
+        return keyCode == Keyboard.KEY_ESCAPE;
+    }
+
     /**
      * 清除 {@link #buttonList} 并发起 Forge 事件，供 Gui 自己调用。其实就是把 {@link #initGui()} 包装了一下。
      */
@@ -111,5 +125,12 @@ public class Screen extends GuiScreen {
             lineList.addAll(this.fontRenderer.listFormattedStringToWidth(para, wrapWidth));
         }
         return lineList;
+    }
+
+    /**
+     * {@link KeyBinding#isActiveAndMatches(int)}，但是不检测 {@link KeyConflictContext#isActive()}。
+     */
+    public static boolean isKeyActiveIgnoreConflict(KeyBinding keyBinding, int keyCode) {
+        return keyCode != 0 && keyCode == keyBinding.getKeyCode() && keyBinding.getKeyModifier().equals(KeyModifier.getActiveModifier());
     }
 }

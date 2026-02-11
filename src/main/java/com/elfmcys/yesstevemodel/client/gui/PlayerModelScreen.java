@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 import com.elfmcys.yesstevemodel.Tags;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
+import com.elfmcys.yesstevemodel.client.input.PlayerModelScreenKey;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
@@ -292,10 +293,15 @@ public class PlayerModelScreen extends Screen {
         return false;
     }
 
+    @Override
+    protected boolean canGuiClose(int keyCode) {
+        return super.canGuiClose(keyCode) || isKeyActiveIgnoreConflict(PlayerModelScreenKey.PLAYER_MODEL_KEY, keyCode);
+    }
+
+    /**
+     * 不同页面类别
+     */
     private enum Category {
-        /**
-         * 不同页面类别
-         */
         ALL, AUTH, STAR
     }
 }

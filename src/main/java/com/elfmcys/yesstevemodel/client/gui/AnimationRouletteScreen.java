@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
+import com.elfmcys.yesstevemodel.client.input.AnimationRouletteKey;
 import com.elfmcys.yesstevemodel.client.input.ExtraAnimationKey;
 import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
@@ -71,6 +72,11 @@ public class AnimationRouletteScreen extends Screen {
     @Override
     public boolean doesGuiPauseGame() {
         return false;
+    }
+
+    @Override
+    protected boolean canGuiClose(int keyCode) {
+        return super.canGuiClose(keyCode) || isKeyActiveIgnoreConflict(AnimationRouletteKey.ANIMATION_ROULETTE_KEY, keyCode);
     }
 
     private void drawRouletteText() {

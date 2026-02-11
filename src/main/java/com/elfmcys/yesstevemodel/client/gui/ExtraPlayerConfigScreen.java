@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.client.input.ExtraPlayerConfigKey;
 import com.elfmcys.yesstevemodel.config.Config;
 import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
@@ -136,5 +137,10 @@ public class ExtraPlayerConfigScreen extends Screen {
         ExtraPlayerScreenConfig.PLAYER_YAW_OFFSET = this.yawOffset;
         Config.save();
         super.onResize(mc, width, height);
+    }
+
+    @Override
+    protected boolean canGuiClose(int keyCode) {
+        return super.canGuiClose(keyCode) || isKeyActiveIgnoreConflict(ExtraPlayerConfigKey.EXTRA_PLAYER_RENDER_KEY, keyCode);
     }
 }
