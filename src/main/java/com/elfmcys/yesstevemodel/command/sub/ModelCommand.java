@@ -187,7 +187,7 @@ public class ModelCommand extends CommandBase {
                     }
                 }
             }
-            if (noMainModelFile) 
+            if (noMainModelFile)
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_main_file", dirName));
             if (noArmModelFile)
                 sender.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.reload.error.no_arm_file", dirName));
