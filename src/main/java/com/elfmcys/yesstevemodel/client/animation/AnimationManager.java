@@ -183,7 +183,8 @@ public final class AnimationManager {
         }
         if (player.isSwingInProgress && !player.isPlayerSleeping()) {
             if (player.swingProgressInt == 0) {
-                event.getController().markNeedsReload();
+                event.getController().shouldResetTick = true;
+                event.getController().adjustTick(0);
             }
             if (player.swingingHand == EnumHand.MAIN_HAND) {
                 ResourceLocation id = event.getAnimatable().getAnimation();
@@ -191,7 +192,7 @@ public final class AnimationManager {
                 if (conditionalSwing != null) {
                     String name = conditionalSwing.doTest(player, EnumHand.MAIN_HAND);
                     if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                     }
                 }
             } else {
@@ -200,13 +201,13 @@ public final class AnimationManager {
                 if (conditionalSwing != null) {
                     String name = conditionalSwing.doTest(player, EnumHand.OFF_HAND);
                     if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                     }
                 }
             }
-            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
         }
-        return event.getController().getAnimationState() == com.elfmcys.yesstevemodel.geckolib3.core.AnimationState.STOPPED ? PlayState.STOP : PlayState.CONTINUE;
+        return PlayState.STOP;
     }
 
     @Nonnull
