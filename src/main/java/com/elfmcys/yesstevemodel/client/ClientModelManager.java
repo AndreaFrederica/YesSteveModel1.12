@@ -51,7 +51,7 @@ import java.util.Map;
 public class ClientModelManager {
     public static Map<ResourceLocation, List<ResourceLocation>> MODELS = Maps.newHashMap();
     public static Map<ResourceLocation, Pair<Double, Double>> SCALE_INFO = Maps.newHashMap();
-    public static Map<ResourceLocation, List<String>> META_DATA = Maps.newHashMap();
+    public static Map<ResourceLocation, List<String>> METADATA = Maps.newHashMap();
     public static Map<ResourceLocation, ExtraInfo> EXTRA_INFO = Maps.newHashMap();
     public static AnimationFile DEFAULT_ANIMATION_FILE = new AnimationFile();
     public static List<String> CACHE_MD5 = Lists.newArrayList();
@@ -200,7 +200,7 @@ public class ClientModelManager {
         CACHE_MD5.clear();
         AUTH_MODELS.clear();
         SCALE_INFO.clear();
-        META_DATA.clear();
+        METADATA.clear();
         EXTRA_INFO.clear();
         ConditionManager.clear();
         String[] md5Info = getMd5Info();
@@ -236,7 +236,7 @@ public class ClientModelManager {
         if (extraInfo == null) return;
         ResourceLocation infoId = ModelIdUtil.getInfoId(modelId);
         EXTRA_INFO.put(infoId, extraInfo);
-        META_DATA.put(infoId, readMetaData(extraInfo));
+        METADATA.put(infoId, readMetaData(extraInfo));
         if (extraInfo.getFree()) {
             AUTH_MODELS.remove(modelId.getPath());
         }

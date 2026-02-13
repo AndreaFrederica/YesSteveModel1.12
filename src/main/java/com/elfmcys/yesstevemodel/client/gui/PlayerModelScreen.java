@@ -185,9 +185,9 @@ public class PlayerModelScreen extends Screen {
             int yStart = this.y + 28 + 93 * (i / 5);
             CapabilityEvent.getAuthModelsCap(this.player).ifPresent(cap -> {
                 if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
-                    this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.META_DATA.get(ModelIdUtil.getInfoId(id)), this.player));
+                    this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.METADATA.get(ModelIdUtil.getInfoId(id)), this.player));
                 } else {
-                    this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.META_DATA.get(ModelIdUtil.getInfoId(id)), this.player));
+                    this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.METADATA.get(ModelIdUtil.getInfoId(id)), this.player));
                 }
             });
         }
