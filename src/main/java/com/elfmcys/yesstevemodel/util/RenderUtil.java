@@ -83,12 +83,6 @@ public final class RenderUtil {
                 player.rotationPitch = 0;
                 player.rotationYawHead = player.rotationYaw;
                 player.prevRotationYawHead = player.rotationYaw;
-                if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
-                    float vehicleYRot = vehicle.rotationYaw;
-                    GlStateManager.rotate(vehicleYRot + yaw, 0, 1, 0);
-                    player.rotationYawHead = vehicleYRot;
-                    player.prevRotationYawHead = vehicleYRot;
-                }
                 boolean sleeping = player.sleeping;
                 BlockPos bedLocation = player.bedLocation;
                 float renderOffsetX = player.renderOffsetX;
@@ -126,7 +120,15 @@ public final class RenderUtil {
                 if (entity.hasPreviewAnimation("boat")) {
                     GlStateManager.translate(0, -0.45, 0);
                 }
+                GlStateManager.pushMatrix();
+                if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
+                    float vehicleYRot = vehicle.rotationYaw;
+                    GlStateManager.rotate(vehicleYRot + yaw, 0, 1, 0);
+                    player.rotationYawHead = vehicleYRot;
+                    player.prevRotationYawHead = vehicleYRot;
+                }
                 renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+                GlStateManager.popMatrix();
                 // 清理实体渲染
                 GlStateManager.enableRescaleNormal();
                 GlStateManager.enableColorMaterial();
@@ -330,18 +332,20 @@ public final class RenderUtil {
         player.prevRotationPitch = 0.0F;
         player.rotationYawHead = player.rotationYaw;
         player.prevRotationYawHead = player.rotationYaw;
+
+        RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
+        xp = 180.0F - xp;
+        dispatcher.setPlayerViewY(xp);
+        dispatcher.setRenderShadow(false);
+        GlStateManager.pushMatrix();
         if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
             float vehicleYRot = vehicle.rotationYaw;
             GlStateManager.rotate(vehicleYRot - renderYRot, 0, 1, 0);
             player.rotationYawHead = vehicleYRot;
             player.prevRotationYawHead = vehicleYRot;
         }
-
-        RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
-        xp = 180.0F - xp;
-        dispatcher.setPlayerViewY(xp);
-        dispatcher.setRenderShadow(false);
         renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+        GlStateManager.popMatrix();
         dispatcher.setRenderShadow(true);
 
         player.renderYawOffset = yBodyRot;
