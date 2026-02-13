@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.config.util;
 
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -79,7 +79,7 @@ public class ConfigBuilder {
      * @param langKeyPrefix 不需要加“.”。
      */
     public void setLangKeyPrefix(@Nullable String langKeyPrefix) {
-        this.langKeyPrefix = StringUtils.isNullOrEmpty(langKeyPrefix) ? "" : this.formatLangKey(langKeyPrefix);
+        this.langKeyPrefix = StringUtils.isBlank(langKeyPrefix) ? "" : this.formatLangKey(langKeyPrefix);
     }
 
     public void pushLangKey(String langKey) {
@@ -175,7 +175,7 @@ public class ConfigBuilder {
      */
     public Property getProp(String name, String currentValue, @Nullable String comment, @Nullable String langKey) {
         Property prop = this.config.get(this.getCurrentCategoryForValue(), name, this.checkDefault(name, currentValue), comment);
-        if (!StringUtils.isNullOrEmpty(langKey)) prop.setLanguageKey(langKey);
+        if (StringUtils.isNoneBlank(langKey)) prop.setLanguageKey(langKey);
         if (this.writeProp) prop.set(currentValue);
         return prop;
     }
@@ -203,7 +203,7 @@ public class ConfigBuilder {
      */
     public Property getProp(String name, String[] currentValues, @Nullable String comment, @Nullable String langKey) {
         Property prop = this.config.get(this.getCurrentCategoryForValue(), name, this.checkDefault(name, currentValues), comment);
-        if (!StringUtils.isNullOrEmpty(langKey)) prop.setLanguageKey(langKey);
+        if (StringUtils.isNoneBlank(langKey)) prop.setLanguageKey(langKey);
         if (this.writeProp) prop.set(currentValues);
         return prop;
     }
@@ -231,7 +231,7 @@ public class ConfigBuilder {
      */
     public Property getProp(String name, boolean currentValue, @Nullable String comment, @Nullable String langKey) {
         Property prop = this.config.get(this.getCurrentCategoryForValue(), name, this.checkDefault(name, currentValue), comment);
-        if (!StringUtils.isNullOrEmpty(langKey)) prop.setLanguageKey(langKey);
+        if (StringUtils.isNoneBlank(langKey)) prop.setLanguageKey(langKey);
         if (this.writeProp) prop.set(currentValue);
         return prop;
     }
@@ -259,7 +259,7 @@ public class ConfigBuilder {
      */
     public Property getProp(String name, int currentValue, @Nullable String comment, @Nullable String langKey) {
         Property prop = this.config.get(this.getCurrentCategoryForValue(), name, this.checkDefault(name, currentValue), comment);
-        if (!StringUtils.isNullOrEmpty(langKey)) prop.setLanguageKey(langKey);
+        if (StringUtils.isNoneBlank(langKey)) prop.setLanguageKey(langKey);
         if (this.writeProp) prop.set(currentValue);
         return prop;
     }
@@ -287,7 +287,7 @@ public class ConfigBuilder {
      */
     public Property getProp(String name, double currentValue, @Nullable String comment, @Nullable String langKey) {
         Property prop = this.config.get(this.getCurrentCategoryForValue(), name, this.checkDefault(name, currentValue), comment);
-        if (!StringUtils.isNullOrEmpty(langKey)) prop.setLanguageKey(langKey);
+        if (StringUtils.isNoneBlank(langKey)) prop.setLanguageKey(langKey);
         if (this.writeProp) prop.set(currentValue);
         return prop;
     }

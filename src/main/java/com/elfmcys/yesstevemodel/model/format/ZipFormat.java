@@ -28,6 +28,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
+import static com.elfmcys.yesstevemodel.model.format.FormatManager.*;
 
 public final class ZipFormat {
     public static void cacheAllModels(Path rootPath) {
@@ -75,17 +76,24 @@ public final class ZipFormat {
 
     @Nonnull
     private static ModelData getModelData(ZipFile zipFile, String modelId, boolean isAuth) throws IOException {
-        Map<String, byte[]> model = Maps.newHashMap();
-        if (zipFile.getEntry(INFO_FILE_NAME) != null) {
-            model.put("info", getBytes(zipFile, INFO_FILE_NAME));
-        }
-        model.put("main", getBytes(zipFile, MAIN_MODEL_FILE_NAME));
-        model.put("arm", getBytes(zipFile, ARM_MODEL_FILE_NAME));
-        if (zipFile.getEntry(ARROW_MODEL_FILE_NAME) != null) {
-            model.put("arrow", getBytes(zipFile, ARROW_MODEL_FILE_NAME));
+        final Map<String, byte[]> model = Maps.newHashMap();
+        byte[] infoByte = getBytes(zipFile, INFO_FILE_NAME);
+        if (infoByte.length != 0) {
+            final String infoJson = new String(infoByte, StandardCharsets.UTF_8);
+            final ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
+            model.put(INFO_NAME, ObjectStreamUtil.toByteArray(info));
         }
 
-        Map<String, byte[]> texture = Maps.newHashMap();
+        for (String modelName : MODEL_NAMES) {
+            byte[] modelByte = getBytes(zipFile, getModelFileName(modelName));
+            if (isModelNameNecessary(modelName) || modelByte.length != 0) {
+                final String modelJson = new String(modelByte, StandardCharsets.UTF_8);
+                final RawGeoModel rawModel = Converter.fromJsonString(modelJson);
+                model.put(modelName, ObjectStreamUtil.toByteArray(rawModel));
+            }
+        }
+
+        final Map<String, byte[]> texture = Maps.newHashMap();
         zipFile.stream().forEach(zipEntry -> {
             if (zipEntry.getName().endsWith(".png")) {
                 try {
@@ -96,57 +104,24 @@ public final class ZipFormat {
             }
         });
 
-        Map<String, byte[]> animation = Maps.newHashMap();
-        animation.put("main", getBytes(zipFile, MAIN_ANIMATION_FILE_NAME));
-        animation.put("arm", getBytes(zipFile, ARM_ANIMATION_FILE_NAME));
-        animation.put("extra", getBytes(zipFile, EXTRA_ANIMATION_FILE_NAME));
-        animation.put("tac", getBytes(zipFile, TAC_ANIMATION_FILE_NAME));
-        animation.put("carryon", getBytes(zipFile, CARRY_ON_ANIMATION_FILE_NAME));
-        animation.put("arrow", getBytes(zipFile, ARROW_ANIMATION_FILE_NAME));
+        final Map<String, byte[]> animation = Maps.newHashMap();
+        for (String animName : ANIMATION_NAMES) {
+            byte[] animByte = getBytes(zipFile, getAnimFileName(animName));
+            if (animByte.length == 0) {
+                animByte = FileUtils.readFileToByteArray(getDefaultAnimFile(animName));
+            }
+            animation.put(animName, animByte);
+        }
 
         return new ModelData(modelId, isAuth, Type.ZIP, model, texture, animation);
     }
 
+    @Nonnull
     private static byte[] getBytes(ZipFile zipFile, String fileName) throws IOException {
-        if (MAIN_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(MAIN_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/main.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-        if (ARM_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(ARM_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/arm.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-        if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(EXTRA_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/extra.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-        if (TAC_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(TAC_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/tac.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-        if (CARRY_ON_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(CARRY_ON_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/carryon.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-        if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && zipFile.getEntry(ARROW_ANIMATION_FILE_NAME) == null) {
-            Path filePath = BUILTIN.resolve("default/arrow.animation.json");
-            return FileUtils.readFileToByteArray(filePath.toFile());
-        }
-
-        ZipEntry entry = zipFile.getEntry(fileName);
-        try (InputStream stream = zipFile.getInputStream(entry)) {
-            byte[] bytes = InputStreamUtils.toBytes(stream);
-            if (INFO_FILE_NAME.equals(fileName)) {
-                String infoJson = new String(bytes, StandardCharsets.UTF_8);
-                ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
-                return ObjectStreamUtil.toByteArray(info);
-            }
-            if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
-                String modelJson = new String(bytes, StandardCharsets.UTF_8);
-                RawGeoModel rawModel = Converter.fromJsonString(modelJson);
-                return ObjectStreamUtil.toByteArray(rawModel);
-            }
-            return bytes;
+        ZipEntry fileEntry = zipFile.getEntry(fileName);
+        if (fileEntry == null) return new byte[0];
+        try (InputStream stream = zipFile.getInputStream(fileEntry)) {
+            return InputStreamUtils.toBytes(stream);
         }
     }
 

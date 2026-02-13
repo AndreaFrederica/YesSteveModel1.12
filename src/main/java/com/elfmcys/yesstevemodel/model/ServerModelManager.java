@@ -64,20 +64,6 @@ public final class ServerModelManager {
      */
     public static final Set<String> AUTH_MODELS = Sets.newHashSet();
 
-    /**
-     * 特定文件名
-     */
-    public static final String INFO_FILE_NAME = "info.json";
-    public static final String MAIN_MODEL_FILE_NAME = "main.json";
-    public static final String ARM_MODEL_FILE_NAME = "arm.json";
-    public static final String ARROW_MODEL_FILE_NAME = "arrow.json";
-    public static final String MAIN_ANIMATION_FILE_NAME = "main.animation.json";
-    public static final String ARM_ANIMATION_FILE_NAME = "arm.animation.json";
-    public static final String EXTRA_ANIMATION_FILE_NAME = "extra.animation.json";
-    public static final String TAC_ANIMATION_FILE_NAME = "tac.animation.json";
-    public static final String CARRY_ON_ANIMATION_FILE_NAME = "carryon.animation.json";
-    public static final String ARROW_ANIMATION_FILE_NAME = "arrow.animation.json";
-
     public static void sendRequestSyncModelMessage(PlayerList playerList) {
         for (EntityPlayerMP player : playerList.getPlayers()) {
             NetworkHandler.sendToClientPlayer(new RequestSyncModel(), player);
@@ -116,6 +102,7 @@ public final class ServerModelManager {
     // 入口方法，此处开始序列化模型
     private static void cacheAllModels(Path rootPath) {
         YsmFormat.cacheAllModels(rootPath);
+//        SevenZFormat.cacheAllModels(rootPath);
         ZipFormat.cacheAllModels(rootPath);
         FolderFormat.cacheAllModels(rootPath);
     }
@@ -155,13 +142,5 @@ public final class ServerModelManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static String removeExtension(String fileName) {
-        int lastIndex = fileName.lastIndexOf('.');
-        if (lastIndex != -1) {
-            fileName = fileName.substring(0, lastIndex);
-        }
-        return fileName;
     }
 }

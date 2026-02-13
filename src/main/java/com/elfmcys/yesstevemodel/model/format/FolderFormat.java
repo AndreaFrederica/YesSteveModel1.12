@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
+import static com.elfmcys.yesstevemodel.model.format.FormatManager.*;
 
 public final class FolderFormat {
     public static void cacheAllModels(Path rootPath) {
@@ -89,69 +90,44 @@ public final class FolderFormat {
 
     @Nonnull
     public static ModelData getModelData(Path rootPath, String modelId, boolean isAuth) throws IOException {
-        Path modelPath = rootPath.resolve(modelId);
+        final Path modelPath = rootPath.resolve(modelId);
 
-        Map<String, byte[]> model = Maps.newHashMap();
-        if (modelPath.resolve(INFO_FILE_NAME).toFile().isFile()) {
-            model.put("info", getBytes(modelPath, INFO_FILE_NAME));
-        }
-        model.put("main", getBytes(modelPath, MAIN_MODEL_FILE_NAME));
-        model.put("arm", getBytes(modelPath, ARM_MODEL_FILE_NAME));
-        if (modelPath.resolve(ARROW_MODEL_FILE_NAME).toFile().isFile()) {
-            model.put("arrow", getBytes(modelPath, ARROW_MODEL_FILE_NAME));
+        final Map<String, byte[]> model = Maps.newHashMap();
+        File infoFile = modelPath.resolve(INFO_FILE_NAME).toFile();
+        if (infoFile.isFile()) {
+            final String infoJson = FileUtils.readFileToString(infoFile, StandardCharsets.UTF_8);
+            final ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
+            model.put(INFO_NAME, ObjectStreamUtil.toByteArray(info));
         }
 
-        Map<String, byte[]> texture = Maps.newHashMap();
-        Collection<File> textures = FileUtils.listFiles(modelPath.toFile(), new String[]{"png"}, false);
-        for (File png : textures) {
-            String fileName = png.getName();
-            texture.put(fileName, getBytes(modelPath, fileName));
+        for (String modelName : MODEL_NAMES) {
+            File modelFile = modelPath.resolve(getModelFileName(modelName)).toFile();
+            if (isModelNameNecessary(modelName) || modelFile.isFile()) {
+                final String modelJson = FileUtils.readFileToString(modelFile, StandardCharsets.UTF_8);
+                final RawGeoModel rawModel = Converter.fromJsonString(modelJson);
+                model.put(modelName, ObjectStreamUtil.toByteArray(rawModel));
+            }
         }
 
-        Map<String, byte[]> animation = Maps.newHashMap();
-        animation.put("main", getBytes(modelPath, MAIN_ANIMATION_FILE_NAME));
-        animation.put("arm", getBytes(modelPath, ARM_ANIMATION_FILE_NAME));
-        animation.put("extra", getBytes(modelPath, EXTRA_ANIMATION_FILE_NAME));
-        animation.put("tac", getBytes(modelPath, TAC_ANIMATION_FILE_NAME));
-        animation.put("carryon", getBytes(modelPath, CARRY_ON_ANIMATION_FILE_NAME));
-        animation.put("arrow", getBytes(modelPath, ARROW_ANIMATION_FILE_NAME));
+        final Map<String, byte[]> texture = Maps.newHashMap();
+        FileUtils.listFiles(modelPath.toFile(), new String[]{"png"}, false).forEach(png -> {
+            try {
+                texture.put(png.getName(), FileUtils.readFileToByteArray(png));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        final Map<String, byte[]> animation = Maps.newHashMap();
+        for (String animName : ANIMATION_NAMES) {
+            File animFile = modelPath.resolve(getAnimFileName(animName)).toFile();
+            if (!animFile.isFile()) {
+                animFile = getDefaultAnimFile(animName);
+            }
+            animation.put(animName, FileUtils.readFileToByteArray(animFile));
+        }
 
         return new ModelData(modelId, isAuth, Type.FOLDER, model, texture, animation);
-    }
-
-    private static byte[] getBytes(Path root, String fileName) throws IOException {
-        Path filePath = root.resolve(fileName);
-        if (MAIN_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/main.animation.json");
-        }
-        if (ARM_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/arm.animation.json");
-        }
-        if (EXTRA_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/extra.animation.json");
-        }
-        if (TAC_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/tac.animation.json");
-        }
-        if (CARRY_ON_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/carryon.animation.json");
-        }
-        if (ARROW_ANIMATION_FILE_NAME.equals(fileName) && !filePath.toFile().isFile()) {
-            filePath = BUILTIN.resolve("default/arrow.animation.json");
-        }
-
-        if (INFO_FILE_NAME.equals(fileName)) {
-            String infoJson = FileUtils.readFileToString(filePath.toFile(), StandardCharsets.UTF_8);
-            ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
-            return ObjectStreamUtil.toByteArray(info);
-        }
-        if (MAIN_MODEL_FILE_NAME.equals(fileName) || ARM_MODEL_FILE_NAME.equals(fileName) || ARROW_MODEL_FILE_NAME.equals(fileName)) {
-            String modelJson = FileUtils.readFileToString(filePath.toFile(), StandardCharsets.UTF_8);
-            RawGeoModel rawModel = Converter.fromJsonString(modelJson);
-            return ObjectStreamUtil.toByteArray(rawModel);
-        }
-
-        return FileUtils.readFileToByteArray(filePath.toFile());
     }
 
     private static boolean isNotBlankFile(File file) {

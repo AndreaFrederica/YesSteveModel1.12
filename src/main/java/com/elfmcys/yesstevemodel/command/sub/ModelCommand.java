@@ -5,6 +5,7 @@ import com.elfmcys.yesstevemodel.command.argument.ModelsArgument;
 import com.elfmcys.yesstevemodel.command.argument.TexturesArgument;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
+import com.elfmcys.yesstevemodel.model.format.FormatManager;
 import com.elfmcys.yesstevemodel.model.format.ServerModelInfo;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
@@ -38,8 +39,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
 
 public class ModelCommand extends CommandBase {
     public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().excludeFieldsWithoutExposeAnnotation().create();
@@ -132,9 +131,9 @@ public class ModelCommand extends CommandBase {
 
     private void reloadAllPack(MinecraftServer server, ICommandSender sender) {
         StopWatch watch = StopWatch.createStarted();
-        this.checkModelFiles(sender, BUILTIN);
-        this.checkModelFiles(sender, CUSTOM);
-        this.checkModelFiles(sender, AUTH);
+        this.checkModelFiles(sender, ServerModelManager.BUILTIN);
+        this.checkModelFiles(sender, ServerModelManager.CUSTOM);
+        this.checkModelFiles(sender, ServerModelManager.AUTH);
         ServerModelManager.reloadPacks();
         if (FMLCommonHandler.instance().getSide().isClient()) {
             ServerModelManager.sendRequestSyncModelMessage();
@@ -175,8 +174,8 @@ public class ModelCommand extends CommandBase {
             Collection<File> files = FileUtils.listFiles(rootPath.resolve(dirName).toFile(), FileFileFilter.FILE, null);
             for (File file : files) {
                 String fileName = file.getName();
-                if (MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noMainModelFile = false;
-                if (ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noArmModelFile = false;
+                if (FormatManager.MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noMainModelFile = false;
+                if (FormatManager.ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noArmModelFile = false;
                 if (fileName.endsWith(".png")) {
                     noTextureFile = false;
                     String name = file.getName();

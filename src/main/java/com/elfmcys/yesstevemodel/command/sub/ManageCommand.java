@@ -79,6 +79,11 @@ public class ManageCommand extends CommandBase {
             RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(zipFile.getName(), Type.ZIP, FileUtils.sizeOf(zipFile));
             out.add(info);
         }
+//        Collection<File> sevenZFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"7z"}, false);
+//        for (File sevenZFile : sevenZFiles) {
+//            RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(sevenZFile.getName(), Type.SEVEN_Z, FileUtils.sizeOf(sevenZFile));
+//            out.add(info);
+//        }
         Collection<File> ysmFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"ysm"}, false);
         for (File ysmFile : ysmFiles) {
             RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(ysmFile.getName(), Type.YSM, FileUtils.sizeOf(ysmFile));
