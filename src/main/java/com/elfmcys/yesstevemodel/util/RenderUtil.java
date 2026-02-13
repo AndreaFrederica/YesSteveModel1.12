@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityPig;
@@ -82,6 +83,12 @@ public final class RenderUtil {
                 player.rotationPitch = 0;
                 player.rotationYawHead = player.rotationYaw;
                 player.prevRotationYawHead = player.rotationYaw;
+                if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
+                    float vehicleYRot = vehicle.rotationYaw;
+                    GlStateManager.rotate(vehicleYRot + yaw, 0, 1, 0);
+                    player.rotationYawHead = vehicleYRot;
+                    player.prevRotationYawHead = vehicleYRot;
+                }
                 boolean sleeping = player.sleeping;
                 BlockPos bedLocation = player.bedLocation;
                 float renderOffsetX = player.renderOffsetX;
@@ -243,7 +250,7 @@ public final class RenderUtil {
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer) {
+    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId, Consumer<CustomPlayerEntity> consumer, boolean disableRot) {
         if (player == null) {
             return;
         }
@@ -252,25 +259,30 @@ public final class RenderUtil {
             IAnimatable animatable = AnimatableCacheUtil.ANIMATABLE_CACHE.get(modelId, CustomPlayerEntity::new);
             if (animatable instanceof CustomPlayerEntity entity) {
                 consumer.accept(entity);
-                renderModel(pPosX, pPosY, (float) pScale, player, modelId, textureId, renderer, entity);
+                renderModel(pPosX, pPosY, (float) pScale, player, modelId, textureId, renderer, entity, disableRot);
             }
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
     }
 
-    public static void renderEntityInInventory(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId) {
+    /**
+     * {@link com.elfmcys.yesstevemodel.client.gui.button.TextureButton#renderWidget(Minecraft, int, int, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    public static void renderTextureButtonEntity(int pPosX, int pPosY, int pScale, EntityPlayer player, ResourceLocation modelId, ResourceLocation textureId) {
         renderEntityInInventory(pPosX, pPosY, pScale, player, modelId, textureId, entity -> {
             if (entity.hasPreviewAnimation()) {
                 entity.clearPreviewAnimation();
             }
-        });
+        }, false);
     }
 
     private static void renderModel(
             double pPosX, double pPosY, float pScale, EntityPlayer player,
             ResourceLocation modelId, ResourceLocation textureId,
-            GeoReplacedEntityRenderer<CustomPlayerEntity> renderer, CustomPlayerEntity entity
+            GeoReplacedEntityRenderer<CustomPlayerEntity> renderer, CustomPlayerEntity entity,
+            boolean disableRot
     ) {
         entity.setMainModel(ModelIdUtil.getMainId(modelId));
         entity.setTexture(textureId);
@@ -279,18 +291,21 @@ public final class RenderUtil {
         GlStateManager.translate((float) pPosX, (float) pPosY, 1050.0F);
         GlStateManager.scale(1.0F, 1.0F, -1.0F);
 
-        GlStateManager.translate(0.0D, 0.0D, 1000.0D);
+        GlStateManager.translate(0.0D, disableRot ? 5.5D : 0.0D, 1000.0D);
         GlStateManager.scale(pScale, pScale, pScale);
         GlStateManager.rotate(180.0F, 0, 0, 1);
         rotateAndEnableLighting();
-        float xp = -10;
+        float xp = disableRot ? 0.0F : -10.0F;
         GlStateManager.rotate(xp, 1, 0, 0);
 
         float yBodyRot = player.renderYawOffset;
+        float yBodyRotO = player.prevRenderYawOffset;
         float yRot = player.rotationYaw;
+        float yRotO = player.prevRotationYaw;
         float xRot = player.rotationPitch;
-        float yHeadRotO = player.prevRotationYawHead;
+        float xRotO = player.prevRotationPitch;
         float yHeadRot = player.rotationYawHead;
+        float yHeadRotO = player.prevRotationYawHead;
 
         ItemStack[] itemStacks = new ItemStack[EntityEquipmentSlot.values().length];
         int i = 0;
@@ -306,11 +321,21 @@ public final class RenderUtil {
             i++;
         }
 
-        player.renderYawOffset = 200;
-        player.rotationYaw = 180;
-        player.rotationPitch = 0;
+        float renderYRot = disableRot ? 180.0F : 200.0F;
+        player.renderYawOffset = renderYRot;
+        player.prevRenderYawOffset = renderYRot;
+        player.rotationYaw = renderYRot;
+        player.prevRotationYaw = renderYRot;
+        player.rotationPitch = 0.0F;
+        player.prevRotationPitch = 0.0F;
         player.rotationYawHead = player.rotationYaw;
         player.prevRotationYawHead = player.rotationYaw;
+        if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
+            float vehicleYRot = vehicle.rotationYaw;
+            GlStateManager.rotate(vehicleYRot - renderYRot, 0, 1, 0);
+            player.rotationYawHead = vehicleYRot;
+            player.prevRotationYawHead = vehicleYRot;
+        }
 
         RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
         xp = 180.0F - xp;
@@ -320,10 +345,13 @@ public final class RenderUtil {
         dispatcher.setRenderShadow(true);
 
         player.renderYawOffset = yBodyRot;
+        player.prevRenderYawOffset = yBodyRotO;
         player.rotationYaw = yRot;
+        player.prevRotationYaw = yRotO;
         player.rotationPitch = xRot;
-        player.prevRotationYawHead = yHeadRotO;
+        player.prevRotationPitch = xRotO;
         player.rotationYawHead = yHeadRot;
+        player.prevRotationYawHead = yHeadRotO;
 
         i = 0;
         for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {

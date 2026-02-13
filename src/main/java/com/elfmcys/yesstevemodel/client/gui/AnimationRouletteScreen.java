@@ -24,13 +24,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class AnimationRouletteScreen extends Screen {
     private int x;
     private int y;
     private int selectId = -1;
-    private String[] names;
+    private @Nullable String[] names;
 
     public AnimationRouletteScreen() {
     }
@@ -43,9 +44,7 @@ public class AnimationRouletteScreen extends Screen {
         if (this.mc != null && this.mc.player != null) {
             CapabilityEvent.getModelInfoCap(this.mc.player).ifPresent(cap -> {
                 ResourceLocation modelId = cap.getModelId();
-                if (ClientModelManager.EXTRA_ANIMATION_NAME.containsKey(ModelIdUtil.getInfoId(modelId))) {
-                    this.names = ClientModelManager.EXTRA_ANIMATION_NAME.get(ModelIdUtil.getInfoId(modelId));
-                }
+                this.names = ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(modelId)).getExtraAnimationNames();
             });
         }
     }

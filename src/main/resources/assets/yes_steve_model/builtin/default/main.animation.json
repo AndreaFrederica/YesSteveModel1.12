@@ -1,6 +1,15 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
+		"gui": {
+			"loop": true,
+			"bones": {
+				"MAllBody": {
+					"position": [0, -22, 0],
+					"scale": 2
+				}
+			}
+		},
 		"idle": {
 			"loop": true,
 			"animation_length": 3,
@@ -5264,14 +5273,14 @@
 				},
 				"MAllBody": {
 					"rotation": {
-						"0.0": ["v.elytra?-v.L6_P00", 0, 0],
-						"0.01": ["v.elytra?-v.L6_P10", 0, 0]
+						"0.0": ["v.elytra=v.elytra==null?-v.L6_P00:v.elytra", 0, 0],
+						"0.01": ["v.elytra=v.elytra==null?-v.L6_P10:v.elytra", 0, 0]
 					}
 				},
 				"AllBody": {
 					"rotation": {
-						"0.0": [0, "v.elytra?1.5*v.L6_P0-0.4*v.L4_P0", "v.elytra?0.6*v.L6_P0"],
-						"0.01": [0, "v.elytra?1.5*v.L6_P1-0.4*v.L4_P1", "v.elytra?0.6*v.L6_P1"]
+						"0.0": [0, "v.elytra=v.elytra==null?1.5*v.L6_P0-0.4*v.L4_P0:v.elytra", "v.elytra=v.elytra==null?0.6*v.L6_P0:v.elytra"],
+						"0.01": [0, "v.elytra=v.elytra==null?1.5*v.L6_P1-0.4*v.L4_P1:v.elytra", "v.elytra=v.elytra==null?0.6*v.L6_P1:v.elytra"]
 					}
 				}
 			},

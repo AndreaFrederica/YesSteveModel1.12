@@ -36,7 +36,7 @@ public class FlatColorButton extends Button {
     }
 
     @Override
-    public void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float pPartialTick) {
+    protected void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float pPartialTick) {
         FontRenderer font = mc.fontRenderer;
         if (this.isSelect) {
             this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xff_1E90FF, 0xff_1E90FF);

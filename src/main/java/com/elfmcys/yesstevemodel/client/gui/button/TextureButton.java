@@ -45,12 +45,12 @@ public class TextureButton extends Button {
     }
 
     @Override
-    public void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTick) {
         FontRenderer font = mc.fontRenderer;
 
         this.drawGradientRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xFF_434242, 0xFF_434242);
         RenderUtil.scissor(this.x, this.y, this.width, this.height - 20);
-        RenderUtil.renderEntityInInventory(this.x + this.width / 2, this.y + this.height / 2 + 24, 35, mc.player, this.modelId, this.textureId);
+        RenderUtil.renderTextureButtonEntity(this.x + this.width / 2, this.y + this.height / 2 + 24, 35, mc.player, this.modelId, this.textureId);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         List<String> split = font.listFormattedStringToWidth(this.name, 50);

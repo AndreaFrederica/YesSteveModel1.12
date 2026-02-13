@@ -45,7 +45,6 @@ public class PlayerTextureScreen extends Screen {
     private float pitch = -5;
     private boolean showGround = true;
 
-
     public PlayerTextureScreen(PlayerModelScreen parent, ResourceLocation modelId, List<ResourceLocation> textures) {
         this.parent = parent;
         this.modelId = modelId;
@@ -141,12 +140,13 @@ public class PlayerTextureScreen extends Screen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTick) {
-        //GlStateManager.translate(0, 0, -1000);
+        final float zLevel = this.zLevel;
+        this.zLevel -= 1000;
         this.drawDefaultBackground();
         this.drawGradientRect(this.x, this.y + 22, this.x + 90, this.y + 235, 0xff_222222, 0xff_222222);
         this.drawGradientRect(this.x + 93, this.y, this.x + 299, this.y + 235, 0xff_222222, 0xff_222222);
         this.drawGradientRect(this.x + 302, this.y, this.x + 420, this.y + 235, 0xff_222222, 0xff_222222);
-        //GlStateManager.translate(0, 0, 1000);
+        this.zLevel = zLevel;
 
         CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
             RenderUtil.scissor(this.x + 93, this.y, 206, 235);

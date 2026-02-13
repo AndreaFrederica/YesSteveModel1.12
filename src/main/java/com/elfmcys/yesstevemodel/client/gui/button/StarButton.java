@@ -20,7 +20,7 @@ public class StarButton extends FlatColorButton {
     }
 
     @Override
-    public void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float pPartialTick) {
+    protected void renderWidget(@Nonnull Minecraft mc, int mouseX, int mouseY, float pPartialTick) {
         super.renderWidget(mc, mouseX, mouseY, pPartialTick);
         mc.getTextureManager().bindTexture(ICON);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);

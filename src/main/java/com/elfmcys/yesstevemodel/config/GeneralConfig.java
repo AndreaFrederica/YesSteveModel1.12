@@ -11,6 +11,7 @@ public class GeneralConfig {
     public static boolean DISABLE_OTHER_MODEL = false;
     public static boolean DISABLE_SELF_HANDS = false;
     public static boolean DISABLE_ARROWS_MODEL = false;
+    public static boolean SHOW_MODEL_ID_FIRST = false;
     public static String DEFAULT_MODEL_ID = "default";
     public static String DEFAULT_MODEL_TEXTURE = "default.png";
 
@@ -51,6 +52,12 @@ public class GeneralConfig {
                 "DisableArrowsModel",
                 DISABLE_ARROWS_MODEL,
                 "Prevents rendering of arrows model"
+        );
+
+        SHOW_MODEL_ID_FIRST = builder.get(
+                "ShowModelIdFirst",
+                SHOW_MODEL_ID_FIRST,
+                "Whether to display model ID first in the model selection screen, instead of the model name filled in by the model author."
         );
 
         DEFAULT_MODEL_ID = builder.get(

@@ -51,10 +51,9 @@ import java.util.Map;
 public class ClientModelManager {
     public static Map<ResourceLocation, List<ResourceLocation>> MODELS = Maps.newHashMap();
     public static Map<ResourceLocation, Pair<Double, Double>> SCALE_INFO = Maps.newHashMap();
-    public static Map<ResourceLocation, List<String>> EXTRA_INFO = Maps.newHashMap();
-    public static Map<ResourceLocation, String[]> EXTRA_ANIMATION_NAME = Maps.newHashMap();
+    public static Map<ResourceLocation, List<String>> META_DATA = Maps.newHashMap();
+    public static Map<ResourceLocation, ExtraInfo> EXTRA_INFO = Maps.newHashMap();
     public static AnimationFile DEFAULT_ANIMATION_FILE = new AnimationFile();
-    public static AnimationFile DEFAULT_ARROW_ANIMATION_FILE = new AnimationFile();
     public static List<String> CACHE_MD5 = Lists.newArrayList();
     public static List<String> AUTH_MODELS = Lists.newArrayList();
     public static byte[] PASSWORD;
@@ -105,7 +104,7 @@ public class ClientModelManager {
     public static void registerTexture(ResourceLocation modelId, Map<String, byte[]> mapData) {
         List<ResourceLocation> textures = Lists.newArrayList();
         for (String name : mapData.keySet()) {
-            if (!name.equals(IArrowExtraInfo.TEXTURE_NAME)) {
+            if (isModelTexture(ModelIdUtil.getInfoId(modelId), name)) {
                 ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, name);
                 textures.add(textureId);
             }
@@ -115,6 +114,12 @@ public class ClientModelManager {
             ResourceLocation textureId = ModelIdUtil.getSubModelId(modelId, entry.getKey());
             registerTexture(textureId, entry.getValue());
         }
+    }
+
+    private static boolean isModelTexture(ResourceLocation infoId, String name) {
+        if (name.equals(IArrowExtraInfo.TEXTURE_NAME)) return false;
+        final ExtraInfo extraInfo = EXTRA_INFO.get(infoId);
+        return !name.equals(extraInfo.getGuiBackground()) && !name.equals(extraInfo.getGuiForeground());
     }
 
     private static void registerTexture(ResourceLocation textureId, byte[] data) {
@@ -140,6 +145,7 @@ public class ClientModelManager {
             AnimationFile other = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
             mergeAnimationFile(main, other);
         });
+        // 从默认补全缺失的动画
         DEFAULT_ANIMATION_FILE.animations().forEach((name, action) -> {
             if (!main.animations().containsKey(name)) {
                 main.putAnimation(name, action);
@@ -168,6 +174,9 @@ public class ClientModelManager {
         return animationFile;
     }
 
+    /**
+     * @return main animation
+     */
     private static AnimationFile mergeAnimationFile(AnimationFile main, AnimationFile other) {
         other.animations().forEach(main::putAnimation);
         return main;
@@ -178,11 +187,7 @@ public class ClientModelManager {
             ModelData data = FolderFormat.getModelData(ServerModelManager.BUILTIN, "default", false);
             data.getAnimation().forEach((name, bytes) -> {
                 AnimationFile animationFile = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
-                if ("arrow".equals(name)) {
-                    mergeAnimationFile(DEFAULT_ARROW_ANIMATION_FILE, animationFile);
-                } else {
-                    mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
-                }
+                if (!"arrow".equals(name)) mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
             });
             ClientModelManager.registerAll(data);
         } catch (IOException e) {
@@ -195,8 +200,8 @@ public class ClientModelManager {
         CACHE_MD5.clear();
         AUTH_MODELS.clear();
         SCALE_INFO.clear();
+        META_DATA.clear();
         EXTRA_INFO.clear();
-        EXTRA_ANIMATION_NAME.clear();
         ConditionManager.clear();
         String[] md5Info = getMd5Info();
         SyncModelFiles syncModelFiles = new SyncModelFiles(md5Info);
@@ -230,23 +235,24 @@ public class ClientModelManager {
     private static void addExtraInfo(ResourceLocation modelId, @Nullable ExtraInfo extraInfo) {
         if (extraInfo == null) return;
         ResourceLocation infoId = ModelIdUtil.getInfoId(modelId);
-        EXTRA_INFO.put(infoId, handleExtraInfo(extraInfo));
+        EXTRA_INFO.put(infoId, extraInfo);
+        META_DATA.put(infoId, readMetaData(extraInfo));
         if (extraInfo.getFree()) {
             AUTH_MODELS.remove(modelId.getPath());
         }
-        if (extraInfo.getExtraAnimationNames() != null && extraInfo.getExtraAnimationNames().length > 0) {
-            EXTRA_ANIMATION_NAME.put(infoId, extraInfo.getExtraAnimationNames());
+        if (modelId.getPath().equals("default") && extraInfo.getPreviewAnimation() != null) {
+            DEFAULT_ANIMATION_FILE.animations().remove(extraInfo.getPreviewAnimation());
         }
     }
 
     @Nullable
-    private static List<String> handleExtraInfo(@Nullable ExtraInfo extraInfo) {
+    private static List<String> readMetaData(@Nullable ExtraInfo extraInfo) {
         if (extraInfo == null || StringUtils.isBlank(extraInfo.getName())) {
             return null;
         }
         List<String> component = Lists.newArrayList();
         component.add(TextFormatting.GOLD + extraInfo.getName());
-        if (StringUtils.isNoneBlank(extraInfo.getTips())) {
+        if (extraInfo.getTips() != null && StringUtils.isNoneBlank(extraInfo.getTips())) {
             String[] split = extraInfo.getTips().split("\n");
             Arrays.stream(split).forEach(s -> component.add(TextFormatting.GRAY + I18n.format(s)));
         }

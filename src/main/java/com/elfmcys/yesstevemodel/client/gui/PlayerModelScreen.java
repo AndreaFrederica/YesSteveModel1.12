@@ -4,7 +4,10 @@ import com.elfmcys.yesstevemodel.Tags;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
 import com.elfmcys.yesstevemodel.client.input.PlayerModelScreenKey;
+import com.elfmcys.yesstevemodel.config.Config;
+import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
 import com.google.common.collect.Lists;
@@ -115,6 +118,15 @@ public class PlayerModelScreen extends Screen {
         }).setTooltips("gui.yes_steve_model.model.texture"));
         this.addButton(new StarButton(this.x + 110, this.y + 5));
 
+        this.addButton(new ConfigCheckBox(this.x + 5, this.y - 22, "show_model_id_first", this.fontRenderer,
+                GeneralConfig.SHOW_MODEL_ID_FIRST, value -> GeneralConfig.SHOW_MODEL_ID_FIRST = value) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                Config.save();
+            }
+        });
+
         this.addButton(new FlatIconButton(this.x + 328, this.y + 5, 18, 18, 32, 0, (b) -> {
             if (this.category != Category.ALL) {
                 this.category = Category.ALL;
@@ -173,9 +185,9 @@ public class PlayerModelScreen extends Screen {
             int yStart = this.y + 28 + 93 * (i / 5);
             CapabilityEvent.getAuthModelsCap(this.player).ifPresent(cap -> {
                 if (ClientModelManager.AUTH_MODELS.contains(id.getPath()) && !cap.containModel(id)) {
-                    this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(id)), this.player));
+                    this.addButton(new ModelButton(xStart, yStart, true, Pair.of(id, this.models.get(id)), ClientModelManager.META_DATA.get(ModelIdUtil.getInfoId(id)), this.player));
                 } else {
-                    this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(id)), this.player));
+                    this.addButton(new ModelButton(xStart, yStart, false, Pair.of(id, this.models.get(id)), ClientModelManager.META_DATA.get(ModelIdUtil.getInfoId(id)), this.player));
                 }
             });
         }
@@ -197,6 +209,10 @@ public class PlayerModelScreen extends Screen {
 
         CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
             String modelName = cap.getModelId().getPath();
+            final ExtraInfo extraInfo = ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(cap.getModelId()));
+            if (extraInfo.getName() != null && !extraInfo.getName().isEmpty()) {
+                modelName = extraInfo.getName();
+            }
             List<String> modelNameSplit = this.fontRenderer.listFormattedStringToWidth(modelName, 125);
             int lineY = this.y + 205;
             for (String line : modelNameSplit) {
