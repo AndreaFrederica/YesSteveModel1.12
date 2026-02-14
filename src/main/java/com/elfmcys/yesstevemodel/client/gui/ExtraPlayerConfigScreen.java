@@ -1,8 +1,8 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.client.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.client.input.ExtraPlayerConfigKey;
 import com.elfmcys.yesstevemodel.config.Config;
-import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;

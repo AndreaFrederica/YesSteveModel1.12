@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.client.config.ExtraPlayerScreenConfig;
+import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.client.gui.button.ConfigCheckBox;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatColorButton;
 import com.elfmcys.yesstevemodel.config.Config;
-import com.elfmcys.yesstevemodel.config.ExtraPlayerScreenConfig;
-import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 

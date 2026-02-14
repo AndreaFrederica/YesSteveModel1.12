@@ -1,9 +1,9 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
+import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
 import com.elfmcys.yesstevemodel.client.gui.button.Checkbox;
 import com.elfmcys.yesstevemodel.config.Config;
-import com.elfmcys.yesstevemodel.config.GeneralConfig;
 import net.minecraft.client.resources.I18n;
 
 import java.util.List;

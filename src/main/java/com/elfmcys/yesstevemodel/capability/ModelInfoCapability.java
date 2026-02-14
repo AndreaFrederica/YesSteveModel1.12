@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.capability;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.config.ServerConfig;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -11,8 +11,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import javax.annotation.Nullable;
 
 public class ModelInfoCapability {
-    private ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, GeneralConfig.DEFAULT_MODEL_ID);
-    private ResourceLocation selectTexture = new ResourceLocation(YesSteveModel.MOD_ID, GeneralConfig.DEFAULT_MODEL_ID + "/" + GeneralConfig.DEFAULT_MODEL_TEXTURE);
+    private ResourceLocation modelId = new ResourceLocation(YesSteveModel.MOD_ID, ServerConfig.DEFAULT_MODEL_ID);
+    private ResourceLocation selectTexture = new ResourceLocation(YesSteveModel.MOD_ID, ServerConfig.DEFAULT_MODEL_ID + "/" + ServerConfig.DEFAULT_MODEL_TEXTURE);
     private String animation = "idle";
     private boolean playAnimation = false;
     private boolean dirty;

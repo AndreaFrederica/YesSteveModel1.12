@@ -16,7 +16,7 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 
 public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
-        Config.init(event.getSuggestedConfigurationFile());
+        Config.init(event.getSuggestedConfigurationFile(), event.getSide());
         ServerModelManager.reloadPacks();
         registerCapability();
     }

@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
         name = Tags.MOD_NAME,
         version = Tags.VERSION,
         dependencies = "required-after:mixinbooter@[8.0,)",
-        guiFactory = "com.elfmcys.yesstevemodel.config.ConfigGuiFactory"
+        guiFactory = "com.elfmcys.yesstevemodel.client.config.ConfigGuiFactory"
 )
 public class YesSteveModel {
     public static final String MOD_ID = Tags.MOD_ID;

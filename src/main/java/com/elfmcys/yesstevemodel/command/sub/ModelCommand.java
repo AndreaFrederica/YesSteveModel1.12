@@ -174,8 +174,12 @@ public class ModelCommand extends CommandBase {
             Collection<File> files = FileUtils.listFiles(rootPath.resolve(dirName).toFile(), FileFileFilter.FILE, null);
             for (File file : files) {
                 String fileName = file.getName();
-                if (FormatManager.MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noMainModelFile = false;
-                if (FormatManager.ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) noArmModelFile = false;
+                if (FormatManager.MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
+                    noMainModelFile = false;
+                }
+                if (FormatManager.ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
+                    noArmModelFile = false;
+                }
                 if (fileName.endsWith(".png")) {
                     noTextureFile = false;
                     String name = file.getName();

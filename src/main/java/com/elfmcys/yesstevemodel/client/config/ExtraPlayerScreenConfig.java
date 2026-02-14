@@ -1,4 +1,4 @@
-package com.elfmcys.yesstevemodel.config;
+package com.elfmcys.yesstevemodel.client.config;
 
 import com.elfmcys.yesstevemodel.config.util.ConfigBuilder;
 
@@ -11,7 +11,7 @@ public class ExtraPlayerScreenConfig {
     public static float PLAYER_SCALE = 40.0F;
     public static float PLAYER_YAW_OFFSET = 5.0F;
 
-    static void build(@Nonnull ConfigBuilder builder) {
+    public static void build(@Nonnull ConfigBuilder builder) {
         builder.pushCategory("extra_player_render");
 
         DISABLE_PLAYER_RENDER = builder.get(

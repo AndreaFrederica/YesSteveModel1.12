@@ -1,6 +1,6 @@
 package com.elfmcys.yesstevemodel.mixin.early.client;
 
-import com.elfmcys.yesstevemodel.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.client.ForgeHooksClient;
