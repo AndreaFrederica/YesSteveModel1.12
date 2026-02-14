@@ -88,7 +88,6 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         this.doRender(entity, this.animatable, x, y, z, entityYaw, partialTicks);
     }
 
-    @SuppressWarnings("DanglingJavadoc")
     public void doRender(
             @Nonnull EntityLivingBase entity, T animatable,
             double x, double y, double z,
@@ -105,9 +104,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
         GlStateManager.translate(x, y, z);
-        /**
-         * {@link net.minecraft.client.renderer.entity.RenderPlayer#renderLivingAt(AbstractClientPlayer, double, double, double)}
-         */
+        /// {@link net.minecraft.client.renderer.entity.RenderPlayer#renderLivingAt(AbstractClientPlayer, double, double, double)}
         if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
             GlStateManager.translate(player.renderOffsetX, player.renderOffsetY, player.renderOffsetZ);
         }
@@ -120,9 +117,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         float lerpHeadRot = Interpolations.lerpYaw(entity.prevRotationYawHead, entity.rotationYawHead, partialTick);
         float netHeadYaw = lerpHeadRot - lerpBodyRot;
 
-        /**
-         * {@link RenderLivingBase#doRender(EntityLivingBase, double, double, double, float, float)}
-         */
+        /// {@link RenderLivingBase#doRender(EntityLivingBase, double, double, double, float, float)}
         if (shouldSit && entity.getRidingEntity() instanceof EntityLivingBase vehicle) {
             lerpBodyRot = Interpolations.lerpYaw(vehicle.prevRenderYawOffset, vehicle.renderYawOffset, partialTick);
             netHeadYaw = lerpHeadRot - lerpBodyRot;
@@ -212,9 +207,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.popMatrix();
         super.doRender(entity, x, y, z, entityYaw, partialTick);
 
-        /**
-         * {@link net.minecraft.client.renderer.entity.RenderLiving#doRender(EntityLiving, double, double, double, float, float)}
-         */
+        /// {@link net.minecraft.client.renderer.entity.RenderLiving#doRender(EntityLiving, double, double, double, float, float)}
         if (!this.renderOutlines && entity instanceof EntityLiving mob) {
             Entity leashHolder = mob.getLeashHolder();
             //noinspection ConstantValue
@@ -235,11 +228,9 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     /**
      * {@link RenderLivingBase#applyRotations(EntityLivingBase, float, float, float)}
      */
-    @SuppressWarnings({"JavadocReference", "DanglingJavadoc"})
+    @SuppressWarnings("JavadocReference")
     protected void applyRotations(EntityLivingBase entity, float ageInTicks, float rotationYaw, float partialTicks) {
-        /**
-         * {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
-         */
+        /// {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
         if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
             GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
             GlStateManager.rotate(this.getDeathMaxRotation(player), 0, 0, 1);
