@@ -4,6 +4,7 @@ import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -42,7 +43,7 @@ public final class YesModelUtils {
     private static final String ENCRYPTION_METHOD = "AES";
 
     public static Map<String, byte[]> input(File ysmFile) throws IOException {
-        String fileName = removeExtension(ysmFile.getName());
+        String fileName = FilenameUtils.removeExtension(ysmFile.getName());
         if (!ResourceUtil.isValidResourceLocation(fileName)) {
             return Collections.emptyMap();
         }
@@ -279,13 +280,5 @@ public final class YesModelUtils {
         byte[] sizeBytes = new byte[4];
         stream.read(sizeBytes);
         return ByteInteger.bytes2Int(sizeBytes, 0);
-    }
-
-    private static String removeExtension(String fileName) {
-        int lastIndex = fileName.lastIndexOf('.');
-        if (lastIndex != -1) {
-            fileName = fileName.substring(0, lastIndex);
-        }
-        return fileName;
     }
 }

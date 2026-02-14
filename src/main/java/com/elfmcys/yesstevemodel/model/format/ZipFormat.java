@@ -1,17 +1,16 @@
 package com.elfmcys.yesstevemodel.model.format;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
 import com.elfmcys.yesstevemodel.util.InputStreamUtils;
-import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,7 +21,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -34,44 +32,38 @@ public final class ZipFormat {
     public static void cacheAllModels(Path rootPath) {
         Collection<File> zipFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"zip"}, false);
         for (File file : zipFiles) {
-            String modelId = removeExtension(file.getName());
+            String modelId = FilenameUtils.removeExtension(file.getName());
             if (!ResourceUtil.isValidResourceLocation(modelId)) {
                 continue;
             }
-            try (ZipFile zipFile = new ZipFile(file)) {
-                if (zipFile.getEntry(MAIN_MODEL_FILE_NAME) == null || isBlankEntry(zipFile, MAIN_MODEL_FILE_NAME)) {
-                    continue;
-                }
-                if (zipFile.getEntry(ARM_MODEL_FILE_NAME) == null || isBlankEntry(zipFile, ARM_MODEL_FILE_NAME)) {
-                    continue;
-                }
-                if (zipFile.stream().noneMatch(entry -> entry.getName().endsWith(".png"))) {
-                    continue;
-                }
-
-                boolean isAuth = rootPath.equals(AUTH);
-                ServerModelInfo info = cacheModel(zipFile, modelId, isAuth);
-                if (info != null) {
-                    CACHE_NAME_INFO.put(modelId, info);
-                    if (isAuth) AUTH_MODELS.add(modelId);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            loadLegacyModel(rootPath, file, modelId);
         }
     }
 
-    private static ServerModelInfo cacheModel(ZipFile zipFile, String modelId, boolean isAuth) {
-        try {
-            ModelData data = getModelData(zipFile, modelId, isAuth);
-            byte[] dataBytes = EncryptTools.assembleEncryptModels(data);
-            data.setMd5(Md5Utils.md5Hex(dataBytes).toUpperCase(Locale.US));
-            FileUtils.writeByteArrayToFile(CACHE_SERVER.resolve(data.getInfo().getMd5()).toFile(), dataBytes);
-            return data.getInfo();
-        } catch (Exception e) {
+    private static void loadLegacyModel(Path rootPath, File file, String modelId) {
+        try (ZipFile zipFile = new ZipFile(file)) {
+            if (zipFile.getEntry(MAIN_MODEL_FILE_NAME) == null || isBlankEntry(zipFile, MAIN_MODEL_FILE_NAME)) {
+                return;
+            }
+            if (zipFile.getEntry(ARM_MODEL_FILE_NAME) == null || isBlankEntry(zipFile, ARM_MODEL_FILE_NAME)) {
+                return;
+            }
+            if (zipFile.stream().noneMatch(entry -> entry.getName().endsWith(".png"))) {
+                return;
+            }
+
+            try {
+                boolean isAuth = rootPath.equals(AUTH);
+                final ModelData modelData = getModelData(zipFile, modelId, isAuth);
+                final ServerModelInfo info = cacheModel(modelData);
+                CACHE_NAME_INFO.put(modelId, info);
+                if (isAuth) AUTH_MODELS.add(modelId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     @Nonnull

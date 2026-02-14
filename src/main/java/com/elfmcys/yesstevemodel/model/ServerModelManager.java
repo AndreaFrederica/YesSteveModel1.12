@@ -99,7 +99,6 @@ public final class ServerModelManager {
         cacheAllModels(AUTH);
     }
 
-    // 入口方法，此处开始序列化模型
     private static void cacheAllModels(Path rootPath) {
         YsmFormat.cacheAllModels(rootPath);
 //        SevenZFormat.cacheAllModels(rootPath);

@@ -1,10 +1,12 @@
 //package com.elfmcys.yesstevemodel.model.format;
 //
+//import com.elfmcys.yesstevemodel.data.ModelData;
 //import com.elfmcys.yesstevemodel.util.ResourceUtil;
 //import com.google.common.collect.Maps;
 //import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 //import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 //import org.apache.commons.io.FileUtils;
+//import org.apache.commons.io.FilenameUtils;
 //
 //import java.io.File;
 //import java.io.IOException;
@@ -19,47 +21,54 @@
 //    public static void cacheAllModels(Path rootPath) {
 //        Collection<File> sevenZFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"7z"}, false);
 //        for (File file : sevenZFiles) {
-//            String modelId = removeExtension(file.getName());
+//            String modelId = FilenameUtils.removeExtension(file.getName());
 //            if (!ResourceUtil.isValidResourceLocation(modelId)) {
 //                continue;
 //            }
-//            Map<String, byte[]> data = Maps.newHashMap();
-//            try (SevenZFile sevenZFile = new SevenZFile(file)) {
-//                SevenZArchiveEntry entry;
-//                while ((entry = sevenZFile.getNextEntry()) != null) {
-//                    if (entry.isDirectory()) continue;
-//                    int size = (int) entry.getSize();
-//                    byte[] content = new byte[size];
-//                    int bytesRead = 0;
-//                    while (bytesRead < size) {
-//                        int result = sevenZFile.read(content, bytesRead, size - bytesRead);
-//                        if (result == -1) break;
-//                        bytesRead += result;
-//                    }
-//                    data.put(entry.getName(), content);
-//                }
-//                if (data.isEmpty()) {
-//                    continue;
-//                }
-//                if (!data.containsKey(MAIN_MODEL_FILE_NAME)) {
-//                    continue;
-//                }
-//                if (!data.containsKey(ARM_MODEL_FILE_NAME)) {
-//                    continue;
-//                }
-//                if (data.keySet().stream().noneMatch(fileName -> fileName.endsWith(".png"))) {
-//                    continue;
-//                }
+//            loadLegacyModel(rootPath, file, modelId);
+//        }
+//    }
 //
-//                boolean isAuth = rootPath.equals(AUTH);
-//                ServerModelInfo info = YsmFormat.cacheModel(data, modelId, isAuth, Type.SEVEN_Z);
-//                if (info != null) {
-//                    CACHE_NAME_INFO.put(modelId, info);
-//                    if (isAuth) AUTH_MODELS.add(modelId);
+//    private static void loadLegacyModel(Path rootPath, File file, String modelId) {
+//        Map<String, byte[]> data = Maps.newHashMap();
+//        try (SevenZFile sevenZFile = new SevenZFile(file)) {
+//            SevenZArchiveEntry entry;
+//            while ((entry = sevenZFile.getNextEntry()) != null) {
+//                if (entry.isDirectory()) continue;
+//                int size = (int) entry.getSize();
+//                byte[] content = new byte[size];
+//                int bytesRead = 0;
+//                while (bytesRead < size) {
+//                    int result = sevenZFile.read(content, bytesRead, size - bytesRead);
+//                    if (result == -1) break;
+//                    bytesRead += result;
 //                }
-//            } catch (IOException e) {
+//                data.put(entry.getName(), content);
+//            }
+//            if (data.isEmpty()) {
+//                return;
+//            }
+//            if (!data.containsKey(MAIN_MODEL_FILE_NAME)) {
+//                return;
+//            }
+//            if (!data.containsKey(ARM_MODEL_FILE_NAME)) {
+//                return;
+//            }
+//            if (data.keySet().stream().noneMatch(fileName -> fileName.endsWith(".png"))) {
+//                return;
+//            }
+//
+//            try {
+//                boolean isAuth = rootPath.equals(AUTH);
+//                final ModelData modelData = YsmFormat.getModelData(data, modelId, isAuth, Type.SEVEN_Z);
+//                final ServerModelInfo info = cacheModel(modelData);
+//                CACHE_NAME_INFO.put(modelId, info);
+//                if (isAuth) AUTH_MODELS.add(modelId);
+//            } catch (Exception e) {
 //                e.printStackTrace();
 //            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
 //        }
 //    }
 //}

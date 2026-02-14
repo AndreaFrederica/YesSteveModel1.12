@@ -1,9 +1,16 @@
 package com.elfmcys.yesstevemodel.model.format;
 
+import com.elfmcys.yesstevemodel.data.EncryptTools;
+import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
+import com.elfmcys.yesstevemodel.util.Md5Utils;
+import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public final class FormatManager {
@@ -30,6 +37,8 @@ public final class FormatManager {
     public static final String MAIN_MODEL_FILE_NAME = "main.json";
     public static final String ARM_MODEL_FILE_NAME = "arm.json";
 
+    public static final String ROOT_FILE_NAME = "ysm.json";
+
     public static boolean isModelNameNecessary(String modelName) {
         return modelName.equals("main") || modelName.equals("arm");
     }
@@ -50,11 +59,16 @@ public final class FormatManager {
         return ServerModelManager.BUILTIN.resolve(FormatManager.getDefaultAnimFileName(animName)).toFile();
     }
 
-    public static String removeExtension(String fileName) {
-        int lastIndex = fileName.lastIndexOf('.');
-        if (lastIndex != -1) {
-            fileName = fileName.substring(0, lastIndex);
-        }
-        return fileName;
+    /**
+     * 使用 {@link EncryptTools#assembleEncryptModels(ModelData)} 加密，并以 MD5 值命名存入服务端缓存目录。
+     *
+     * @param modelData 封装好的序列化模型文件二进制流
+     */
+    @Nonnull
+    public static ServerModelInfo cacheModel(ModelData modelData) throws IOException {
+        byte[] dataBytes = EncryptTools.assembleEncryptModels(modelData);
+        modelData.setMd5(Md5Utils.md5Hex(dataBytes).toUpperCase(Locale.US));
+        FileUtils.writeByteArrayToFile(ServerModelManager.CACHE_SERVER.resolve(modelData.getInfo().getMd5()).toFile(), dataBytes);
+        return modelData.getInfo();
     }
 }

@@ -1,17 +1,16 @@
 package com.elfmcys.yesstevemodel.model.format;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
-import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.elfmcys.yesstevemodel.util.YesModelUtils;
 import com.google.common.collect.Maps;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -19,7 +18,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
@@ -29,52 +27,46 @@ public final class YsmFormat {
     public static void cacheAllModels(Path rootPath) {
         Collection<File> ysmFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"ysm"}, false);
         for (File ysmFile : ysmFiles) {
-            String modelId = removeExtension(ysmFile.getName());
+            String modelId = FilenameUtils.removeExtension(ysmFile.getName());
             if (!ResourceUtil.isValidResourceLocation(modelId)) {
                 continue;
             }
-            try {
-                Map<String, byte[]> data = YesModelUtils.input(ysmFile);
-                if (data.isEmpty()) {
-                    continue;
-                }
-                if (!data.containsKey(MAIN_MODEL_FILE_NAME)) {
-                    continue;
-                }
-                if (!data.containsKey(ARM_MODEL_FILE_NAME)) {
-                    continue;
-                }
-                if (data.keySet().stream().noneMatch(fileName -> fileName.endsWith(".png"))) {
-                    continue;
-                }
-
-                boolean isAuth = rootPath.equals(AUTH);
-                ServerModelInfo info = cacheModel(data, modelId, isAuth, Type.YSM);
-                if (info != null) {
-                    CACHE_NAME_INFO.put(modelId, info);
-                    if (isAuth) AUTH_MODELS.add(modelId);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            loadLegacyModel(rootPath, ysmFile, modelId);
         }
     }
 
-    public static ServerModelInfo cacheModel(Map<String, byte[]> input, String modelId, boolean isAuth, Type type) {
+    private static void loadLegacyModel(Path rootPath, File ysmFile, String modelId) {
         try {
-            ModelData data = getModelData(input, modelId, isAuth, type);
-            byte[] dataBytes = EncryptTools.assembleEncryptModels(data);
-            data.setMd5(Md5Utils.md5Hex(dataBytes).toUpperCase(Locale.US));
-            FileUtils.writeByteArrayToFile(CACHE_SERVER.resolve(data.getInfo().getMd5()).toFile(), dataBytes);
-            return data.getInfo();
-        } catch (Exception e) {
+            Map<String, byte[]> data = YesModelUtils.input(ysmFile);
+            if (data.isEmpty()) {
+                return;
+            }
+            if (!data.containsKey(MAIN_MODEL_FILE_NAME)) {
+                return;
+            }
+            if (!data.containsKey(ARM_MODEL_FILE_NAME)) {
+                return;
+            }
+            if (data.keySet().stream().noneMatch(fileName -> fileName.endsWith(".png"))) {
+                return;
+            }
+
+            try {
+                boolean isAuth = rootPath.equals(AUTH);
+                final ModelData modelData = getModelData(data, modelId, isAuth);
+                final ServerModelInfo info = cacheModel(modelData);
+                CACHE_NAME_INFO.put(modelId, info);
+                if (isAuth) AUTH_MODELS.add(modelId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     @Nonnull
-    private static ModelData getModelData(Map<String, byte[]> data, String modelId, boolean isAuth, Type type) throws IOException {
+    private static ModelData getModelData(Map<String, byte[]> data, String modelId, boolean isAuth) throws IOException {
         final Map<String, byte[]> model = Maps.newHashMap();
         byte[] infoByte = getBytes(data, INFO_FILE_NAME);
         if (infoByte.length != 0) {

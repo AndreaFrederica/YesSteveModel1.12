@@ -6,7 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
-@SuppressWarnings("unused")
+/// {@link ModelProperties#extraInfo}
+@SuppressWarnings({"unused", "JavadocReference"})
 public class ExtraInfo implements Serializable {
     @SerializedName("name")
     private String name;
@@ -20,6 +21,7 @@ public class ExtraInfo implements Serializable {
     private String license = "All Rights Reserved";
     @SerializedName("free")
     private boolean free = false;
+
     @SerializedName("preview_animation")
     private String previewAnimation = "idle";
     @SerializedName("disable_preview_rotation")

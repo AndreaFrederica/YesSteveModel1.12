@@ -1,12 +1,10 @@
 package com.elfmcys.yesstevemodel.model.format;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.data.EncryptTools;
 import com.elfmcys.yesstevemodel.data.ModelData;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
-import com.elfmcys.yesstevemodel.util.Md5Utils;
 import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Maps;
@@ -20,7 +18,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.elfmcys.yesstevemodel.model.ServerModelManager.*;
@@ -36,56 +33,50 @@ public final class FolderFormat {
             if (!dir.isDirectory()) {
                 continue;
             }
-            String dirName = dir.getName();
-            if (!ResourceUtil.isValidResourceLocation(dirName)) {
+            String modelId = dir.getName();
+            if (!ResourceUtil.isValidResourceLocation(modelId)) {
                 continue;
             }
-            boolean noMainModelFile = true;
-            boolean noArmModelFile = true;
-            boolean noTextureFile = true;
-            Collection<File> files = FileUtils.listFiles(rootPath.resolve(dirName).toFile(), FileFileFilter.FILE, null);
-            for (File file : files) {
-                String fileName = file.getName();
-                if (MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
-                    noMainModelFile = false;
-                }
-                if (ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
-                    noArmModelFile = false;
-                }
-                if (fileName.endsWith(".png")) {
-                    noTextureFile = false;
-                }
-            }
-            if (noMainModelFile) {
-                continue;
-            }
-            if (noArmModelFile) {
-                continue;
-            }
-            if (noTextureFile) {
-                continue;
-            }
-
-            boolean isAuth = rootPath.equals(AUTH);
-            ServerModelInfo info = cacheModel(rootPath, dirName, isAuth);
-            if (info != null) {
-                CACHE_NAME_INFO.put(dirName, info);
-                if (isAuth) AUTH_MODELS.add(dirName);
-            }
+            loadLegacyModel(rootPath, dir, modelId);
         }
     }
 
-    private static ServerModelInfo cacheModel(Path rootPath, String modelId, boolean isAuth) {
+    private static void loadLegacyModel(Path rootPath, File dir, String modelId) {
+        boolean noMainModelFile = true;
+        boolean noArmModelFile = true;
+        boolean noTextureFile = true;
+        Collection<File> files = FileUtils.listFiles(dir, FileFileFilter.FILE, null);
+        for (File file : files) {
+            String fileName = file.getName();
+            if (MAIN_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
+                noMainModelFile = false;
+            }
+            if (ARM_MODEL_FILE_NAME.equals(fileName) && isNotBlankFile(file)) {
+                noArmModelFile = false;
+            }
+            if (fileName.endsWith(".png")) {
+                noTextureFile = false;
+            }
+        }
+        if (noMainModelFile) {
+            return;
+        }
+        if (noArmModelFile) {
+            return;
+        }
+        if (noTextureFile) {
+            return;
+        }
+
         try {
-            ModelData data = getModelData(rootPath, modelId, isAuth);
-            byte[] dataBytes = EncryptTools.assembleEncryptModels(data);
-            data.setMd5(Md5Utils.md5Hex(dataBytes).toUpperCase(Locale.US));
-            FileUtils.writeByteArrayToFile(CACHE_SERVER.resolve(data.getInfo().getMd5()).toFile(), dataBytes);
-            return data.getInfo();
+            boolean isAuth = rootPath.equals(AUTH);
+            final ModelData modelData = getModelData(rootPath, modelId, isAuth);
+            final ServerModelInfo info = cacheModel(modelData);
+            CACHE_NAME_INFO.put(modelId, info);
+            if (isAuth) AUTH_MODELS.add(modelId);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     @Nonnull
