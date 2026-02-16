@@ -6,7 +6,7 @@
 
 Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 
-它采用了 GeckoLib 作为核心，使用 Minecraft 基岩版模型和动画文件。从而使玩家能够随心所欲的自定义玩家模型和动画。
+它采用了 GeckoLib 作为核心，使用 Minecraft 基岩版模型和动画文件，从而使玩家能够随心所欲的自定义玩家模型和动画。
 
 ## 状况
 
