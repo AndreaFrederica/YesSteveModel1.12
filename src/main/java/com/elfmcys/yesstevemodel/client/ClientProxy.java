@@ -31,6 +31,7 @@ public class ClientProxy extends CommonProxy {
         CarryOnCompat.init();
         CrossbowCompat.init();
         ElytraCompat.init();
+        RenderArmCompat.init();
         SpyglassCompat.init();
         SwimmingCompat.init();
         TridentCompat.init();

@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.mixin.early.client;
 
-import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.client.compat.RenderArmCompat;
+import com.elfmcys.yesstevemodel.client.event.ReplacePlayerHandRenderEvent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -17,7 +18,9 @@ public class ForgeHooksClientMixin {
             float swingProgress, float equipProgress, ItemStack stack,
             CallbackInfoReturnable<Boolean> cir
     ) {
-        if (GeneralConfig.DISABLE_SELF_MODEL || GeneralConfig.DISABLE_SELF_HANDS) return;
-        cir.setReturnValue(false);
+        if (RenderArmCompat.foundRenderArm()) return;
+        if (ReplacePlayerHandRenderEvent.shouldRenderArm()) {
+            cir.setReturnValue(false);
+        }
     }
 }

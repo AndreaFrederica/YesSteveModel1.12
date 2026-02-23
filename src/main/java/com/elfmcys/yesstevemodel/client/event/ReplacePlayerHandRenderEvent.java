@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.event;
 
-import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
@@ -21,33 +20,21 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.ExecutionException;
 
-@Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
 public class ReplacePlayerHandRenderEvent {
     private static final String LEFT_ARM = "LeftArm";
     private static final String RIGHT_ARM = "RightArm";
 
-    @SubscribeEvent
-    public static void onRenderHand(RenderArmEvent event) {
-        if (GeneralConfig.DISABLE_SELF_MODEL) {
-            return;
-        }
-        if (GeneralConfig.DISABLE_SELF_HANDS) {
-            return;
-        }
-        event.setCanceled(true);
+    public static void renderArm(EnumHandSide arm) {
         final Minecraft mc = Minecraft.getMinecraft();
         AbstractClientPlayer player = mc.player;
         CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
             GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(ModelIdUtil.getArmId(cap.getModelId()));
-            if (geoModel == null || !hasArmBone(event.getArm(), geoModel)) {
+            if (geoModel == null || !hasArmBone(arm, geoModel)) {
                 return;
             }
             CustomPlayerRenderer instance = ClientProxy.getInstance();
@@ -72,7 +59,7 @@ public class ReplacePlayerHandRenderEvent {
                 mc.getTextureManager().bindTexture(customPlayer.getTexture());
                 buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
                 if (instance != null) {
-                    if (event.getArm() == EnumHandSide.LEFT) {
+                    if (arm == EnumHandSide.LEFT) {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(0.25, 1.8, 0);
                         GlStateManager.scale(-1, -1, 1);
@@ -80,7 +67,7 @@ public class ReplacePlayerHandRenderEvent {
                         tess.draw();
                         GlStateManager.popMatrix();
                     }
-                    if (event.getArm() == EnumHandSide.RIGHT) {
+                    if (arm == EnumHandSide.RIGHT) {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(-0.25, 1.8, 0);
                         GlStateManager.scale(-1, -1, 1);
@@ -99,5 +86,9 @@ public class ReplacePlayerHandRenderEvent {
         } else {
             return model.hasTopLevelBone(RIGHT_ARM);
         }
+    }
+
+    public static boolean shouldRenderArm() {
+        return !GeneralConfig.DISABLE_SELF_MODEL && !GeneralConfig.DISABLE_SELF_HANDS;
     }
 }
