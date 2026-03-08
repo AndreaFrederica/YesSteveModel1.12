@@ -1,3 +1,9 @@
+# 告示
+
+YSM 1.12.2 现已转为闭源，支持加解密 1.2.0 以上版本模型版本将在完善后以混淆 + 原生库的形式发布。
+
+本库仅作为旧开源版本存档，不会再有大更新，仅提供有限的支持。
+
 # Yes Steve Model
 
 [旧版 Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM) 的 Minecraft 1.12.2 完整移植。
@@ -29,7 +35,7 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 
 ### 已知问题
 
-- 加载模型时可见 Molang 报错，暂时不清楚缘由
+- 加载模型时可见 Molang 报错，由 Molang 引擎过旧导致
 - 模型状态似乎有污染问题，导致有时模型块变换有误
 - 视角旋转过快时，头部角度会跳变
 - 模型预览界花和草光照不对
