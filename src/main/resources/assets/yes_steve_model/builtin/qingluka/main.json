@@ -8,13 +8,7 @@
 				"texture_height": 64,
 				"visible_bounds_width": 4,
 				"visible_bounds_height": 3.5,
-				"visible_bounds_offset": [0, 1.25, 0],
-				"ysm_extra_info": {
-					"name": "Alex Type II",
-					"tips": "由晴路卡制作的 Alex 模型",
-					"authors": ["晴路卡", "哥斯拉"],
-					"license": "CC 0"
-				}
+				"visible_bounds_offset": [0, 1.25, 0]
 			},
 			"bones": [
 				{
@@ -1251,6 +1245,18 @@
 					"parent": "UpBody",
 					"pivot": [-3, 18.25, 0],
 					"rotation": [-30, 0, 0]
+				},
+				{
+					"name": "LeftWaistLocator",
+					"parent": "UpBody",
+					"pivot": [3, 18, 0],
+					"rotation": [-20, 0, 0]
+				},
+				{
+					"name": "RightWaistLocator",
+					"parent": "UpBody",
+					"pivot": [-3, 18, 0],
+					"rotation": [-5, 0, 0]
 				},
 				{
 					"name": "DownBody",
