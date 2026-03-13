@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
 import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
@@ -24,11 +23,11 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerElytra}。
  */
-public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> extends GeoLayerRenderer<T> {
+public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoRenderer<T>> extends GeoLayerRenderer<T, R> {
     private static final ResourceLocation WINGS_LOCATION = new ResourceLocation("textures/entity/elytra.png");
     private final ModelElytra elytraModel = new ModelElytra();
 
-    public CustomPlayerElytraLayer(IGeoRenderer<T> entityRendererIn) {
+    public CustomPlayerElytraLayer(R entityRendererIn) {
         super(entityRendererIn);
     }
 
@@ -54,17 +53,20 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
                 GlStateManager.pushMatrix();
-                translateToElytra(geoModel);
-                GlStateManager.rotate(180, 0, 0, 1);
-                Minecraft mc = Minecraft.getMinecraft();
-                mc.getTextureManager().bindTexture(texture);
-                final float scale = 1 / 16F;
-                this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
-                this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
-                ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-                if (stack.hasEffect()) {
-                    RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
-                    LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+                boolean scaleResult = translateToElytra(geoModel);
+                // 缩放不为 0 才会渲染
+                if (!scaleResult) {
+                    GlStateManager.rotate(180, 0, 0, 1);
+                    Minecraft mc = Minecraft.getMinecraft();
+                    mc.getTextureManager().bindTexture(texture);
+                    final float scale = 1 / 16F;
+                    this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
+                    this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+                    ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+                    if (stack.hasEffect()) {
+                        RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
+                        LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+                    }
                 }
                 GlStateManager.popMatrix();
 
@@ -74,7 +76,7 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase & IAnimatable> e
         }
     }
 
-    protected static void translateToElytra(GeoModel geoModel) {
-        RenderUtils.translateToBones(geoModel.elytraBones);
+    protected static boolean translateToElytra(GeoModel geoModel) {
+        return RenderUtils.prepMatrixForLocator(geoModel.elytraBones);
     }
 }

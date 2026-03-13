@@ -12,6 +12,7 @@
   "client": [
     "client.ForgeHooksClientMixin",
     "client.RenderArrowMixin",
+    "client.RenderLivingBaseMixin",
     "client.RenderPlayerMixin"
   ]
 }

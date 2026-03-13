@@ -12,14 +12,13 @@ import java.util.Stack;
 /**
  * Simple implementation of a matrix stack
  */
+@SuppressWarnings({"UnusedReturnValue", "unused"})
 public class MatrixStack {
     private final Stack<Matrix4f> model = new Stack<>();
     private final Stack<Matrix3f> normal = new Stack<>();
 
     private final Matrix4f tempModelMatrix = new Matrix4f();
     private final Matrix3f tempNormalMatrix = new Matrix3f();
-    @SuppressWarnings("unused")
-    private final float[] tempArray = new float[16];
 
     public MatrixStack() {
         Matrix4f model = new Matrix4f();
@@ -69,24 +68,24 @@ public class MatrixStack {
 
     public void moveToPivot(GeoCube cube) {
         Vector3f pivot = cube.pivot;
-        this.translate(pivot.getX() / 16, pivot.getY() / 16, pivot.getZ() / 16);
+        this.translate(pivot.getX() / 16f, pivot.getY() / 16f, pivot.getZ() / 16f);
     }
 
     public void moveBackFromPivot(GeoCube cube) {
         Vector3f pivot = cube.pivot;
-        this.translate(-pivot.getX() / 16, -pivot.getY() / 16, -pivot.getZ() / 16);
+        this.translate(-pivot.getX() / 16f, -pivot.getY() / 16f, -pivot.getZ() / 16f);
     }
 
     public void moveToPivot(GeoBone bone) {
-        this.translate(bone.rotationPointX / 16, bone.rotationPointY / 16, bone.rotationPointZ / 16);
+        this.translate(bone.getPivotX() / 16f, bone.getPivotY() / 16f, bone.getPivotZ() / 16f);
     }
 
     public void moveBackFromPivot(GeoBone bone) {
-        this.translate(-bone.rotationPointX / 16, -bone.rotationPointY / 16, -bone.rotationPointZ / 16);
+        this.translate(-bone.getPivotX() / 16f, -bone.getPivotY() / 16f, -bone.getPivotZ() / 16f);
     }
 
     public void translate(GeoBone bone) {
-        this.translate(-bone.getPositionX() / 16, bone.getPositionY() / 16, bone.getPositionZ() / 16);
+        this.translate(-bone.getPositionX() / 16f, bone.getPositionY() / 16f, bone.getPositionZ() / 16f);
     }
 
     /* Scale */
@@ -109,8 +108,15 @@ public class MatrixStack {
         }
     }
 
-    public void scale(GeoBone bone) {
-        this.scale(bone.getScaleX(), bone.getScaleY(), bone.getScaleZ());
+    /**
+     * 如果缩放全为 0，则返回 true
+     */
+    public boolean scale(GeoBone bone) {
+        float scaleX = bone.getScaleX();
+        float scaleY = bone.getScaleY();
+        float scaleZ = bone.getScaleZ();
+        this.scale(scaleX, scaleY, scaleZ);
+        return scaleX == 0 && scaleY == 0 && scaleZ == 0;
     }
 
     /* Rotate */
@@ -152,11 +158,9 @@ public class MatrixStack {
         if (bone.getRotationZ() != 0.0F) {
             this.rotateZ(bone.getRotationZ());
         }
-
         if (bone.getRotationY() != 0.0F) {
             this.rotateY(bone.getRotationY());
         }
-
         if (bone.getRotationX() != 0.0F) {
             this.rotateX(bone.getRotationX());
         }
@@ -191,7 +195,25 @@ public class MatrixStack {
         this.normal.peek().mul(this.tempNormalMatrix);
     }
 
-    @SuppressWarnings("unused")
+    /* Other */
+
+    public void translateAndRotate(GeoBone bone) {
+        this.translate(bone);
+        this.rotate(bone);
+    }
+
+    /**
+     * 如果缩放为 0，则返回 true
+     */
+    public boolean prep(GeoBone bone) {
+        this.translate(bone);
+        this.moveToPivot(bone);
+        this.rotate(bone);
+        boolean scaleAllIsZero = this.scale(bone);
+        this.moveBackFromPivot(bone);
+        return scaleAllIsZero;
+    }
+
     private Quaternion fromAngles(float x, float y, float z) {
         float sx = (float) Math.sin(0.5F * x);
         float cx = (float) Math.cos(0.5F * x);

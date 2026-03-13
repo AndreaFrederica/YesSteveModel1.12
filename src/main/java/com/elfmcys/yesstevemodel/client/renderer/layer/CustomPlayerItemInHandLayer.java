@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
@@ -18,10 +17,10 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerHeldItem}。
  */
-public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatable> extends GeoLayerRenderer<T> {
+public class CustomPlayerItemInHandLayer<T extends EntityLivingBase, R extends IGeoRenderer<T>> extends GeoLayerRenderer<T, R> {
     //private final static String TAC_ID = "tac";
 
-    public CustomPlayerItemInHandLayer(IGeoRenderer<T> entityRendererIn) {
+    public CustomPlayerItemInHandLayer(R entityRendererIn) {
         super(entityRendererIn);
     }
 
@@ -57,20 +56,23 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase & IAnimatabl
     protected void renderArmWithItem(EntityLivingBase livingEntity, ItemStack itemStack, ItemCameraTransforms.TransformType transformType, EnumHandSide arm) {
         if (!itemStack.isEmpty()) {
             boolean isLeftHand = arm == EnumHandSide.LEFT;
-            translateToHand(arm, this.entityRenderer.getGeoModel());
-//            if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGun(itemStack)) {
-//                if (!isLeftHand) {
-//                    TacGunRenderer.renderMainhandGun(itemStack, livingEntity, light, partialTicks);
+            // 缩放不为 0 才会渲染
+            boolean scaleResult = translateToHand(arm, this.entityRenderer.getGeoModel());
+            if (!scaleResult) {
+//                if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGun(itemStack)) {
+//                    if (!isLeftHand) {
+//                        TacGunRenderer.renderMainhandGun(itemStack, livingEntity, light, partialTicks);
+//                    }
+//                } else {
+                GlStateManager.translate(0, -0.0625, -0.1);
+                GlStateManager.rotate(-90.0F, 1, 0, 0);
+                Minecraft.getMinecraft().getItemRenderer().renderItemSide(livingEntity, itemStack, transformType, isLeftHand);
 //                }
-//            } else {
-            GlStateManager.translate(0, -0.0625, -0.1);
-            GlStateManager.rotate(-90.0F, 1, 0, 0);
-            Minecraft.getMinecraft().getItemRenderer().renderItemSide(livingEntity, itemStack, transformType, isLeftHand);
-//            }
+            }
         }
     }
 
-    protected static void translateToHand(EnumHandSide arm, GeoModel geoModel) {
-        RenderUtils.translateToBones(arm == EnumHandSide.LEFT ? geoModel.leftHandBones : geoModel.rightHandBones);
+    protected static boolean translateToHand(EnumHandSide arm, GeoModel geoModel) {
+        return RenderUtils.prepMatrixForLocator(arm == EnumHandSide.LEFT ? geoModel.leftHandBones : geoModel.rightHandBones);
     }
 }

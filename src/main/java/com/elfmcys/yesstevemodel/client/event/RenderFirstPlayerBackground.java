@@ -92,7 +92,7 @@ public class RenderFirstPlayerBackground {
                         bobView(event.getPartialTicks(), player);
                     }
                     GlStateManager.translate(0, -1.5, 0);
-                    geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(buffer, bone, 1.0F, 1.0F, 1.0F, 1.0F));
+                    geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
                     GlStateManager.popMatrix();
                 }
             }

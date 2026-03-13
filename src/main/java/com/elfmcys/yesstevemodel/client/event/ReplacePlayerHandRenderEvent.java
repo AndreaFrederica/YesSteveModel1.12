@@ -63,7 +63,7 @@ public class ReplacePlayerHandRenderEvent {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(0.25, 1.8, 0);
                         GlStateManager.scale(-1, -1, 1);
-                        geoModel.getTopLevelBone(LEFT_ARM).ifPresent(bone -> instance.renderRecursively(buffer, bone, 1.0F, 1.0F, 1.0F, 1.0F));
+                        geoModel.getTopLevelBone(LEFT_ARM).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
                         tess.draw();
                         GlStateManager.popMatrix();
                     }
@@ -71,7 +71,7 @@ public class ReplacePlayerHandRenderEvent {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(-0.25, 1.8, 0);
                         GlStateManager.scale(-1, -1, 1);
-                        geoModel.getTopLevelBone(RIGHT_ARM).ifPresent(bone -> instance.renderRecursively(buffer, bone, 1.0F, 1.0F, 1.0F, 1.0F));
+                        geoModel.getTopLevelBone(RIGHT_ARM).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
                         tess.draw();
                         GlStateManager.popMatrix();
                     }

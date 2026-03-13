@@ -27,7 +27,7 @@ public interface IGeoRenderer<T> {
     @SuppressWarnings("rawtypes")
     GeoModelProvider getGeoModelProvider();
 
-    ResourceLocation getTextureLocation(T animatable);
+    ResourceLocation getEntityTexture(T entity);
 
     @Nullable
     default GeoModel getGeoModel() {
@@ -35,18 +35,17 @@ public interface IGeoRenderer<T> {
     }
 
     default void render(
-            GeoModel model, T animatable, float partialTicks,
+            GeoModel model, T entity, float partialTicks,
             float red, float green, float blue, float alpha
     ) {
-        this.renderEarly(animatable, partialTicks, red, green, blue, alpha);
-        this.renderLate(animatable, partialTicks, red, green, blue, alpha);
+        this.renderEarly(entity, partialTicks, red, green, blue, alpha);
+        this.renderLate(entity, partialTicks, red, green, blue, alpha);
 
         Tessellator tess = Tessellator.getInstance();
-        BufferBuilder builder = tess.getBuffer();
-        builder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
+        tess.getBuffer().begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
         // 渲染所有根骨骼
         for (GeoBone group : model.topLevelBones) {
-            this.renderRecursively(builder, group, red, green, blue, alpha);
+            this.renderRecursively(group, tess, red, green, blue, alpha);
         }
         tess.draw();
         // 由于此时我们至少渲染了一次，因此让我们将循环设置为重复
@@ -54,30 +53,40 @@ public interface IGeoRenderer<T> {
     }
 
     default void renderRecursively(
-            BufferBuilder builder, GeoBone bone,
+            GeoBone bone, Tessellator tess,
             float red, float green, float blue, float alpha
     ) {
         MATRIX_STACK.push();
-        IGeoRenderer.MATRIX_STACK.translate(bone);
-        IGeoRenderer.MATRIX_STACK.moveToPivot(bone);
-        IGeoRenderer.MATRIX_STACK.rotate(bone);
-        IGeoRenderer.MATRIX_STACK.scale(bone);
-        IGeoRenderer.MATRIX_STACK.moveBackFromPivot(bone);
+        MATRIX_STACK.prep(bone);
+        BufferBuilder buffer = tess.getBuffer();
         if (bone.getName().startsWith(GLOW_PREFIX)) {
+            // 先绘制出已有的顶点
+            tess.draw();
+            // 设置自发光条件
+            boolean lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+            GlStateManager.disableLighting();
             float lastX = OpenGlHelper.lastBrightnessX;
             float lastY = OpenGlHelper.lastBrightnessY;
-            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-            this.renderCubesOfBone(builder, bone, red, green, blue, alpha);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
+            // 绘制特殊的顶点
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
+            this.renderCubesOfBone(bone, buffer, red, green, blue, alpha);
+            tess.draw();
+            // 恢复状态
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lastX, lastY);
+            if (lighting) GlStateManager.enableLighting();
+            else GlStateManager.disableLighting();
+            // 重新开始绘制
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
         } else {
-            this.renderCubesOfBone(builder, bone, red, green, blue, alpha);
+            this.renderCubesOfBone(bone, buffer, red, green, blue, alpha);
         }
-        this.renderChildBones(builder, bone, red, green, blue, alpha);
+        this.renderChildBones(bone, tess, red, green, blue, alpha);
         MATRIX_STACK.pop();
     }
 
     default void renderCubesOfBone(
-            BufferBuilder builder, GeoBone bone,
+            GeoBone bone, BufferBuilder buffer,
             float red, float green, float blue, float alpha
     ) {
         if (bone.isHidden()) {
@@ -86,21 +95,21 @@ public interface IGeoRenderer<T> {
         for (GeoCube cube : bone.childCubes) {
             if (!bone.cubesAreHidden()) {
                 MATRIX_STACK.push();
-                this.renderCube(builder, cube, red, green, blue, alpha);
+                this.renderCube(buffer, cube, red, green, blue, alpha);
                 MATRIX_STACK.pop();
             }
         }
     }
 
     default void renderChildBones(
-            BufferBuilder builder, GeoBone bone,
+            GeoBone bone, Tessellator tess,
             float red, float green, float blue, float alpha
     ) {
         if (bone.childBonesAreHiddenToo()) {
             return;
         }
         for (GeoBone childBone : bone.childBones) {
-            this.renderRecursively(builder, childBone, red, green, blue, alpha);
+            this.renderRecursively(childBone, tess, red, green, blue, alpha);
         }
     }
 
@@ -139,23 +148,23 @@ public interface IGeoRenderer<T> {
         }
     }
 
-    default void renderEarly(T animatable, float ticks, float red, float green, float blue, float partialTicks) {
+    default void renderEarly(T entity, float ticks, float red, float green, float blue, float partialTicks) {
         if (this.getCurrentModelRenderCycle() == EModelRenderCycle.INITIAL) {
-            float width = this.getWidthScale(animatable);
-            float height = this.getHeightScale(animatable);
+            float width = this.getWidthScale(entity);
+            float height = this.getHeightScale(entity);
             GlStateManager.scale(width, height, width);
         }
     }
 
-    default void renderLate(T animatable, float ticks, float red, float green, float blue, float partialTicks) {
+    default void renderLate(T entity, float ticks, float red, float green, float blue, float partialTicks) {
     }
 
-    default Color getRenderColor(T animatable, float partialTicks) {
+    default Color getRenderColor(T entity, float partialTicks) {
         return Color.WHITE;
     }
 
-    default int getInstanceId(T animatable) {
-        return animatable.hashCode();
+    default int getInstanceId(T entity) {
+        return entity.hashCode();
     }
 
     @Nonnull
@@ -166,11 +175,11 @@ public interface IGeoRenderer<T> {
     default void setCurrentModelRenderCycle(IRenderCycle cycle) {
     }
 
-    default float getWidthScale(T animatable) {
+    default float getWidthScale(T entity) {
         return 1F;
     }
 
-    default float getHeightScale(T animatable) {
+    default float getHeightScale(T entity) {
         return 1F;
     }
 }

@@ -11,7 +11,6 @@ import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,7 +18,7 @@ import net.minecraftforge.common.MinecraftForge;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayerEntity> {
+public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<EntityPlayer, CustomPlayerEntity> {
     private GeoModel geoModel;
 
     @SuppressWarnings("all")
@@ -30,14 +29,14 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
     }
 
     @Override
-    public void doRender(@Nonnull EntityLivingBase entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        if (this.animatable != null && entity instanceof EntityPlayer player) {
-            CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
-                this.animatable.setPlayer(player);
+    public void doRender(@Nonnull EntityPlayer entity, double x, double y, double z, float entityYaw, float partialTicks) {
+        if (this.animatable != null) {
+            CapabilityEvent.getModelInfoCap(entity).ifPresent(cap -> {
+                this.animatable.setPlayer(entity);
                 this.animatable.setMainModel(ModelIdUtil.getMainId(cap.getModelId()));
                 this.animatable.setTexture(cap.getSelectTexture());
             });
-            if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(player, this.animatable, ModelIdUtil.getModelIdFromMainId(this.animatable.getMainModel())))) {
+            if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(entity, this.animatable, ModelIdUtil.getModelIdFromMainId(this.animatable.getMainModel())))) {
                 return;
             }
         }
@@ -50,19 +49,19 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<CustomPlayer
     }
 
     @Override
-    public float getWidthScale(Object animatable) {
+    public float getWidthScale(EntityPlayer entity) {
         if (this.currentAnimatable != null) {
             return this.currentAnimatable.getWidthScale();
         }
-        return super.getWidthScale(animatable);
+        return super.getWidthScale(entity);
     }
 
     @Override
-    public float getHeightScale(Object animatable) {
+    public float getHeightScale(EntityPlayer entity) {
         if (this.currentAnimatable != null) {
             return this.currentAnimatable.getHeightScale();
         }
-        return super.getHeightScale(animatable);
+        return super.getHeightScale(entity);
     }
 
     public CustomPlayerEntity getCustomPlayerEntity() {

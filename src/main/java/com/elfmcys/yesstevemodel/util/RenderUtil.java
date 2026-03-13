@@ -127,7 +127,7 @@ public final class RenderUtil {
                     player.rotationYawHead = vehicleYRot;
                     player.prevRotationYawHead = vehicleYRot;
                 }
-                renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+                renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
                 GlStateManager.popMatrix();
                 // 清理实体渲染
                 GlStateManager.enableRescaleNormal();
@@ -283,7 +283,7 @@ public final class RenderUtil {
     private static void renderModel(
             double pPosX, double pPosY, float pScale, EntityPlayer player,
             ResourceLocation modelId, ResourceLocation textureId,
-            GeoReplacedEntityRenderer<CustomPlayerEntity> renderer, CustomPlayerEntity entity,
+            GeoReplacedEntityRenderer<EntityPlayer, CustomPlayerEntity> renderer, CustomPlayerEntity entity,
             boolean disableRot
     ) {
         entity.setMainModel(ModelIdUtil.getMainId(modelId));
@@ -344,7 +344,7 @@ public final class RenderUtil {
             player.rotationYawHead = vehicleYRot;
             player.prevRotationYawHead = vehicleYRot;
         }
-        renderer.doRender(player, entity, 0, 0, 0, 0.0F, 1.0F);
+        renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
         GlStateManager.popMatrix();
         dispatcher.setRenderShadow(true);
 

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity> implements IGeoRenderer {
+public class GeoProjectilesRenderer<T extends Entity, E extends IAnimatable> extends Render<T> implements IGeoRenderer<T> {
     protected static final Map<Class<? extends IAnimatable>, GeoProjectilesRenderer> renderers = new ConcurrentHashMap<>();
 
     static {
@@ -37,10 +37,10 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
     }
 
     protected final AnimatedGeoModel<IAnimatable> modelProvider;
-    protected T animatable;
+    protected E animatable;
     private IRenderCycle currentModelRenderCycle = EModelRenderCycle.INITIAL;
 
-    public GeoProjectilesRenderer(RenderManager renderManager, AnimatedGeoModel<IAnimatable> modelProvider, T animatable) {
+    public GeoProjectilesRenderer(RenderManager renderManager, AnimatedGeoModel<IAnimatable> modelProvider, E animatable) {
         super(renderManager);
         this.modelProvider = modelProvider;
         this.animatable = animatable;
@@ -48,7 +48,7 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
     }
 
     @Override
-    public void doRender(@Nonnull Entity entity, double x, double y, double z, float yaw, float partialTick) {
+    public void doRender(@Nonnull T entity, double x, double y, double z, float yaw, float partialTick) {
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(this.animatable));
         this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
         GlStateManager.pushMatrix();
@@ -70,7 +70,7 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
         }
          */
 
-        AnimationEvent<T> predicate = new AnimationEvent<>(this.animatable, 0, 0, partialTick, false, Collections.singletonList(new EntityModelData()));
+        AnimationEvent<E> predicate = new AnimationEvent<>(this.animatable, 0, 0, partialTick, false, Collections.singletonList(new EntityModelData()));
         this.modelProvider.setCustomAnimations(this.animatable, this.getInstanceId(entity), predicate);
 
         Minecraft mc = Minecraft.getMinecraft();
@@ -137,18 +137,9 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
-    /*
-    IGeoRenderer
-     */
-
     @Override
     public AnimatedGeoModel getGeoModelProvider() {
         return this.modelProvider;
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(Object instance) {
-        return this.modelProvider.getTextureLocation((IAnimatable) instance);
     }
 
     @Override
@@ -162,12 +153,9 @@ public class GeoProjectilesRenderer<T extends IAnimatable> extends Render<Entity
         this.currentModelRenderCycle = currentModelRenderCycle;
     }
 
-    /*
-    原版 Render
-     */
-
+    @Nullable
     @Override
-    public ResourceLocation getEntityTexture(@Nullable Entity instance) {
+    public ResourceLocation getEntityTexture(@Nonnull T instance) {
         return this.modelProvider.getTextureLocation(this.animatable);
     }
 }

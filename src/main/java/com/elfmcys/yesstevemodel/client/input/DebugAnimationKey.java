@@ -7,6 +7,7 @@ import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.util.EntityUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
@@ -16,7 +17,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
@@ -33,7 +33,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.input.Keyboard;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.function.DoubleSupplier;
 
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
@@ -121,12 +120,11 @@ public class DebugAnimationKey {
         renderText(gui, y, "query.body_x_rotation", () -> player.rotationPitch);
         renderText(gui, y, "query.body_y_rotation", () -> MathHelper.wrapDegrees(player.rotationYaw));
         renderText(gui, y, "query.cardinal_facing_2d", player.getHorizontalFacing().getHorizontalIndex());
-        // TODO
-        renderText(gui, y, "query.distance_from_camera", () -> Objects.requireNonNull(mc.getRenderViewEntity()).getDistance(player));
+        renderText(gui, y, "query.distance_from_camera", () -> EntityUtil.getCameraPosition(mc, partialTick).distanceTo(player.getPositionVector()));
         renderText(gui, y, "query.equipment_count", getEquipmentCount(player));
-        renderText(gui, y, "query.eye_target_x_rotation", () -> getViewXRot(player, partialTick));
-        renderText(gui, y, "query.eye_target_y_rotation", () -> getViewYRot(player, partialTick));
-        renderText(gui, y, "query.ground_speed", () -> getGroundSpeed(player));
+        renderText(gui, y, "query.eye_target_x_rotation", () -> EntityUtil.getViewXRot(player, partialTick));
+        renderText(gui, y, "query.eye_target_y_rotation", () -> EntityUtil.getViewYRot(player, partialTick));
+        renderText(gui, y, "query.ground_speed", () -> EntityUtil.getGroundSpeed(player));
 
         renderText(gui, y, "query.has_cape", hasCape(player));
         renderText(gui, y, "query.has_rider", !player.getPassengers().isEmpty());
@@ -164,7 +162,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "query.player_level", player.experienceLevel);
         renderText(gui, y, "query.time_of_day", () -> MolangUtils.normalizeTime(mc.world.getWorldTime()));
         renderText(gui, y, "query.time_stamp", mc.world.getWorldTime());
-        renderText(gui, y, "query.vertical_speed", () -> getVerticalSpeed(player));
+        renderText(gui, y, "query.vertical_speed", () -> EntityUtil.getVerticalSpeed(player));
         renderText(gui, y, "query.walk_distance", () -> player.distanceWalkedOnStepModified);
         renderText(gui, y, "query.yaw_speed", () -> getYawSpeed(partialTick, player));
 
@@ -247,25 +245,9 @@ public class DebugAnimationKey {
         renderText(gui, y, name, str);
     }
 
-    private static float getViewXRot(EntityPlayer player, float partialTick) {
-        return partialTick == 1.0F ? player.rotationPitch : Interpolations.lerp(player.prevRotationPitch, player.rotationPitch, partialTick);
-    }
-
-    private static float getViewYRot(EntityPlayer player, float partialTick) {
-        return partialTick == 1.0F ? player.rotationYawHead : Interpolations.lerp(player.prevRotationYawHead, player.rotationYawHead, partialTick);
-    }
-
     private static float getYawSpeed(float partialTick, EntityPlayerSP player) {
         double seekTime = player.ticksExisted + partialTick;
-        return getViewYRot(player, (float) seekTime) - getViewYRot(player, (float) seekTime - 0.1f);
-    }
-
-    private static float getGroundSpeed(EntityPlayerSP player) {
-        return 20 * MathHelper.sqrt((float) (player.motionX * player.motionX + player.motionZ * player.motionZ));
-    }
-
-    private static float getVerticalSpeed(EntityPlayerSP player) {
-        return 20 * (float) (player.posY - player.prevPosY);
+        return EntityUtil.getViewYRot(player, (float) seekTime) - EntityUtil.getViewYRot(player, (float) seekTime - 0.1f);
     }
 
     private static boolean getEyeCloseState(float partialTick, EntityPlayerSP player) {

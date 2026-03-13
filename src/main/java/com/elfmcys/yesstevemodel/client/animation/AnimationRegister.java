@@ -11,10 +11,9 @@ import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.data.EntityModelData;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
-import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.util.EntityUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.AbstractHorse;
 import net.minecraft.entity.passive.EntityPig;
@@ -27,7 +26,6 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.Objects;
 import java.util.function.BiPredicate;
 
 public class AnimationRegister {
@@ -160,11 +158,11 @@ public class AnimationRegister {
         parser.setValue("query.body_x_rotation", () -> player.rotationPitch);
         parser.setValue("query.body_y_rotation", () -> MathHelper.wrapDegrees(player.rotationYaw));
         parser.setValue("query.cardinal_facing_2d", () -> player.getHorizontalFacing().getIndex());
-        parser.setValue("query.distance_from_camera", () -> Objects.requireNonNull(mc.getRenderViewEntity()).getDistance(player));
+        parser.setValue("query.distance_from_camera", () -> EntityUtil.getCameraPosition(mc, 0).distanceTo(player.getPositionVector()));
         parser.setValue("query.equipment_count", () -> getEquipmentCount(player));
-        parser.setValue("query.eye_target_x_rotation", () -> getViewXRot(player, 0));
-        parser.setValue("query.eye_target_y_rotation", () -> getViewYRot(player, 0));
-        parser.setValue("query.ground_speed", () -> getGroundSpeed(player));
+        parser.setValue("query.eye_target_x_rotation", () -> EntityUtil.getViewXRot(player, 0));
+        parser.setValue("query.eye_target_y_rotation", () -> EntityUtil.getViewYRot(player, 0));
+        parser.setValue("query.ground_speed", () -> EntityUtil.getGroundSpeed(player));
 
         parser.setValue("query.has_cape", () -> MolangUtils.booleanToFloat(hasCape(player)));
         parser.setValue("query.has_rider", () -> MolangUtils.booleanToFloat(!player.isBeingRidden()));
@@ -201,7 +199,7 @@ public class AnimationRegister {
         parser.setValue("query.player_level", () -> player.experienceLevel);
         parser.setValue("query.time_of_day", () -> MolangUtils.normalizeTime(mc.world.getWorldTime()));
         parser.setValue("query.time_stamp", () -> mc.world.getWorldTime());
-        parser.setValue("query.vertical_speed", () -> getVerticalSpeed(player));
+        parser.setValue("query.vertical_speed", () -> EntityUtil.getVerticalSpeed(player));
         parser.setValue("query.walk_distance", () -> player.distanceWalkedOnStepModified);
         parser.setValue("query.yaw_speed", () -> getYawSpeed(animationEvent, player));
 
@@ -257,8 +255,8 @@ public class AnimationRegister {
         parser.setValue("query.body_x_rotation", () -> arrow.rotationPitch);
         parser.setValue("query.body_y_rotation", () -> MathHelper.wrapDegrees(arrow.rotationYaw));
         parser.setValue("query.is_on_ground", () -> MolangUtils.booleanToFloat(arrow.inGround));
-        parser.setValue("query.ground_speed", () -> getGroundSpeed(arrow));
-        parser.setValue("query.vertical_speed", () -> getVerticalSpeed(arrow));
+        parser.setValue("query.ground_speed", () -> EntityUtil.getGroundSpeed(arrow));
+        parser.setValue("query.vertical_speed", () -> EntityUtil.getVerticalSpeed(arrow));
         parser.setValue("ysm.in_ground", () -> MolangUtils.booleanToFloat(arrow.inGround));
         parser.setValue("ysm.on_ground_time", () -> arrow.timeInGround);
         parser.setValue("ysm.is_spectral_arrow", () -> MolangUtils.booleanToFloat(arrow instanceof EntitySpectralArrow));
@@ -290,25 +288,9 @@ public class AnimationRegister {
         }
     }
 
-    private static float getViewXRot(EntityPlayer player, float partialTick) {
-        return partialTick == 1.0F ? player.rotationPitch : Interpolations.lerp(player.prevRotationPitch, player.rotationPitch, partialTick);
-    }
-
-    private static float getViewYRot(EntityPlayer player, float partialTick) {
-        return partialTick == 1.0F ? player.rotationYawHead : Interpolations.lerp(player.prevRotationYawHead, player.rotationYawHead, partialTick);
-    }
-
     private static float getYawSpeed(AnimationEvent<CustomPlayerEntity> animationEvent, EntityPlayer player) {
         double seekTime = animationEvent.getAnimationTick();
-        return getViewYRot(player, (float) seekTime - getViewYRot(player, (float) seekTime - 0.1f));
-    }
-
-    private static float getGroundSpeed(Entity player) {
-        return 20 * MathHelper.sqrt((float) (player.motionX * player.motionX + player.motionZ * player.motionZ));
-    }
-
-    private static float getVerticalSpeed(Entity player) {
-        return 20 * (float) (player.posY - player.prevPosY);
+        return EntityUtil.getViewYRot(player, (float) seekTime - EntityUtil.getViewYRot(player, (float) seekTime - 0.1f));
     }
 
     private static void register(String animationName, ILoopType loopType, int priority, BiPredicate<EntityPlayer, AnimationEvent<CustomPlayerEntity>> predicate) {

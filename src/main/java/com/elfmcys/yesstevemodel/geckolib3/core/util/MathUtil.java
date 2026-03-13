@@ -7,6 +7,9 @@ import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.AnimationPoint;
 import java.util.function.DoubleUnaryOperator;
 
 public class MathUtil {
+    private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180F;
+    private static final float RADIANS_TO_DEGREES = 180F / (float) Math.PI;
+
     /**
      * 对一个 AnimationPoint 进行线性插值计算
      *
@@ -38,5 +41,13 @@ public class MathUtil {
 
     public static double lerp(double pct, double start, double end) {
         return start + pct * (end - start);
+    }
+
+    public static float degreesToRadians(float degrees) {
+        return degrees * DEGREES_TO_RADIANS;
+    }
+
+    public static float radiansToDegrees(float degrees) {
+        return degrees * RADIANS_TO_DEGREES;
     }
 }

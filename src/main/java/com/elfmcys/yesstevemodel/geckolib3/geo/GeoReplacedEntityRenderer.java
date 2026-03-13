@@ -4,6 +4,7 @@ import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
+import com.elfmcys.yesstevemodel.geckolib3.extended.RenderLivingBaseAccessor;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.model.AnimatedGeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.data.EntityModelData;
@@ -13,8 +14,11 @@ import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.model.ModelPlayer;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -23,80 +27,63 @@ import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.nio.FloatBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends Render<EntityLivingBase> implements IGeoRenderer {
-    protected static final Map<Class<? extends IAnimatable>, GeoReplacedEntityRenderer> renderers = new ConcurrentHashMap<>();
+public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E extends IAnimatable> extends RenderLivingBase<T> implements IGeoRenderer<T> {
+    protected static final Map<Class<? extends IAnimatable>, GeoReplacedEntityRenderer<?, ?>> renderers = new ConcurrentHashMap<>();
 
     static {
         AnimationController.addModelFetcher((IAnimatable object) -> {
-            GeoReplacedEntityRenderer renderer = renderers.get(object.getClass());
+            GeoReplacedEntityRenderer<?, ?> renderer = renderers.get(object.getClass());
             return renderer == null ? null : renderer.getGeoModelProvider();
         });
     }
 
-    protected final AnimatedGeoModel<IAnimatable> modelProvider;
+    protected final AnimatedGeoModel<E> modelProvider;
     protected final List<GeoLayerRenderer> layerRenderers = new ObjectArrayList<>();
-    protected T animatable;
-    protected T currentAnimatable;
+    protected E animatable;
+    protected E currentAnimatable;
     protected float widthScale = 1;
     protected float heightScale = 1;
     private IRenderCycle currentModelRenderCycle = EModelRenderCycle.INITIAL;
 
     public GeoReplacedEntityRenderer(
-            RenderManager renderManager, AnimatedGeoModel<IAnimatable> modelProvider, T animatable
+            RenderManager renderManager, AnimatedGeoModel<E> modelProvider, E animatable
     ) {
-        super(renderManager);
+        super(renderManager, new ModelPlayer(0.0F, true), 0.5F);
         this.modelProvider = modelProvider;
         this.animatable = animatable;
         renderers.putIfAbsent(animatable.getClass(), this);
     }
 
-    public static void registerReplacedEntity(
-            Class<? extends IAnimatable> itemClass, GeoReplacedEntityRenderer renderer
-    ) {
-        renderers.put(itemClass, renderer);
-    }
-
-    public static GeoReplacedEntityRenderer getRenderer(Class<? extends IAnimatable> animatableClass) {
-        return renderers.get(animatableClass);
-    }
-
-    public final boolean addLayer(GeoLayerRenderer<? extends EntityLivingBase> layer) {
+    public final boolean addLayer(GeoLayerRenderer layer) {
         return this.layerRenderers.add(layer);
     }
 
     @Override
     public void doRender(
-            @Nonnull EntityLivingBase entity,
+            @Nonnull T entity,
             double x, double y, double z,
             float entityYaw, float partialTicks
     ) {
-        this.doRender(entity, this.animatable, x, y, z, entityYaw, partialTicks);
+        this.render(entity, this.animatable, x, y, z, entityYaw, partialTicks);
     }
 
-    public void doRender(
-            @Nonnull EntityLivingBase entity, T animatable,
+    public void render(
+            @Nonnull T entity, E animatable,
             double x, double y, double z,
             float entityYaw, float partialTick
     ) {
-        /*
-        LivingEntity -> EntityLivingBase
-        MobEntity -> EntityLiving
-         */
         this.currentAnimatable = animatable;
         boolean shouldSit = entity.isRiding() && (entity.getRidingEntity() != null && entity.getRidingEntity().shouldRiderSit());
 
@@ -146,7 +133,7 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         entityModelData.headPitch = -headPitch;
         entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(animatable));
-        AnimationEvent predicate = new AnimationEvent(animatable, limbSwing, limbSwingAmount, partialTick,
+        AnimationEvent<E> predicate = new AnimationEvent<>(animatable, limbSwing, limbSwingAmount, partialTick,
                 (limbSwingAmount <= -this.getSwingMotionAniMathHelperreshold() || limbSwingAmount <= this.getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
 
         this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
@@ -205,7 +192,11 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.enableCull();
         GlStateManager.popMatrix();
-        super.doRender(entity, x, y, z, entityYaw, partialTick);
+
+        // 嗯...TLM 这么实现，一定有它的道理吧
+        if (this.renderManager.renderViewEntity != null) {
+            ((RenderLivingBaseAccessor) this).ysm$renderNameTag(entity, x, y, z, entityYaw, partialTick);
+        }
 
         /// {@link net.minecraft.client.renderer.entity.RenderLiving#doRender(EntityLiving, double, double, double, float, float)}
         if (!this.renderOutlines && entity instanceof EntityLiving mob) {
@@ -215,84 +206,6 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
                 this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
             }
         }
-    }
-
-    protected boolean isVisible(EntityLivingBase livingEntityIn) {
-        return !livingEntityIn.isInvisible() || this.renderOutlines;
-    }
-
-    /*
-    部分预留的覆盖用方法，对应原版部分方法
-     */
-
-    /**
-     * {@link RenderLivingBase#applyRotations(EntityLivingBase, float, float, float)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected void applyRotations(EntityLivingBase entity, float ageInTicks, float rotationYaw, float partialTicks) {
-        /// {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
-        if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
-            GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
-            GlStateManager.rotate(this.getDeathMaxRotation(player), 0, 0, 1);
-            GlStateManager.rotate(270.0F, 0, 1, 0);
-            return;
-        }
-        GlStateManager.rotate(180.0F - rotationYaw, 0, 1, 0);
-        if (entity.deathTime > 0) {
-            float f = ((float) entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
-            f = MathHelper.sqrt(f);
-            f = Math.min(1.0F, f);
-            GlStateManager.rotate(f * this.getDeathMaxRotation(entity), 0, 0, 1);
-        } else {
-            if (entity instanceof EntityPlayer player && player.isWearing(EnumPlayerModelParts.CAPE)) {
-                return;
-            }
-            String name = TextFormatting.getTextWithoutFormattingCodes(entity.getName());
-            if ("Dinnerbone".equals(name) || "Grumm".equals(name)) {
-                GlStateManager.translate(0.0F, entity.height + 0.1F, 0.0F);
-                GlStateManager.rotate(180.0F, 0, 0, 1);
-            }
-        }
-    }
-
-    /**
-     * {@link RenderLivingBase#setScoreTeamColor(EntityLivingBase)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected boolean setScoreTeamColor(EntityLivingBase entityLivingBaseIn) {
-        GlStateManager.disableLighting();
-        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.disableTexture2D();
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        return true;
-    }
-
-    /**
-     * {@link RenderLivingBase#unsetScoreTeamColor()}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected void unsetScoreTeamColor() {
-        GlStateManager.enableLighting();
-        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.enableTexture2D();
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-    }
-
-    /**
-     * {@link RenderLivingBase#getDeathMaxRotation(EntityLivingBase)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected float getDeathMaxRotation(EntityLivingBase entityLivingBaseIn) {
-        return 90.0F;
-    }
-
-    /**
-     * Gets an RGBA int color multiplier to apply.<br>
-     * {@link RenderLivingBase#getColorMultiplier(EntityLivingBase, float, float)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected int getColorMultiplier(EntityLivingBase entitylivingbaseIn, float lightBrightness, float partialTickTime) {
-        return 0;
     }
 
 //    /**
@@ -308,21 +221,12 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     }
 
     /**
-     * Defines what float the third param in setRotationAngles of ModelBase is<br>
-     * {@link RenderLivingBase#handleRotationFloat(EntityLivingBase, float)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected float handleRotationFloat(EntityLivingBase livingBase, float partialTicks) {
-        return (float) livingBase.ticksExisted + partialTicks;
-    }
-
-    /**
      * {@link net.minecraft.client.renderer.entity.RenderLiving#renderLeash(EntityLiving, double, double, double, float, float)}
      */
     @SuppressWarnings("JavadocReference")
-    protected <E extends Entity> void renderLeash(
+    protected <TEntity extends Entity> void renderLeash(
             EntityLiving entity, double x, double y, double z,
-            float entityYaw, float partialTicks, @Nonnull E leashHolder
+            float entityYaw, float partialTicks, @Nonnull TEntity leashHolder
     ) {
         y = y - (1.6D - (double) entity.height) * 0.5D;
         Tessellator tessellator = Tessellator.getInstance();
@@ -428,145 +332,9 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
         GlStateManager.enableCull();
     }
 
-    protected static final FloatBuffer brightnessBuffer = GLAllocation.createDirectFloatBuffer(4); // 4 个通道
-
-    /**
-     * {@link RenderLivingBase#setDoRenderBrightness(EntityLivingBase, float)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected boolean setDoRenderBrightness(EntityLivingBase entityLivingBaseIn, float partialTicks) {
-        return this.setBrightness(entityLivingBaseIn, partialTicks, true);
-    }
-
-    /**
-     * 渲染受击时的红光<br>
-     * {@link RenderLivingBase#setBrightness(EntityLivingBase, float, boolean)}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected boolean setBrightness(EntityLivingBase entitylivingbaseIn, float partialTicks, boolean combineTextures) {
-        float brightness = entitylivingbaseIn.getBrightness();
-        int colorMultiplier = this.getColorMultiplier(entitylivingbaseIn, brightness, partialTicks);
-        boolean hasCustomColor = (colorMultiplier >> 24 & 255) > 0;
-        boolean isHurtOrDying = entitylivingbaseIn.hurtTime > 0 || entitylivingbaseIn.deathTime > 0;
-        if (!hasCustomColor && (!isHurtOrDying || !combineTextures)) return false;
-
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GlStateManager.enableTexture2D();
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.defaultTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PRIMARY_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.defaultTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.enableTexture2D();
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, OpenGlHelper.GL_INTERPOLATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.GL_CONSTANT);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE2_RGB, OpenGlHelper.GL_CONSTANT);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND2_RGB, GL11.GL_SRC_ALPHA);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        brightnessBuffer.position(0);
-
-        if (isHurtOrDying) {
-            brightnessBuffer.put(1.0F); // R
-            brightnessBuffer.put(0.0F); // G
-            brightnessBuffer.put(0.0F); // B
-            brightnessBuffer.put(0.3F); // A
-        } else {
-            float red = (float) (colorMultiplier >> 16 & 255) / 255.0F;
-            float green = (float) (colorMultiplier >> 8 & 255) / 255.0F;
-            float blue = (float) (colorMultiplier & 255) / 255.0F;
-            float alpha = (float) (colorMultiplier >> 24 & 255) / 255.0F;
-            brightnessBuffer.put(red);
-            brightnessBuffer.put(green);
-            brightnessBuffer.put(blue);
-            brightnessBuffer.put(1.0F - alpha);
-        }
-
-        brightnessBuffer.flip();
-        GlStateManager.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, brightnessBuffer);
-        GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
-        GlStateManager.enableTexture2D();
-        GlStateManager.bindTexture(RenderLivingBase.TEXTURE_BRIGHTNESS.getGlTextureId());
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.lightmapTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        return true;
-    }
-
-    /**
-     * {@link RenderLivingBase#unsetBrightness()}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected void unsetBrightness() {
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        GlStateManager.enableTexture2D();
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, OpenGlHelper.defaultTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PRIMARY_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, OpenGlHelper.defaultTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_ALPHA, OpenGlHelper.GL_PRIMARY_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, GL11.GL_TEXTURE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.setActiveTexture(OpenGlHelper.GL_TEXTURE2);
-        GlStateManager.disableTexture2D();
-        GlStateManager.bindTexture(0);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_RGB, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_RGB, GL11.GL_TEXTURE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE1_RGB, OpenGlHelper.GL_PREVIOUS);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_OPERAND0_ALPHA, GL11.GL_SRC_ALPHA);
-        GlStateManager.glTexEnvi(GL11.GL_TEXTURE_ENV, OpenGlHelper.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
-    }
-
-    /*
-    IGeoRenderer
-     */
-
     @Override
     public AnimatedGeoModel getGeoModelProvider() {
         return this.modelProvider;
-    }
-
-    // 供 Geo 渲染器调用
-    @Override
-    public ResourceLocation getTextureLocation(Object animatable) {
-        return this.modelProvider.getTextureLocation((IAnimatable) animatable);
     }
 
     @Override
@@ -581,22 +349,18 @@ public abstract class GeoReplacedEntityRenderer<T extends IAnimatable> extends R
     }
 
     @Override
-    public float getWidthScale(Object animatable) {
+    public float getWidthScale(T entity) {
         return this.widthScale;
     }
 
     @Override
-    public float getHeightScale(Object animatable) {
+    public float getHeightScale(T entity) {
         return this.heightScale;
     }
 
-    /*
-    原版 Render
-     */
-
-    // 实际绑定纹理
+    @Nullable
     @Override
-    protected ResourceLocation getEntityTexture(@Nullable EntityLivingBase entity) {
+    public ResourceLocation getEntityTexture(@Nonnull T entity) {
         return this.modelProvider.getTextureLocation(this.currentAnimatable);
     }
 }

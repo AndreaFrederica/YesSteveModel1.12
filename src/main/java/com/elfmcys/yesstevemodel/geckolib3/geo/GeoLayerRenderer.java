@@ -1,19 +1,19 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.GeoModelProvider;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
 
-public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable> {
-    protected final IGeoRenderer<T> entityRenderer;
+public abstract class GeoLayerRenderer<T extends Entity, R extends IGeoRenderer<T>> {
+    protected final R entityRenderer;
 
-    public GeoLayerRenderer(IGeoRenderer<T> entityRendererIn) {
+    public GeoLayerRenderer(R entityRendererIn) {
         this.entityRenderer = entityRendererIn;
     }
 
@@ -59,7 +59,7 @@ public abstract class GeoLayerRenderer<T extends EntityLivingBase & IAnimatable>
     }
 
     protected ResourceLocation getEntityTexture(T entityIn) {
-        return this.entityRenderer.getTextureLocation(entityIn);
+        return this.entityRenderer.getEntityTexture(entityIn);
     }
 
     /**

@@ -88,4 +88,7 @@ dependencies {
 
     // Carry On
     compileOnly rfg.deobf('tschipp.carryon:carryon-1.12.2:1.12.7.23')
+
+    // Universal Tweaks
+    compileOnly rfg.deobf("curse.maven:universal-tweaks-705000:7403701")
 }
