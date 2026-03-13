@@ -40,8 +40,7 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
 - 视角旋转过快时，头部角度会跳变
 - 模型预览界花和草光照不对
 - 部分文字颜色不对，这是因为新版文本组件会自动重置颜色，旧版 I18n 处理 String 时不会
-- RenderFirstPlayerBackground 未经测试，暂未启用，需要找模型案例
-- 自发光纹理未经测试，需要找模型案例
+- RenderFirstPlayerBackground 未经测试
 - 刚进游戏时会有一瞬间报纹理丢失错误，这是因为纹理还未来得及同步
 
 ## 协议

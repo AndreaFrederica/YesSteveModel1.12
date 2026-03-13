@@ -47,7 +47,6 @@ public class RenderFirstPlayerBackground {
 
     @SubscribeEvent
     public static void onRenderHand(RenderHandEvent event) {
-        if (true) return;
         if (GeneralConfig.DISABLE_SELF_MODEL) {
             return;
         }
@@ -93,6 +92,7 @@ public class RenderFirstPlayerBackground {
                     }
                     GlStateManager.translate(0, -1.5, 0);
                     geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
+                    tess.draw();
                     GlStateManager.popMatrix();
                 }
             }
