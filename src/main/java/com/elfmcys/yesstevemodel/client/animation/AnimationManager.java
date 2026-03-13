@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.animation;
 
 import com.elfmcys.yesstevemodel.client.animation.condition.*;
 import com.elfmcys.yesstevemodel.client.compat.CarryOnCompat;
+import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
@@ -133,11 +134,25 @@ public final class AnimationManager {
 
     @Nonnull
     public PlayState predicateOffhandHold(AnimationEvent<CustomPlayerEntity> event) {
-        EntityPlayer player = event.getAnimatable().getPlayer();
+        CustomPlayerEntity animatable = event.getAnimatable();
+        EntityPlayer player = animatable.getPlayer();
         if (player == null) {
             return PlayState.STOP;
         }
-        if (this.checkSwingAndUse(player, EnumHand.OFF_HAND)) {
+        if (!player.isSwingInProgress && !player.isHandActive()) {
+            ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
+            if (CrossbowCompat.isCharged(offhandItem)) {
+                return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+
+            }
+        }
+        if (checkSwingAndUse(player, EnumHand.OFF_HAND)) {
+            ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
+            if (!isSameItem(animatable, offhandItem, EnumHand.OFF_HAND)) {
+                animatable.getHandItemsForAnimation()[EnumHand.OFF_HAND.ordinal()] = offhandItem;
+                playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
             if (conditionalHold != null) {
@@ -152,17 +167,38 @@ public final class AnimationManager {
 
     @Nonnull
     public PlayState predicateMainhandHold(AnimationEvent<CustomPlayerEntity> event) {
-        EntityPlayer player = event.getAnimatable().getPlayer();
+        CustomPlayerEntity animatable = event.getAnimatable();
+        EntityPlayer player = animatable.getPlayer();
         if (player == null) {
             return PlayState.STOP;
         }
         if (CarryOnCompat.isInstalled()) {
             String carryName = CarryOnCompat.getCarryOnString(player);
-            if (StringUtils.isNoneBlank(carryName)) {
+            if (carryName != null) {
                 return playAnimation(event, "carryon:" + carryName, ILoopType.EDefaultLoopTypes.LOOP);
             }
         }
-        if (this.checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
+        if (!player.isSwingInProgress && !player.isHandActive()) {
+            ItemStack mainHandItem = player.getHeldItem(EnumHand.MAIN_HAND);
+//            PlayState gunHoldAnimation = GunClientUtil.playGunHoldAnimation(mainHandItem, event);
+//            if (gunHoldAnimation != null) {
+//                return gunHoldAnimation;
+//            }
+            if (CrossbowCompat.isCharged(mainHandItem)) {
+                return playAnimation(event, "hold_mainhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+            if (player.fishEntity != null) {
+                return playAnimation(event, "hold_mainhand:fishing", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+        }
+
+        if (checkSwingAndUse(player, EnumHand.MAIN_HAND)) {
+            ItemStack mainHandItem = player.getHeldItem(EnumHand.MAIN_HAND);
+            if (!isSameItem(animatable, mainHandItem, EnumHand.MAIN_HAND)) {
+                animatable.getHandItemsForAnimation()[EnumHand.MAIN_HAND.ordinal()] = mainHandItem;
+                playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.LOOP);
+            }
+
             ResourceLocation id = event.getAnimatable().getAnimation();
             ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
             if (conditionalHold != null) {
@@ -183,31 +219,21 @@ public final class AnimationManager {
         }
         if (player.isSwingInProgress && !player.isPlayerSleeping()) {
             if (player.swingProgressInt == 0) {
-                event.getController().shouldResetTick = true;
-                event.getController().adjustTick(0);
+                // 空动画用于重置 PLAY_ONCE 动画
+                playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
             }
-            if (player.swingingHand == EnumHand.MAIN_HAND) {
-                ResourceLocation id = event.getAnimatable().getAnimation();
-                ConditionalSwing conditionalSwing = ConditionManager.getSwing(id);
-                if (conditionalSwing != null) {
-                    String name = conditionalSwing.doTest(player, EnumHand.MAIN_HAND);
-                    if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                    }
-                }
-            } else {
-                ResourceLocation id = event.getAnimatable().getAnimation();
-                ConditionalSwing conditionalSwing = ConditionManager.getSwingOffhand(id);
-                if (conditionalSwing != null) {
-                    String name = conditionalSwing.doTest(player, EnumHand.OFF_HAND);
-                    if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                    }
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalSwing conditionalSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? ConditionManager.getSwingMainhand(id) : ConditionManager.getSwingOffhand(id);
+            if (conditionalSwing != null) {
+                String name = conditionalSwing.doTest(player, player.swingingHand);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
                 }
             }
-            return playAnimation(event, "swing_hand", ILoopType.EDefaultLoopTypes.LOOP);
+            String defaultSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? "swing_hand" : "swing_offhand";
+            return playAnimation(event, defaultSwing, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
         }
-        return PlayState.STOP;
+        return PlayState.CONTINUE;
     }
 
     @Nonnull
@@ -277,10 +303,19 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
-    private boolean checkSwingAndUse(EntityPlayer player, EnumHand hand) {
+    private static boolean checkSwingAndUse(EntityPlayer player, EnumHand hand) {
         if (player.isSwingInProgress && player.swingingHand == hand) {
             return false;
         }
         return !player.isHandActive() || player.getActiveHand() != hand;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isSameItem(CustomPlayerEntity animatable, ItemStack maidItem, EnumHand hand) {
+        ItemStack preItem = animatable.getHandItemsForAnimation()[hand.ordinal()];
+        if (preItem.isItemDamaged()) {
+            return ItemStack.areItemsEqual(maidItem, preItem);
+        }
+        return ItemStack.areItemStacksEqual(maidItem, preItem);
     }
 }

@@ -15,6 +15,7 @@ import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.GeckoLibUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +25,7 @@ import static com.elfmcys.yesstevemodel.util.ControllerUtils.*;
 
 public class CustomPlayerEntity implements IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this, true);
+    private final ItemStack[] handItemsForAnimation = new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY};
     private ResourceLocation mainModel = CustomPlayerModel.DEFAULT_MAIN_MODEL;
     private ResourceLocation texture = CustomPlayerModel.DEFAULT_TEXTURE;
     private String previewAnimation = "";
@@ -134,5 +136,9 @@ public class CustomPlayerEntity implements IAnimatable {
 
     public boolean hasPreviewAnimation(String previewAnimation) {
         return this.hasPreviewAnimation() && previewAnimation.equals(this.previewAnimation);
+    }
+
+    public ItemStack[] getHandItemsForAnimation() {
+        return this.handItemsForAnimation;
     }
 }

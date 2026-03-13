@@ -16,29 +16,13 @@ public class ConditionManager {
     public static Map<ResourceLocation, ConditionArmor> ARMOR = Maps.newHashMap();
 
     public static void addTest(ResourceLocation id, String name) {
-        SWING.putIfAbsent(id, new ConditionalSwing(EnumHand.MAIN_HAND));
-        SWING_OFFHAND.putIfAbsent(id, new ConditionalSwing(EnumHand.OFF_HAND));
-        USE_MAINHAND.putIfAbsent(id, new ConditionalUse(EnumHand.MAIN_HAND));
-        USE_OFFHAND.putIfAbsent(id, new ConditionalUse(EnumHand.OFF_HAND));
-        HOLD_MAINHAND.putIfAbsent(id, new ConditionalHold(EnumHand.MAIN_HAND));
-        HOLD_OFFHAND.putIfAbsent(id, new ConditionalHold(EnumHand.OFF_HAND));
-        ARMOR.putIfAbsent(id, new ConditionArmor());
-
-        ConditionalSwing conditionalSwing = SWING.get(id);
-        ConditionalSwing conditionalSwingOffhand = SWING_OFFHAND.get(id);
-        ConditionalUse conditionalUseMainhand = USE_MAINHAND.get(id);
-        ConditionalUse conditionalUseOffhand = USE_OFFHAND.get(id);
-        ConditionalHold conditionalHoldMainhand = HOLD_MAINHAND.get(id);
-        ConditionalHold conditionalHoldOffhand = HOLD_OFFHAND.get(id);
-        ConditionArmor conditionArmor = ARMOR.get(id);
-
-        conditionalSwing.addTest(name);
-        conditionalSwingOffhand.addTest(name);
-        conditionalUseMainhand.addTest(name);
-        conditionalUseOffhand.addTest(name);
-        conditionalHoldMainhand.addTest(name);
-        conditionalHoldOffhand.addTest(name);
-        conditionArmor.addTest(name);
+        SWING.computeIfAbsent(id, k -> new ConditionalSwing(EnumHand.MAIN_HAND)).addTest(name);
+        SWING_OFFHAND.computeIfAbsent(id, k -> new ConditionalSwing(EnumHand.OFF_HAND)).addTest(name);
+        USE_MAINHAND.computeIfAbsent(id, k -> new ConditionalUse(EnumHand.MAIN_HAND)).addTest(name);
+        USE_OFFHAND.computeIfAbsent(id, k -> new ConditionalUse(EnumHand.OFF_HAND)).addTest(name);
+        HOLD_MAINHAND.computeIfAbsent(id, k -> new ConditionalHold(EnumHand.MAIN_HAND)).addTest(name);
+        HOLD_OFFHAND.computeIfAbsent(id, k -> new ConditionalHold(EnumHand.OFF_HAND)).addTest(name);
+        ARMOR.computeIfAbsent(id, k -> new ConditionArmor()).addTest(name);
     }
 
     public static void clear() {
@@ -46,9 +30,12 @@ public class ConditionManager {
         SWING_OFFHAND.clear();
         USE_MAINHAND.clear();
         USE_OFFHAND.clear();
+        HOLD_MAINHAND.clear();
+        HOLD_OFFHAND.clear();
+        ARMOR.clear();
     }
 
-    public static ConditionalSwing getSwing(ResourceLocation id) {
+    public static ConditionalSwing getSwingMainhand(ResourceLocation id) {
         return SWING.get(id);
     }
 

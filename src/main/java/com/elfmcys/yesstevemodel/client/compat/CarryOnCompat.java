@@ -31,12 +31,13 @@ public class CarryOnCompat {
         return CARRY_ON_INSTALLED;
     }
 
+    @Nullable
     public static String getCarryOnString(EntityLivingBase player) {
         if (CARRY_ON_INSTALLED) {
             CarryOnType type = getCarryOnType(player.getHeldItemMainhand());
             if (type != CarryOnType.NONE) return type.name().toLowerCase(Locale.US);
         }
-        return "";
+        return null;
     }
 
     @Optional.Method(modid = CARRY_ON)
