@@ -18,6 +18,7 @@ repositories {
         name 'BlameJared'
         url 'https://maven.blamejared.com'
     }
+    mavenCentral()
     mavenLocal() // Must be last for caching to work
 }
 
