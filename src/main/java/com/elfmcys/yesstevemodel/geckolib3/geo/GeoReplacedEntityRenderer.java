@@ -29,6 +29,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
@@ -66,7 +68,7 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         renderers.putIfAbsent(animatable.getClass(), this);
     }
 
-    public final boolean addLayer(GeoLayerRenderer layer) {
+    public final boolean addLayer(GeoLayerRenderer<T, ?> layer) {
         return this.layerRenderers.add(layer);
     }
 
@@ -88,13 +90,14 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         boolean shouldSit = entity.isRiding() && (entity.getRidingEntity() != null && entity.getRidingEntity().shouldRiderSit());
 
         this.setCurrentModelRenderCycle(EModelRenderCycle.INITIAL);
+
+        if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Pre<>(entity, this, partialTick, x, y, z))) {
+            return;
+        }
+
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
-        GlStateManager.translate(x, y, z);
-        /// {@link net.minecraft.client.renderer.entity.RenderPlayer#renderLivingAt(AbstractClientPlayer, double, double, double)}
-        if (entity instanceof AbstractClientPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
-            GlStateManager.translate(player.renderOffsetX, player.renderOffsetY, player.renderOffsetZ);
-        }
+        this.renderLivingAt(entity, x, y, z);
 
         EntityModelData entityModelData = new EntityModelData();
         entityModelData.isSitting = shouldSit;
@@ -134,7 +137,7 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
         GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(animatable));
         AnimationEvent<E> predicate = new AnimationEvent<>(animatable, limbSwing, limbSwingAmount, partialTick,
-                (limbSwingAmount <= -this.getSwingMotionAniMathHelperreshold() || limbSwingAmount <= this.getSwingMotionAniMathHelperreshold()), Collections.singletonList(entityModelData));
+                (limbSwingAmount <= -this.getSwingMotionAnimThreshold() || limbSwingAmount <= this.getSwingMotionAnimThreshold()), Collections.singletonList(entityModelData));
 
         this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
 
@@ -206,6 +209,7 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
                 this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
             }
         }
+        MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Post<>(entity, this, partialTick, x, y, z));
     }
 
 //    /**
@@ -216,8 +220,36 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
 //        return livingBase.getSwingProgress(partialTickTime);
 //    }
 
-    protected float getSwingMotionAniMathHelperreshold() {
-        return 0.15F;
+    protected float getSwingMotionAnimThreshold() {
+        return 0.15f;
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.RenderPlayer#renderLivingAt(AbstractClientPlayer, double, double, double)}
+     */
+    @SuppressWarnings("JavadocReference")
+    @Override
+    protected void renderLivingAt(@Nonnull T entity, double x, double y, double z) {
+        if (entity instanceof EntityPlayer player && player.isEntityAlive() && player.isPlayerSleeping()) {
+            super.renderLivingAt(entity, x + player.renderOffsetX, y + player.renderOffsetY, z + player.renderOffsetZ);
+        } else {
+            super.renderLivingAt(entity, x, y, z);
+        }
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.RenderPlayer#applyRotations(AbstractClientPlayer, float, float, float)}
+     */
+    @SuppressWarnings("JavadocReference")
+    @Override
+    protected void applyRotations(@Nonnull T entity, float ageInTicks, float rotationYaw, float partialTicks) {
+        if (entity instanceof EntityPlayer player && entity.isEntityAlive() && entity.isPlayerSleeping()) {
+            GlStateManager.rotate(player.getBedOrientationInDegrees(), 0, 1, 0);
+            GlStateManager.rotate(this.getDeathMaxRotation(entity), 0, 0, 1);
+            GlStateManager.rotate(270.0F, 0, 1, 0);
+            return;
+        }
+        super.applyRotations(entity, ageInTicks, rotationYaw, partialTicks);
     }
 
     /**

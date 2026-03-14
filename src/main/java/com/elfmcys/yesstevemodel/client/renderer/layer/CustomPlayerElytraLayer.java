@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerElytra}。
  */
 public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoRenderer<T>> extends GeoLayerRenderer<T, R> {
-    private static final ResourceLocation WINGS_LOCATION = new ResourceLocation("textures/entity/elytra.png");
     private final ModelElytra elytraModel = new ModelElytra();
 
     public CustomPlayerElytraLayer(R entityRendererIn) {
@@ -36,17 +35,13 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
         if (ElytraCompat.isWearingElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
             GeoModel geoModel = this.entityRenderer.getGeoModel();
             if (!geoModel.elytraBones.isEmpty()) {
-                ResourceLocation texture;
+                ResourceLocation texture = ElytraCompat.getDefaultTexture(livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem());
                 if (livingEntity instanceof AbstractClientPlayer player) {
                     if (player.isPlayerInfoSet() && player.getLocationElytra() != null) {
                         texture = player.getLocationElytra();
                     } else if (player.hasPlayerInfo() && player.getLocationCape() != null && player.isWearing(EnumPlayerModelParts.CAPE)) {
                         texture = player.getLocationCape();
-                    } else {
-                        texture = WINGS_LOCATION;
                     }
-                } else {
-                    texture = WINGS_LOCATION;
                 }
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.enableBlend();
