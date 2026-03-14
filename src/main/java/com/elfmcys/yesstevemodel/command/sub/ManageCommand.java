@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.List;
 
 public class ManageCommand extends CommandBase {
@@ -64,29 +63,12 @@ public class ManageCommand extends CommandBase {
             }
             return out;
         }
-        File[] dirs = rootPath.toFile().listFiles();
-        if (dirs != null) {
-            for (File dir : dirs) {
-                if (!dir.isDirectory()) {
-                    continue;
-                }
-                RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(dir.getName(), Type.FOLDER, FileUtils.sizeOf(dir));
-                out.add(info);
-            }
-        }
-        Collection<File> zipFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"zip"}, false);
-        for (File zipFile : zipFiles) {
-            RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(zipFile.getName(), Type.ZIP, FileUtils.sizeOf(zipFile));
-            out.add(info);
-        }
-//        Collection<File> sevenZFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"7z"}, false);
-//        for (File sevenZFile : sevenZFiles) {
-//            RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(sevenZFile.getName(), Type.SEVEN_Z, FileUtils.sizeOf(sevenZFile));
-//            out.add(info);
-//        }
-        Collection<File> ysmFiles = FileUtils.listFiles(rootPath.toFile(), new String[]{"ysm"}, false);
-        for (File ysmFile : ysmFiles) {
-            RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(ysmFile.getName(), Type.YSM, FileUtils.sizeOf(ysmFile));
+        File[] files = rootPath.toFile().listFiles();
+        if (files == null) return out;
+        for (File file : files) {
+            Type type = Type.getType(file);
+            if (type == Type.UNKNOWN) continue;
+            RequestServerModelInfo.Info info = new RequestServerModelInfo.Info(type.getFileName(file), type, FileUtils.sizeOf(file));
             out.add(info);
         }
         return out;

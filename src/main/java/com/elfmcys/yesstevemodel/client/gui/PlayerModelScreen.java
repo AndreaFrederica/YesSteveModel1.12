@@ -24,6 +24,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Loader;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
@@ -45,8 +46,7 @@ public class PlayerModelScreen extends Screen {
     private int y;
 
     public PlayerModelScreen() {
-        this.category = Category.ALL;
-        this.player = Minecraft.getMinecraft().player;
+        this(Minecraft.getMinecraft().player);
     }
 
     public PlayerModelScreen(EntityPlayer player) {
@@ -90,6 +90,7 @@ public class PlayerModelScreen extends Screen {
     @SuppressWarnings("CodeBlock2Expr")
     @Override
     public void initGui() {
+        Keyboard.enableRepeatEvents(true);
         this.calculateModelList();
 
         this.x = (this.width - 420) / 2;
@@ -203,14 +204,14 @@ public class PlayerModelScreen extends Screen {
 
         this.textField.drawTextBox();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderUtil.scissor(this.x + 5, this.y + 29, 125, 171);
-        GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 190, 70, this.x + 67 - mouseX, this.y + 180 - 95 - mouseY, this.player);
+        RenderUtil.scissor(this.x + 5, this.y + 54, 125, 146);
+        GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 195, 64, this.x + 67 - mouseX, this.y + 190 - 95 - mouseY, this.player);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         CapabilityEvent.getModelInfoCap(this.player).ifPresent(cap -> {
             String modelName = cap.getModelId().getPath();
             final ExtraInfo extraInfo = ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(cap.getModelId()));
-            if (extraInfo.getName() != null && !extraInfo.getName().isEmpty()) {
+            if (extraInfo != null && extraInfo.getName() != null && !extraInfo.getName().isEmpty()) {
                 modelName = extraInfo.getName();
             }
             List<String> modelNameSplit = this.fontRenderer.listFormattedStringToWidth(modelName, 125);
@@ -233,6 +234,8 @@ public class PlayerModelScreen extends Screen {
         this.drawString(this.fontRenderer, TextFormatting.DARK_GRAY + debugInfo, this.x + 2, this.y + 226, 0xFFFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
+        this.buttonList.stream().filter(r -> r instanceof FlatColorButton)
+                .forEach(r -> ((FlatColorButton) r).renderToolTip(this, mouseX, mouseY));
         this.buttonList.stream().filter(r -> r instanceof FlatIconButton)
                 .forEach(r -> ((FlatIconButton) r).renderToolTip(this, mouseX, mouseY));
         this.buttonList.stream().filter(r -> r instanceof ModelButton)
@@ -312,6 +315,12 @@ public class PlayerModelScreen extends Screen {
     @Override
     protected boolean canGuiClose(int keyCode) {
         return super.canGuiClose(keyCode) || isKeyActiveIgnoreConflict(PlayerModelScreenKey.PLAYER_MODEL_KEY, keyCode);
+    }
+
+    @Override
+    public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(false);
+        super.onGuiClosed();
     }
 
     /**

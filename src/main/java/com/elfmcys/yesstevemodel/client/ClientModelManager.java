@@ -17,7 +17,8 @@ import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.json.JsonAnimationUtils;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
-import com.elfmcys.yesstevemodel.model.format.FolderFormat;
+import com.elfmcys.yesstevemodel.model.format.Type;
+import com.elfmcys.yesstevemodel.model.format.access.FolderModelAccess;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SyncModelFiles;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
@@ -184,12 +185,19 @@ public class ClientModelManager {
 
     public static void loadDefaultModel() {
         try {
-            ModelData data = FolderFormat.getModelData(ServerModelManager.BUILTIN, "default", false);
-            data.getAnimation().forEach((name, bytes) -> {
-                AnimationFile animationFile = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
-                if (!"arrow".equals(name)) mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
-            });
-            ClientModelManager.registerAll(data);
+            Path defaultPath = ServerModelManager.BUILTIN.resolve("default");
+            try (FolderModelAccess access = new FolderModelAccess(defaultPath)) {
+                ModelData data = ServerModelManager.getModelData(access, "default", false, Type.FOLDER);
+                if (data == null) {
+                    YesSteveModel.LOGGER.warn("Failed to load default model.");
+                    return;
+                }
+                data.getAnimation().forEach((name, bytes) -> {
+                    AnimationFile animationFile = getAnimationFile(new String(bytes, StandardCharsets.UTF_8));
+                    if (!"arrow".equals(name)) mergeAnimationFile(DEFAULT_ANIMATION_FILE, animationFile);
+                });
+                ClientModelManager.registerAll(data);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

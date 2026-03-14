@@ -3,13 +3,19 @@ package com.elfmcys.yesstevemodel.model;
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.data.EncryptTools;
-import com.elfmcys.yesstevemodel.model.format.FolderFormat;
+import com.elfmcys.yesstevemodel.data.ModelData;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.Converter;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
+import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.RawGeoModel;
 import com.elfmcys.yesstevemodel.model.format.ServerModelInfo;
-import com.elfmcys.yesstevemodel.model.format.YsmFormat;
-import com.elfmcys.yesstevemodel.model.format.ZipFormat;
+import com.elfmcys.yesstevemodel.model.format.Type;
+import com.elfmcys.yesstevemodel.model.format.access.IModelAccess;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.RequestSyncModel;
 import com.elfmcys.yesstevemodel.util.GetJarResources;
+import com.elfmcys.yesstevemodel.util.Md5Utils;
+import com.elfmcys.yesstevemodel.util.ObjectStreamUtil;
+import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,12 +23,19 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.PlayerList;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import static com.elfmcys.yesstevemodel.model.format.FormatManager.*;
 
 public final class ServerModelManager {
     /**
@@ -99,13 +112,6 @@ public final class ServerModelManager {
         cacheAllModels(AUTH);
     }
 
-    private static void cacheAllModels(Path rootPath) {
-        YsmFormat.cacheAllModels(rootPath);
-//        SevenZFormat.cacheAllModels(rootPath);
-        ZipFormat.cacheAllModels(rootPath);
-        FolderFormat.cacheAllModels(rootPath);
-    }
-
     private static void initPassword() {
         try {
             EncryptTools.createRandomPassword();
@@ -141,5 +147,97 @@ public final class ServerModelManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /*
+    模型加载
+     */
+
+    public static void cacheAllModels(Path rootPath) {
+        File[] files = rootPath.toFile().listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            Type type = Type.getType(file);
+            if (type == Type.UNKNOWN) continue;
+            String modelId = type.getFileName(file);
+            if (!ResourceUtil.isValidResourceLocation(modelId)) continue;
+            loadLegacyModel(rootPath, file, modelId, type);
+        }
+    }
+
+    private static void loadLegacyModel(Path rootPath, File file, String modelId, Type type) {
+        try (IModelAccess access = type.createAccess(file)) {
+            if (access == null) return;
+            boolean isAuth = rootPath.equals(AUTH);
+            ModelData modelData = getModelData(access, modelId, isAuth, type);
+            if (modelData == null) return;
+            ServerModelInfo info = cacheModel(modelData);
+            CACHE_NAME_INFO.put(modelId, info);
+            if (isAuth) AUTH_MODELS.add(modelId);
+        } catch (Exception e) {
+            YesSteveModel.LOGGER.warn("Failed to load {} model: {}", type.getName(), file.getName(), e);
+        }
+    }
+
+    /**
+     * @return 若为 null 则代表模型无效。
+     */
+    @Nullable
+    public static ModelData getModelData(IModelAccess access, String modelId, boolean isAuth, Type type) throws IOException {
+        Map<String, byte[]> model = Maps.newHashMap();
+        // info.json
+        byte[] infoBytes = access.readFile(INFO_FILE_NAME);
+        if (infoBytes != null && infoBytes.length > 0) {
+            String infoJson = new String(infoBytes, StandardCharsets.UTF_8);
+            ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
+            model.put(INFO_NAME, ObjectStreamUtil.toByteArray(info));
+        }
+        for (String modelName : MODEL_NAMES) {
+            byte[] data = access.readFile(getModelFileName(modelName));
+            if (data == null || data.length == 0) {
+                if (isModelNameNecessary(modelName)) return null;
+                continue;
+            }
+            String json = new String(data, StandardCharsets.UTF_8);
+            RawGeoModel rawModel = Converter.fromJsonString(json);
+            model.put(modelName, ObjectStreamUtil.toByteArray(rawModel));
+        }
+
+        Map<String, byte[]> texture = Maps.newHashMap();
+        for (String pngPath : access.listFiles(".png")) {
+            byte[] data = access.readFile(pngPath);
+            if (data != null) {
+                texture.put(pngPath, data);
+            }
+        }
+
+        Map<String, byte[]> animation = Maps.newHashMap();
+        for (String animName : ANIMATION_NAMES) {
+            byte[] animData = access.readFile(getAnimFileName(animName));
+            if (animData == null || animData.length == 0) {
+                java.io.File defaultFile = getDefaultAnimFile(animName);
+                if (defaultFile.isFile()) {
+                    animData = FileUtils.readFileToByteArray(defaultFile);
+                }
+            }
+            if (animData != null) {
+                animation.put(animName, animData);
+            }
+        }
+
+        return new ModelData(modelId, isAuth, type, model, texture, animation);
+    }
+
+    /**
+     * 使用 {@link EncryptTools#assembleEncryptModels(ModelData)} 加密，并以 MD5 值命名存入服务端缓存目录。
+     *
+     * @param modelData 封装好的序列化模型文件二进制流
+     */
+    @Nonnull
+    private static ServerModelInfo cacheModel(ModelData modelData) throws IOException {
+        byte[] dataBytes = EncryptTools.assembleEncryptModels(modelData);
+        modelData.setMd5(Md5Utils.md5Hex(dataBytes).toUpperCase(Locale.US));
+        FileUtils.writeByteArrayToFile(CACHE_SERVER.resolve(modelData.getInfo().getMd5()).toFile(), dataBytes);
+        return modelData.getInfo();
     }
 }

@@ -42,6 +42,7 @@ public final class YesModelUtils {
      */
     private static final String ENCRYPTION_METHOD = "AES";
 
+    @Nonnull
     public static Map<String, byte[]> input(File ysmFile) throws IOException {
         String fileName = FilenameUtils.removeExtension(ysmFile.getName());
         if (!ResourceUtil.isValidResourceLocation(fileName)) {

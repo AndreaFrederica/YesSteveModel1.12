@@ -90,6 +90,7 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
     }
 
     public static class Info {
+        /// 不含拓展名
         private String fileName;
         private Type type;
         private long size;
@@ -102,6 +103,10 @@ public class RequestServerModelInfo implements IPacketBufferMessage {
 
         public String getFileName() {
             return this.fileName;
+        }
+
+        public String getFullFileName() {
+            return this.type.addExtension(this.fileName);
         }
 
         public void setFileName(String fileName) {

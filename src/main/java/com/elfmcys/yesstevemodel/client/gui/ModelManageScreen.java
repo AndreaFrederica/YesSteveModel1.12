@@ -15,6 +15,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -52,6 +53,7 @@ public class ModelManageScreen extends Screen {
 
     @Override
     public void initGui() {
+        Keyboard.enableRepeatEvents(true);
         this.calculateList();
         this.x = (this.width - 420) / 2;
         this.y = (this.height - 235) / 2;
@@ -68,46 +70,7 @@ public class ModelManageScreen extends Screen {
 
     private void addExtraButtons() {
         if (this.action != Action.UPLOAD || StringUtils.isNoneBlank(UploadManager.FILE_PATH)) {
-            this.addButton(new FlatColorButton(this.x + 270, this.y + 235 - 23, 70, 18, I18n.format("gui.yes_steve_model.model_manage.confirm"), (b) -> {
-                boolean canConfirm = false;
-                if (this.index >= 0 && this.index < this.getModels().size()) {
-                    RequestServerModelInfo.Info info = this.getModels().get(this.index);
-                    UploadFile.Dir dir = isCustomModels ? UploadFile.Dir.CUSTOM : UploadFile.Dir.AUTH;
-                    if (this.action == Action.DELETE) {
-                        NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "delete", ""));
-                        canConfirm = true;
-                    }
-                    if (this.action == Action.MOVE) {
-                        NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "move", ""));
-                        canConfirm = true;
-                    }
-                    if (this.action == Action.RENAME && StringUtils.isNotBlank(this.textField.getText())) {
-                        String value = this.textField.getText();
-                        String fileName = info.getFileName();
-                        if (info.getType() == Type.FOLDER && !value.equals(fileName)) {
-                            NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "rename", value));
-                            canConfirm = true;
-                        }
-                        if (info.getType() != Type.FOLDER && !value.equals(fileName.substring(0, fileName.length() - 4))) {
-                            value = value + fileName.substring(fileName.length() - 4);
-                            NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFileName(), dir, "rename", value));
-                            canConfirm = true;
-                        }
-                    }
-                }
-                if (this.action == Action.UPLOAD && StringUtils.isNoneBlank(UploadManager.FILE_PATH) && UploadManager.STATUE == UploadManager.Statue.FULFILL) {
-                    try {
-                        this.uploadFile(UploadManager.FILE_PATH, isCustomModels);
-                        canConfirm = true;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (canConfirm) {
-                    this.action = Action.EMPTY;
-                    NetworkHandler.CHANNEL.sendToServer(new RefreshModelManage());
-                }
-            }));
+            this.addButton(new FlatColorButton(this.x + 270, this.y + 235 - 23, 70, 18, I18n.format("gui.yes_steve_model.model_manage.confirm"), (b) -> this.onConfirm()));
             this.addButton(new FlatColorButton(this.x + 345, this.y + 235 - 23, 70, 18, I18n.format("gui.yes_steve_model.model_manage.cancel"), (b) -> {
                 this.action = Action.EMPTY;
                 this.refreshGui();
@@ -117,7 +80,53 @@ public class ModelManageScreen extends Screen {
             this.textField = new GuiTextField(0, this.fontRenderer, this.x + 270, this.y + 51, 145, 14);
             this.textField.setTextColor(0xF3EFE0);
             this.textField.setMaxStringLength(24);
+            RequestServerModelInfo.Info info = this.getModels().get(this.index);
+            this.textField.setText(info.getFileName());
+            this.textField.setFocused(true);
             this.textField.setCursorPositionEnd();
+        }
+    }
+
+    private void onConfirm() {
+        boolean canConfirm = false;
+        boolean refreshModel = true;
+        if (this.index >= 0 && this.index < this.getModels().size()) {
+            RequestServerModelInfo.Info info = this.getModels().get(this.index);
+            UploadFile.Dir dir = isCustomModels ? UploadFile.Dir.CUSTOM : UploadFile.Dir.AUTH;
+            if (this.action == Action.DELETE) {
+                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "delete", ""));
+                canConfirm = true;
+            }
+            if (this.action == Action.MOVE) {
+                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "move", ""));
+                canConfirm = true;
+            }
+            if (this.action == Action.RENAME) {
+                canConfirm = true;
+                refreshModel = false;
+                String value = this.textField.getText();
+                if (StringUtils.isNotBlank(value)) {
+                    String oldFileName = info.getFullFileName();
+                    String newFileName = info.getType().addExtension(value);
+                    if (!newFileName.equals(oldFileName)) {
+                        NetworkHandler.CHANNEL.sendToServer(new HandleFile(oldFileName, dir, "rename", newFileName));
+                        refreshModel = true;
+                    }
+                }
+            }
+        }
+        if (this.action == Action.UPLOAD && StringUtils.isNoneBlank(UploadManager.FILE_PATH) && UploadManager.STATUE == UploadManager.Statue.FULFILL) {
+            try {
+                this.uploadFile(UploadManager.FILE_PATH, isCustomModels);
+                canConfirm = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (canConfirm) {
+            this.action = Action.EMPTY;
+            if (refreshModel) NetworkHandler.CHANNEL.sendToServer(new RefreshModelManage());
+            else this.refreshGui(); // 视觉上刷新
         }
     }
 
@@ -223,7 +232,7 @@ public class ModelManageScreen extends Screen {
         File file = new File(directory, filename);
         if (file.isFile()) {
             this.uploadError = null;
-            if (!file.getName().endsWith("zip") && !file.getName().endsWith("ysm")) {
+            if (!Type.SEVEN_Z.match(file) && !Type.ZIP.match(file) && !Type.YSM.match(file)) {
                 this.uploadError = I18n.format("gui.yes_steve_model.model_manage.error.format_incorrect");
                 return;
             }
@@ -276,7 +285,7 @@ public class ModelManageScreen extends Screen {
 
         if (this.index >= 0 && this.index < this.getModels().size() && this.action != Action.UPLOAD) {
             RequestServerModelInfo.Info info = this.getModels().get(this.index);
-            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.selected", TextFormatting.RESET + info.getFileName()), this.x + 272, this.y + 29, 0xFFFFFF);
+            this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.selected", TextFormatting.RESET + info.getFullFileName()), this.x + 272, this.y + 29, 0xFFFFFF);
             if (this.action != Action.EMPTY) {
                 String actionName = I18n.format("gui.yes_steve_model.model_manage." + this.action.name().toLowerCase(Locale.US));
                 this.drawString(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.action", TextFormatting.RESET + actionName), this.x + 272, this.y + 39, 0xFFFFFF);
@@ -296,18 +305,38 @@ public class ModelManageScreen extends Screen {
     }
 
     @Override
+    public void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
+        if (this.textField != null) this.textField.mouseClicked(mouseX, mouseY, button);
+        super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public void keyTyped(char codePoint, int modifiers) throws IOException {
+        switch (modifiers) {
+            case Keyboard.KEY_RETURN, Keyboard.KEY_NUMPADENTER -> {
+                this.onConfirm();
+                return;
+            }
+            case Keyboard.KEY_ESCAPE -> {
+                if (this.action != Action.EMPTY) {
+                    this.action = Action.EMPTY;
+                    this.refreshGui();
+                    return;
+                }
+            }
+        }
         if (this.textField != null && this.textField.textboxKeyTyped(codePoint, modifiers)) return;
         super.keyTyped(codePoint, modifiers);
     }
 
     @Override
     public void onResize(@Nonnull Minecraft minecraft, int width, int height) {
-        super.onResize(minecraft, width, height);
         if (this.textField != null) {
             String value = this.textField.getText();
             super.onResize(minecraft, width, height);
             this.textField.setText(value);
+        } else {
+            super.onResize(minecraft, width, height);
         }
     }
 
@@ -316,6 +345,12 @@ public class ModelManageScreen extends Screen {
         if (this.textField != null) {
             this.textField.updateCursorCounter();
         }
+    }
+
+    @Override
+    public void onGuiClosed() {
+        Keyboard.enableRepeatEvents(false);
+        super.onGuiClosed();
     }
 
     public enum Action {
