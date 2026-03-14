@@ -35,14 +35,6 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
         if (ElytraCompat.isWearingElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
             GeoModel geoModel = this.entityRenderer.getGeoModel();
             if (!geoModel.elytraBones.isEmpty()) {
-                ResourceLocation texture = ElytraCompat.getDefaultTexture(livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem());
-                if (livingEntity instanceof AbstractClientPlayer player) {
-                    if (player.isPlayerInfoSet() && player.getLocationElytra() != null) {
-                        texture = player.getLocationElytra();
-                    } else if (player.hasPlayerInfo() && player.getLocationCape() != null && player.isWearing(EnumPlayerModelParts.CAPE)) {
-                        texture = player.getLocationCape();
-                    }
-                }
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.enableBlend();
                 GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -53,7 +45,7 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
                 if (!scaleResult) {
                     GlStateManager.rotate(180, 0, 0, 1);
                     Minecraft mc = Minecraft.getMinecraft();
-                    mc.getTextureManager().bindTexture(texture);
+                    mc.getTextureManager().bindTexture(getElytraTexture(livingEntity));
                     final float scale = 1 / 16F;
                     this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
                     this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
@@ -69,6 +61,17 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
+    }
+
+    protected static ResourceLocation getElytraTexture(EntityLivingBase livingEntity) {
+        if (livingEntity instanceof AbstractClientPlayer player) {
+            if (player.isPlayerInfoSet() && player.getLocationElytra() != null) {
+                return player.getLocationElytra();
+            } else if (player.hasPlayerInfo() && player.getLocationCape() != null && player.isWearing(EnumPlayerModelParts.CAPE)) {
+                return player.getLocationCape();
+            }
+        }
+        return ElytraCompat.getDefaultTexture(livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem());
     }
 
     protected static boolean translateToElytra(GeoModel geoModel) {
