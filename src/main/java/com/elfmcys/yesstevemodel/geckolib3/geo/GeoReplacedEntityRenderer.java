@@ -76,9 +76,9 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
     public void doRender(
             @Nonnull T entity,
             double x, double y, double z,
-            float entityYaw, float partialTicks
+            float entityYaw, float partialTick
     ) {
-        this.render(entity, this.animatable, x, y, z, entityYaw, partialTicks);
+        this.render(entity, this.animatable, x, y, z, entityYaw, partialTick);
     }
 
     public void render(

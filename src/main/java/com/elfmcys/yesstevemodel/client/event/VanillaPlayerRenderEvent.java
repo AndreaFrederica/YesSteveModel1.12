@@ -24,11 +24,9 @@ public class VanillaPlayerRenderEvent {
 
     @SubscribeEvent
     public static void onRenderPlayer(SpecialPlayerRenderEvent event) {
-
         EntityPlayer player = event.getPlayer();
         CustomPlayerEntity animatable = event.getCustomPlayer();
         if (isVanillaPlayer(event.getModelId()) && player instanceof EntityPlayerSP clientPlayer) {
-            animatable.setPlayer(player);
             animatable.setMainModel(ModelIdUtil.getMainId(event.getModelId()));
             ResourceLocation location;
             Minecraft minecraft = Minecraft.getMinecraft();

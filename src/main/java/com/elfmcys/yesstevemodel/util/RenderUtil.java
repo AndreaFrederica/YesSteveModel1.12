@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityPig;
@@ -73,21 +72,30 @@ public final class RenderUtil {
                 GlStateManager.rotate(xp, 1, 0, 0);
 
                 float yBodyRot = player.renderYawOffset;
+                float yBodyRotO = player.prevRenderYawOffset;
                 float yRot = player.rotationYaw;
+                float yRotO = player.prevRotationYaw;
                 float xRot = player.rotationPitch;
-                float yHeadRotO = player.prevRotationYawHead;
+                float xRotO = player.prevRotationPitch;
                 float yHeadRot = player.rotationYawHead;
+                float yHeadRotO = player.prevRotationYawHead;
+                Entity vehicle = player.ridingEntity;
 
-                player.renderYawOffset = -yaw;
-                player.rotationYaw = 180;
-                player.rotationPitch = 0;
-                player.rotationYawHead = player.rotationYaw;
-                player.prevRotationYawHead = player.rotationYaw;
                 boolean sleeping = player.sleeping;
                 BlockPos bedLocation = player.bedLocation;
                 float renderOffsetX = player.renderOffsetX;
                 float renderOffsetY = player.renderOffsetY;
                 float renderOffsetZ = player.renderOffsetZ;
+
+                player.renderYawOffset = -yaw;
+                player.prevRenderYawOffset = player.renderYawOffset;
+                player.rotationYaw = 180;
+                player.prevRotationYaw = player.rotationYaw;
+                player.rotationPitch = 0;
+                player.prevRotationPitch = player.rotationPitch;
+                player.rotationYawHead = player.renderYawOffset;
+                player.prevRotationYawHead = player.rotationYawHead;
+                player.ridingEntity = null;
 
                 RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
                 xp = 180.0F - xp;
@@ -97,6 +105,7 @@ public final class RenderUtil {
                     GlStateManager.rotate(yaw - 90, 0, 1, 0);
                     GlStateManager.translate(0.5, 0.5625, 0);
                     player.sleeping = true;
+                    // 原版的床睡完后不会重置这几个状态
                     player.bedLocation = null;
                     player.renderOffsetX = 0;
                     player.renderOffsetY = 0;
@@ -121,12 +130,6 @@ public final class RenderUtil {
                     GlStateManager.translate(0, -0.45, 0);
                 }
                 GlStateManager.pushMatrix();
-                if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
-                    float vehicleYRot = vehicle.rotationYaw;
-                    GlStateManager.rotate(vehicleYRot + yaw, 0, 1, 0);
-                    player.rotationYawHead = vehicleYRot;
-                    player.prevRotationYawHead = vehicleYRot;
-                }
                 renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
                 GlStateManager.popMatrix();
                 // 清理实体渲染
@@ -152,10 +155,15 @@ public final class RenderUtil {
                 dispatcher.setRenderShadow(true);
 
                 player.renderYawOffset = yBodyRot;
+                player.prevRenderYawOffset = yBodyRotO;
                 player.rotationYaw = yRot;
+                player.prevRotationYaw = yRotO;
                 player.rotationPitch = xRot;
-                player.prevRotationYawHead = yHeadRotO;
+                player.prevRotationPitch = xRotO;
                 player.rotationYawHead = yHeadRot;
+                player.prevRotationYawHead = yHeadRotO;
+                player.ridingEntity = vehicle;
+
                 player.sleeping = sleeping;
                 player.bedLocation = bedLocation;
                 player.renderOffsetX = renderOffsetX;
@@ -308,6 +316,7 @@ public final class RenderUtil {
         float xRotO = player.prevRotationPitch;
         float yHeadRot = player.rotationYawHead;
         float yHeadRotO = player.prevRotationYawHead;
+        Entity vehicle = player.ridingEntity;
 
         ItemStack[] itemStacks = new ItemStack[EntityEquipmentSlot.values().length];
         int i = 0;
@@ -325,25 +334,20 @@ public final class RenderUtil {
 
         float renderYRot = disableRot ? 180.0F : 200.0F;
         player.renderYawOffset = renderYRot;
-        player.prevRenderYawOffset = renderYRot;
+        player.prevRenderYawOffset = player.renderYawOffset;
         player.rotationYaw = renderYRot;
-        player.prevRotationYaw = renderYRot;
+        player.prevRotationYaw = player.rotationYaw;
         player.rotationPitch = 0.0F;
-        player.prevRotationPitch = 0.0F;
-        player.rotationYawHead = player.rotationYaw;
-        player.prevRotationYawHead = player.rotationYaw;
+        player.prevRotationPitch = player.rotationPitch;
+        player.rotationYawHead = player.renderYawOffset;
+        player.prevRotationYawHead = player.rotationYawHead;
+        player.ridingEntity = null;
 
         RenderManager dispatcher = Minecraft.getMinecraft().getRenderManager();
         xp = 180.0F - xp;
         dispatcher.setPlayerViewY(xp);
         dispatcher.setRenderShadow(false);
         GlStateManager.pushMatrix();
-        if (player.getRidingEntity() instanceof EntityLivingBase vehicle) {
-            float vehicleYRot = vehicle.rotationYaw;
-            GlStateManager.rotate(vehicleYRot - renderYRot, 0, 1, 0);
-            player.rotationYawHead = vehicleYRot;
-            player.prevRotationYawHead = vehicleYRot;
-        }
         renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
         GlStateManager.popMatrix();
         dispatcher.setRenderShadow(true);
@@ -356,6 +360,7 @@ public final class RenderUtil {
         player.prevRotationPitch = xRotO;
         player.rotationYawHead = yHeadRot;
         player.prevRotationYawHead = yHeadRotO;
+        player.ridingEntity = vehicle;
 
         i = 0;
         for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
@@ -407,9 +412,9 @@ public final class RenderUtil {
     }
 
     private static void rotateAndEnableLighting() {
-        GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(135.0F, 0, 1, 0);
         RenderHelper.enableStandardItemLighting();
-        GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(-135.0F, 0, 1, 0);
     }
 
     public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
