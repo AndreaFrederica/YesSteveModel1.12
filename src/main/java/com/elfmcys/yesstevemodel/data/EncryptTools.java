@@ -23,34 +23,21 @@ import java.util.Map;
 public final class EncryptTools {
     /**
      * 二进制文件的头部幻数
+     * <pre>
      * YSGP 的 ASCII 码
      * YSGP 就是 Ying Su Group，映素小组的缩写
+     * </pre>
      */
     public static final int HEAD = 0x59_53_47_50;
-
-    /**
-     * 二进制文件的版本号
-     */
+    /// 二进制文件的版本号
     public static final int VERSION = 0x00_00_00_01;
-
-    /**
-     * 加密方法
-     */
+    /// 加密方法
     private static final String ENCRYPTION_METHOD = "AES";
-
-    /**
-     * 二进制密码文件长度
-     */
+    /// 二进制密码文件长度
     private static final int PASSWORD_SIZE = 40;
-
-    /**
-     * 模型包密码
-     */
+    /// 模型包密码
     private static SecretKey SECRET_KEY;
-
-    /**
-     * 模型包特征矩阵（还是密码）
-     */
+    /// 模型包特征矩阵（还是密码）
     private static IvParameterSpec IV;
 
     public static void createRandomPassword() {
@@ -87,6 +74,7 @@ public final class EncryptTools {
 
     /**
      * 将附加信息和加密文件块组合成二进制文件
+     * <pre>
      * -----------------------------------------
      * 59 53 47 50                        幻数
      * 00 00 00 01                      版本号
@@ -94,6 +82,7 @@ public final class EncryptTools {
      * 00 00 00 00 00 00 00 00        文件 MD5
      * -----------------------------------------
      * 加密文件块
+     * </pre>
      */
     public static byte[] assembleEncryptModels(ModelData data) throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -109,15 +98,16 @@ public final class EncryptTools {
 
     /**
      * 将模型、材质、动画组合成加密、压缩、二进制数据
+     * <pre>
      * -----------------------------------------
      * 7F FF FF FF 模型名称字符串
-     * <p>
+     *
      * 7F FF FF FF 模型文件数量
      * 7F FF FF FF 模型文件名称
      * 7F FF FF FF 模型文件大小
      * 7F FF FF FF 模型文件名称
      * 7F FF FF FF 模型文件大小
-     * <p>
+     *
      * 7F FF FF FF 材质文件大小
      * 7F FF FF FF 动画文件大小
      * 模型二进制文件块
@@ -126,6 +116,7 @@ public final class EncryptTools {
      * -----------------------------------------
      * 进行一次 tar.gz 压缩
      * 进行一次 AES 加密
+     * <pre>
      */
     private static byte[] encryptModel(ModelData data) {
         try {

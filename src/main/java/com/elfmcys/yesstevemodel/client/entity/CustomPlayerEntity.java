@@ -21,8 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
-import static com.elfmcys.yesstevemodel.util.ControllerUtils.*;
-
 public class CustomPlayerEntity implements IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this, true);
     private final ItemStack[] handItemsForAnimation = new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY};
@@ -44,25 +42,32 @@ public class CustomPlayerEntity implements IAnimatable {
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("pre_parallel_%d_controller", i);
             String animationName = String.format("pre_parallel%d", i);
-            data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
+            this.addManagedController(data, controllerName, 0, e -> manager.predicateParallel(e, animationName));
         }
-        data.addAnimationController(new AnimationController<>(this, MAIN_CONTROLLER, 2, manager::predicateMain));
-        data.addAnimationController(new AnimationController<>(this, HOLD_OFFHAND_CONTROLLER, 0, manager::predicateOffhandHold));
-        data.addAnimationController(new AnimationController<>(this, HOLD_MAINHAND_CONTROLLER, 0, manager::predicateMainhandHold));
-        data.addAnimationController(new AnimationController<>(this, SWING_CONTROLLER, 2, manager::predicateSwing));
-        data.addAnimationController(new AnimationController<>(this, USE_CONTROLLER, 2, manager::predicateUse));
+        this.addManagedController(data, "main_controller", 2, manager::predicateMain);
+        this.addManagedController(data, "hold_offhand_controller", 0, manager::predicateOffhandHold);
+        this.addManagedController(data, "hold_mainhand_controller", 0, manager::predicateMainhandHold);
+        this.addManagedController(data, "swing_controller", 2, manager::predicateSwing);
+        this.addManagedController(data, "use_controller", 2, manager::predicateUse);
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("parallel_%d_controller", i);
             String animationName = String.format("parallel%d", i);
-            data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
+            this.addManagedController(data, controllerName, 0, e -> manager.predicateParallel(e, animationName));
         }
         for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
             if (slot.getSlotType() == EntityEquipmentSlot.Type.ARMOR) {
                 String controllerName = String.format("%s_controller", slot.getName());
-                data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateArmor(e, slot)));
+                this.addManagedController(data, controllerName, 0, e -> manager.predicateArmor(e, slot));
             }
         }
-        data.addAnimationController(new AnimationController<>(this, CAP_CONTROLLER, 2, manager::predicateCap));
+        this.addManagedController(data, "cap_controller", 2, manager::predicateCap);
+    }
+
+    private void addManagedController(
+            AnimationData data, String controllerName, float transitionLengthTicks,
+            AnimationController.IAnimationPredicate<CustomPlayerEntity> predicate
+    ) {
+        data.addAnimationController(new AnimationController<>(this, controllerName, transitionLengthTicks, predicate));
     }
 
     public ResourceLocation getMainModel() {

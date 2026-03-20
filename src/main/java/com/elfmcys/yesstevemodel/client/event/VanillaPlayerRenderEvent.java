@@ -30,6 +30,7 @@ public class VanillaPlayerRenderEvent {
             animatable.setMainModel(ModelIdUtil.getMainId(event.getModelId()));
             ResourceLocation location;
             Minecraft minecraft = Minecraft.getMinecraft();
+            /// {@link net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer#renderSkull(float, float, float, EnumFacing, float, int, GameProfile, int, float)}
             Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraft.getSkinManager().loadSkinFromCache(clientPlayer.getGameProfile());
             if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
                 location = minecraft.getSkinManager().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN);

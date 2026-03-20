@@ -25,21 +25,17 @@ import java.util.zip.DataFormatException;
 public final class YesModelUtils {
     /**
      * 二进制文件的头部幻数
+     * <pre>
      * YSGP 的 ASCII 码
      * YSGP 就是 Ying Su Group，映素小组的缩写
+     * </pre>
      */
     public static final int HEAD = 0x59_53_47_50;
-    /**
-     * 二进制文件的版本号
-     */
+    /// 二进制文件的版本号
     public static final int VERSION = 0x00_00_00_01;
-    /**
-     * 新版本号，用了更新的加密解密方法
-     */
+    /// 新版本号，用了更新的加密解密方法
     public static final int VERSION_II = 0x00_00_00_02;
-    /**
-     * 加密方法
-     */
+    /// 加密方法
     private static final String ENCRYPTION_METHOD = "AES";
 
     @Nonnull
@@ -164,10 +160,12 @@ public final class YesModelUtils {
     }
 
     /**
+     * <pre>
      * 头部幻数
      * 版本号
      * 总 MD5
      * 各个文件
+     * </pre>
      */
     private static byte[] filesToYsm(Collection<File> files) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -194,10 +192,12 @@ public final class YesModelUtils {
     }
 
     /**
+     * <pre>
      * 名称
      * 长度
      * 密码
      * 主体
+     * </pre>
      */
     private static byte[] fileToBytes(File file) throws IOException, GeneralSecurityException {
         byte[] rawData = FileUtils.readFileToByteArray(file);
