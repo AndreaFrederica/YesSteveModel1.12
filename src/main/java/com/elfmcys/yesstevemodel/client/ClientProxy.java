@@ -2,7 +2,7 @@ package com.elfmcys.yesstevemodel.client;
 
 import com.elfmcys.yesstevemodel.CommonProxy;
 import com.elfmcys.yesstevemodel.client.animation.AnimationRegister;
-import com.elfmcys.yesstevemodel.client.compat.*;
+import com.elfmcys.yesstevemodel.client.compat.Mods;
 import com.elfmcys.yesstevemodel.client.input.*;
 import com.elfmcys.yesstevemodel.client.renderer.CustomArrowRenderer;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
@@ -28,13 +28,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        CarryOnCompat.init();
-        CrossbowCompat.init();
-        ElytraCompat.init();
-        RenderArmCompat.init();
-        SpyglassCompat.init();
-        SwimmingCompat.init();
-        TridentCompat.init();
+        Mods.init();
     }
 
     @Override

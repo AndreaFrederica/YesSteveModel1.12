@@ -1,8 +1,6 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
-import com.elfmcys.yesstevemodel.client.compat.SpyglassCompat;
-import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
+import com.elfmcys.yesstevemodel.client.compat.ExtraAction;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.entity.player.EntityPlayer;
@@ -180,12 +178,10 @@ public abstract class AbstractConditionItem {
                 stack.getItem() instanceof ItemFishingRod);
         EXTRA_MATCHERS.put("bow", (player, stack) ->
                 stack.getItem() instanceof ItemBow);
-        EXTRA_MATCHERS.put(TridentCompat.SPEAR_ACTION, (player, stack) ->
-                TridentCompat.isSpearAction(stack));
-        EXTRA_MATCHERS.put(CrossbowCompat.CROSSBOW_ACTION, (player, stack) ->
-                CrossbowCompat.isCrossbowAction(stack));
-        EXTRA_MATCHERS.put(SpyglassCompat.SPYGLASS_ACTION, (player, stack) ->
-                SpyglassCompat.isSpyglassAction(stack));
+        for (ExtraAction action : ExtraAction.values()) {
+            EXTRA_MATCHERS.put(action.name().toLowerCase(Locale.US), (player, stack) ->
+                    action.isAction(stack));
+        }
     }
 
     private static boolean isSameActionName(ItemStack stack, String action) {

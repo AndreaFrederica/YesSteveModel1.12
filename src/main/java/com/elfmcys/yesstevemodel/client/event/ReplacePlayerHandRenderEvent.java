@@ -66,8 +66,7 @@ public class ReplacePlayerHandRenderEvent {
                         geoModel.getTopLevelBone(LEFT_ARM).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
                         tess.draw();
                         GlStateManager.popMatrix();
-                    }
-                    if (arm == EnumHandSide.RIGHT) {
+                    } else {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(-0.25, 1.8, 0);
                         GlStateManager.scale(-1, -1, 1);

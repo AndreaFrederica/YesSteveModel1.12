@@ -7,7 +7,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Optional;
 import tschipp.carryon.client.event.RenderEntityEvents;
 import tschipp.carryon.client.event.RenderEvents;
@@ -19,28 +18,24 @@ import javax.annotation.Nullable;
 import java.util.Locale;
 
 public class CarryOnCompat {
-    private static final String CARRY_ON = "carryon";
-    private static boolean CARRY_ON_INSTALLED = false;
-
     public static void init() {
-        CARRY_ON_INSTALLED = Loader.isModLoaded(CARRY_ON);
-        if (CARRY_ON_INSTALLED) initEvents();
+        if (Mods.CARRY_ON_INSTALLED) initEvents();
     }
 
     public static boolean isInstalled() {
-        return CARRY_ON_INSTALLED;
+        return Mods.CARRY_ON_INSTALLED;
     }
 
     @Nullable
     public static String getCarryOnString(EntityLivingBase player) {
-        if (CARRY_ON_INSTALLED) {
+        if (Mods.CARRY_ON_INSTALLED) {
             CarryOnType type = getCarryOnType(player.getHeldItemMainhand());
             if (type != CarryOnType.NONE) return type.name().toLowerCase(Locale.US);
         }
         return null;
     }
 
-    @Optional.Method(modid = CARRY_ON)
+    @Optional.Method(modid = Mods.CARRY_ON)
     private static CarryOnType getCarryOnType(@Nullable ItemStack stack) {
         if (stack != null && !stack.isEmpty()) {
             if (stack.getItem() == RegistrationHandler.itemTile && ItemTile.hasTileData(stack)) {
@@ -62,18 +57,18 @@ public class CarryOnCompat {
     private static RenderEvents BLOCK_EVENT;
     private static RenderEntityEvents ENTITY_EVENT;
 
-    @Optional.Method(modid = CARRY_ON)
+    @Optional.Method(modid = Mods.CARRY_ON)
     private static void initEvents() {
         BLOCK_EVENT = new RenderEvents();
         ENTITY_EVENT = new RenderEntityEvents();
     }
 
     public static void renderCarryOn(EntityPlayer player, RenderPlayer renderer, float tick, double x, double y, double z) {
-        if (CARRY_ON_INSTALLED) onRenderPlayer(new RenderPlayerEvent.Post(player, renderer, tick, x, y, z));
+        if (Mods.CARRY_ON_INSTALLED) onRenderPlayer(new RenderPlayerEvent.Post(player, renderer, tick, x, y, z));
     }
 
     // FIXME：Carry On 自带的渲染存在诸多问题，先不修了
-    @Optional.Method(modid = CARRY_ON)
+    @Optional.Method(modid = Mods.CARRY_ON)
     private static void onRenderPlayer(RenderPlayerEvent.Post event) {
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableColorMaterial();

@@ -158,14 +158,12 @@ public class ConditionArmor {
 //        }).findFirst().map(itemTagKey -> slot.getName() + "#" + itemTagKey).orElse(EMPTY);
 //    }
 
-
     @Nullable
     public static EntityEquipmentSlot getType(String type) {
-        for (EntityEquipmentSlot equipmentslot : EntityEquipmentSlot.values()) {
-            if (equipmentslot.getName().equals(type)) {
-                return equipmentslot;
-            }
+        try {
+            return EntityEquipmentSlot.fromString(type);
+        } catch (IllegalArgumentException ignored) {
+            return null;
         }
-        return null;
     }
 }

@@ -146,7 +146,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "query.is_sneaking", player.onGround && player.isSneaking());
         renderText(gui, y, "query.is_spectator", player.isSpectator());
         renderText(gui, y, "query.is_sprinting", player.isSprinting());
-        if (SwimmingCompat.isInstalled()) {
+        if (SwimmingCompat.hasSwimming()) {
             renderText(gui, y, "query.is_swimming", SwimmingCompat.isSwimming(player));
         }
         renderText(gui, y, "query.is_using_item", player.isHandActive());
@@ -181,7 +181,7 @@ public class DebugAnimationKey {
         renderText(gui, y, "ysm.elytra_rot_z", () -> Math.toDegrees(player.rotateElytraZ));
 
         renderText(gui, y, "ysm.is_close_eyes", getEyeCloseState(partialTick, player));
-        if (TridentCompat.isInstalled()) {
+        if (TridentCompat.hasRiptide()) {
             renderText(gui, y, "ysm.is_riptide", TridentCompat.isAutoSpinAttack(player));
         }
         renderText(gui, y, "ysm.food_level", player.getFoodStats().getFoodLevel());

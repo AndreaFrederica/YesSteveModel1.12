@@ -143,7 +143,6 @@ public final class AnimationManager {
             ItemStack offhandItem = player.getHeldItem(EnumHand.OFF_HAND);
             if (CrossbowCompat.isCharged(offhandItem)) {
                 return playAnimation(event, "hold_offhand:charged_crossbow", ILoopType.EDefaultLoopTypes.LOOP);
-
             }
         }
         if (checkSwingAndUse(player, EnumHand.OFF_HAND)) {

@@ -33,11 +33,11 @@ public class AnimationRegister {
 
     public static void registerAnimationState() {
         register("death", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.HIGHEST, (player, event) -> !player.isEntityAlive());
-        if (TridentCompat.isInstalled()) {
+        if (TridentCompat.hasRiptide()) {
             register("riptide", Priority.HIGHEST, (player, event) -> TridentCompat.isAutoSpinAttack(player));
         }
         register("sleep", Priority.HIGHEST, (player, event) -> player.isPlayerSleeping());
-        if (SwimmingCompat.isInstalled()) {
+        if (SwimmingCompat.hasSwimming()) {
             register("swim", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimming(player));
             register("climb", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimmingPose(player) && Math.abs(event.getLimbSwingAmount()) > MIN_SPEED);
             register("climbing", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimmingPose(player));
@@ -99,7 +99,7 @@ public class AnimationRegister {
         parser.register(new LazyVariable("query.is_sneaking", MolangUtils.FALSE));
         parser.register(new LazyVariable("query.is_spectator", MolangUtils.FALSE));
         parser.register(new LazyVariable("query.is_sprinting", MolangUtils.FALSE));
-        if (SwimmingCompat.isInstalled()) {
+        if (SwimmingCompat.hasSwimming()) {
             parser.register(new LazyVariable("query.is_swimming", MolangUtils.FALSE));
         }
         parser.register(new LazyVariable("query.is_using_item", MolangUtils.FALSE));
@@ -137,7 +137,7 @@ public class AnimationRegister {
         parser.register(new LazyVariable("ysm.is_passenger", MolangUtils.FALSE));
         parser.register(new LazyVariable("ysm.is_sleep", MolangUtils.FALSE));
         parser.register(new LazyVariable("ysm.is_sneak", MolangUtils.FALSE));
-        if (TridentCompat.isInstalled()) {
+        if (TridentCompat.hasRiptide()) {
             parser.register(new LazyVariable("ysm.is_riptide", MolangUtils.FALSE));
         }
 
@@ -184,7 +184,7 @@ public class AnimationRegister {
         parser.setValue("query.is_sneaking", () -> MolangUtils.booleanToFloat(player.onGround && player.isSneaking()));
         parser.setValue("query.is_spectator", () -> MolangUtils.booleanToFloat(player.isSpectator()));
         parser.setValue("query.is_sprinting", () -> MolangUtils.booleanToFloat(player.isSprinting()));
-        if (SwimmingCompat.isInstalled()) {
+        if (SwimmingCompat.hasSwimming()) {
             parser.setValue("query.is_swimming", () -> MolangUtils.booleanToFloat(SwimmingCompat.isSwimming(player)));
         }
         parser.setValue("query.is_using_item", () -> MolangUtils.booleanToFloat(player.isHandActive()));
@@ -237,7 +237,7 @@ public class AnimationRegister {
         parser.setValue("ysm.is_passenger", () -> MolangUtils.booleanToFloat(player.isRiding()));
         parser.setValue("ysm.is_sleep", () -> MolangUtils.booleanToFloat(player.isPlayerSleeping()));
         parser.setValue("ysm.is_sneak", () -> MolangUtils.booleanToFloat(player.onGround && player.isSneaking()));
-        if (TridentCompat.isInstalled()) {
+        if (TridentCompat.hasRiptide()) {
             parser.setValue("ysm.is_riptide", () -> MolangUtils.booleanToFloat(TridentCompat.isAutoSpinAttack(player)));
         }
 
