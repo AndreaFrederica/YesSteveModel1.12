@@ -32,35 +32,34 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
 
     @Override
     public void render(@Nonnull T livingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, Color renderColor) {
-        if (ElytraCompat.isWearingElytra(livingEntity) && this.entityRenderer.getGeoModel() != null) {
-            GeoModel geoModel = this.entityRenderer.getGeoModel();
-            if (!geoModel.elytraBones.isEmpty()) {
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                GlStateManager.enableBlend();
-                GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        if (!ElytraCompat.isWearingElytra(livingEntity)) return;
+        GeoModel geoModel = this.entityRenderer.getGeoModel();
+        if (geoModel == null || geoModel.elytraBones.isEmpty()) return;
 
-                GlStateManager.pushMatrix();
-                boolean scaleResult = translateToElytra(geoModel);
-                // 缩放不为 0 才会渲染
-                if (!scaleResult) {
-                    GlStateManager.rotate(180, 0, 0, 1);
-                    Minecraft mc = Minecraft.getMinecraft();
-                    mc.getTextureManager().bindTexture(getElytraTexture(livingEntity));
-                    final float scale = 1 / 16F;
-                    this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
-                    this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
-                    ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-                    if (stack.hasEffect()) {
-                        RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
-                        LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
-                    }
-                }
-                GlStateManager.popMatrix();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
-                GlStateManager.disableBlend();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.pushMatrix();
+        boolean scaleResult = RenderUtils.prepMatrixForLocator(geoModel.elytraBones);
+        // 缩放不为 0 才会渲染
+        if (!scaleResult) {
+            GlStateManager.rotate(180, 0, 0, 1);
+            Minecraft mc = Minecraft.getMinecraft();
+            mc.getTextureManager().bindTexture(getElytraTexture(livingEntity));
+            final float scale = 1 / 16F;
+            this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
+            this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+            ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+            if (stack.hasEffect()) {
+                RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
+                LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
             }
         }
+        GlStateManager.popMatrix();
+
+        GlStateManager.disableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     protected static ResourceLocation getElytraTexture(EntityLivingBase livingEntity) {
@@ -72,9 +71,5 @@ public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoR
             }
         }
         return ElytraCompat.getDefaultTexture(livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem());
-    }
-
-    protected static boolean translateToElytra(GeoModel geoModel) {
-        return RenderUtils.prepMatrixForLocator(geoModel.elytraBones);
     }
 }
