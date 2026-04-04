@@ -221,15 +221,16 @@ public final class AnimationManager {
                 // 空动画用于重置 PLAY_ONCE 动画
                 playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
             }
+            EnumHand swingingHand = player.swingingHand;
             ResourceLocation id = event.getAnimatable().getAnimation();
-            ConditionalSwing conditionalSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? ConditionManager.getSwingMainhand(id) : ConditionManager.getSwingOffhand(id);
+            ConditionalSwing conditionalSwing = (swingingHand == EnumHand.MAIN_HAND) ? ConditionManager.getSwingMainhand(id) : ConditionManager.getSwingOffhand(id);
             if (conditionalSwing != null) {
-                String name = conditionalSwing.doTest(player, player.swingingHand);
+                String name = conditionalSwing.doTest(player, swingingHand);
                 if (StringUtils.isNoneBlank(name)) {
                     return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
                 }
             }
-            String defaultSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? "swing_hand" : "swing_offhand";
+            String defaultSwing = (swingingHand == EnumHand.MAIN_HAND) ? "swing_hand" : "swing_offhand";
             return playAnimation(event, defaultSwing, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
         }
         return PlayState.CONTINUE;
@@ -249,27 +250,17 @@ public final class AnimationManager {
 //            if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGrenade(player.getUseItem())) {
 //                return TacGunRenderer.playGrenadeAnimation(event, player.getUsedItemHand());
 //            }
-            if (player.getActiveHand() == EnumHand.MAIN_HAND) {
-                ResourceLocation id = event.getAnimatable().getAnimation();
-                ConditionalUse conditionalUse = ConditionManager.getUseMainhand(id);
-                if (conditionalUse != null) {
-                    String name = conditionalUse.doTest(player, EnumHand.MAIN_HAND);
-                    if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                    }
+            EnumHand usingHand = player.getActiveHand();
+            ResourceLocation id = event.getAnimatable().getAnimation();
+            ConditionalUse conditionalUse = (usingHand == EnumHand.MAIN_HAND) ? ConditionManager.getUseMainhand(id) : ConditionManager.getUseOffhand(id);
+            if (conditionalUse != null) {
+                String name = conditionalUse.doTest(player, usingHand);
+                if (StringUtils.isNoneBlank(name)) {
+                    return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
                 }
-                return playAnimation(event, "use_mainhand", ILoopType.EDefaultLoopTypes.LOOP);
-            } else {
-                ResourceLocation id = event.getAnimatable().getAnimation();
-                ConditionalUse conditionalUse = ConditionManager.getUseOffhand(id);
-                if (conditionalUse != null) {
-                    String name = conditionalUse.doTest(player, EnumHand.OFF_HAND);
-                    if (StringUtils.isNoneBlank(name)) {
-                        return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
-                    }
-                }
-                return playAnimation(event, "use_offhand", ILoopType.EDefaultLoopTypes.LOOP);
             }
+            String defaultUse = (usingHand == EnumHand.MAIN_HAND) ? "use_mainhand" : "use_offhand";
+            return playAnimation(event, defaultUse, ILoopType.EDefaultLoopTypes.LOOP);
         }
         return PlayState.STOP;
     }
@@ -302,6 +293,7 @@ public final class AnimationManager {
         return PlayState.STOP;
     }
 
+    /// @return 不在使用且不在挥动
     private static boolean checkSwingAndUse(EntityPlayer player, EnumHand hand) {
         if (player.isSwingInProgress && player.swingingHand == hand) {
             return false;
