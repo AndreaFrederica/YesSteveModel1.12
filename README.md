@@ -1,12 +1,14 @@
 # 告示
 
-YSM 1.12.2 现已转为闭源，支持加解密 1.2.0 以上版本模型版本将在完善后以混淆 + 原生库的形式发布。
+本项目现已转为闭源，支持加解密 1.2.0 以上版本模型版本将在完善后以混淆 + 原生库的形式发布。
 
 本库仅作为旧开源版本存档，不会再有大更新，仅提供有限的支持。
 
 # Yes Steve Model
 
-[旧版 Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM) 的 Minecraft 1.12.2 完整移植。
+[旧版 Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM) 的 Minecraft 1.12.2 和 1.7.10 完整移植。
+
+本分支提供 1.12.2 版本支持。开发时，以 1.12.2 优先，1.7.10 版本的内容会定期与 1.12.2 同步。
 
 ## 概述
 
