@@ -97,4 +97,16 @@ public class Button extends GuiButton {
     public void onPress() {
         this.onPress.accept(this);
     }
+
+    @Override
+    public void drawCenteredString(@Nonnull FontRenderer fontRenderer, @Nonnull String text, int x, int y, int color) {
+        super.drawCenteredString(fontRenderer, text, x, y, color);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    @Override
+    public void drawString(@Nonnull FontRenderer fontRenderer, @Nonnull String text, int x, int y, int color) {
+        super.drawString(fontRenderer, text, x, y, color);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+    }
 }
