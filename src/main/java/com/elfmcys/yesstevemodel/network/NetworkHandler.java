@@ -1,6 +1,5 @@
 package com.elfmcys.yesstevemodel.network;
 
-import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.bukkit.message.OpenModelGuiMessage;
 import com.elfmcys.yesstevemodel.bukkit.message.SetNpcModelAndTexture;
 import com.elfmcys.yesstevemodel.bukkit.message.SyncNpcDataMessage;
@@ -8,17 +7,12 @@ import com.elfmcys.yesstevemodel.bukkit.message.UpdateNpcDataMessage;
 import com.elfmcys.yesstevemodel.network.message.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.fml.common.network.NetworkCheckHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
-import javax.annotation.Nonnull;
-import java.util.Map;
-
 public final class NetworkHandler {
-    private static final String VERSION = "1.0.0";
     public static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel("yesstevemodel");
     public static final int OPEN_NPC_MODEL_GUI = 93;
     public static final int SET_NPC_MODEL_ID = 94;
@@ -57,15 +51,5 @@ public final class NetworkHandler {
         if (player instanceof EntityPlayerMP playerMP) {
             CHANNEL.sendTo(message, playerMP);
         }
-    }
-
-    @NetworkCheckHandler
-    @SuppressWarnings("unused")
-    public boolean checkVersion(@Nonnull Map<String, String> mods, Side side) {
-        if (mods.containsKey(YesSteveModel.MOD_ID)) {
-            String remoteVersion = mods.get(YesSteveModel.MOD_ID);
-            return VERSION.equals(remoteVersion);
-        }
-        return false; // 客户端必装
     }
 }
