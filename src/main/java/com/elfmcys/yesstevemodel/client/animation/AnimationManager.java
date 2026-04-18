@@ -244,8 +244,7 @@ public final class AnimationManager {
         }
         if (player.isHandActive() && !player.isPlayerSleeping()) {
             if (player.getItemInUseMaxCount() == 1) {
-                event.getController().shouldResetTick = true;
-                event.getController().adjustTick(0);
+                playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
             }
 //            if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGrenade(player.getUseItem())) {
 //                return TacGunRenderer.playGrenadeAnimation(event, player.getUsedItemHand());

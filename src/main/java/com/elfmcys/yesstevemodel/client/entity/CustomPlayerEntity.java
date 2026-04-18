@@ -47,7 +47,7 @@ public class CustomPlayerEntity implements IAnimatable {
         this.addManagedController(data, "main_controller", 2, manager::predicateMain);
         this.addManagedController(data, "hold_offhand_controller", 0, manager::predicateOffhandHold);
         this.addManagedController(data, "hold_mainhand_controller", 0, manager::predicateMainhandHold);
-        this.addManagedController(data, "swing_controller", 2, manager::predicateSwing);
+        this.addManagedController(data, "swing_controller", 0, manager::predicateSwing);
         this.addManagedController(data, "use_controller", 2, manager::predicateUse);
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("parallel_%d_controller", i);
