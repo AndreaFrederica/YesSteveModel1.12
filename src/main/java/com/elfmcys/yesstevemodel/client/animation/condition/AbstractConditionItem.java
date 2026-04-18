@@ -3,11 +3,13 @@ package com.elfmcys.yesstevemodel.client.animation.condition;
 import com.elfmcys.yesstevemodel.client.compat.ExtraAction;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.*;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.LinkedHashMap;
@@ -16,7 +18,7 @@ import java.util.Locale;
 
 public abstract class AbstractConditionItem {
     /// 代表继续下一个测试，如果作为返回结果，外部不会播放该动画
-    protected static final String EMPTY = "";
+    protected static final String EMPTY = StringUtils.EMPTY;
     protected final int preSize;
     protected final String idPre;
     protected final String orePre;
@@ -157,7 +159,7 @@ public abstract class AbstractConditionItem {
     }
 
     /// Inner Name, Inner Matcher
-    private static final LinkedHashMap<String, IExtraMatcher> EXTRA_MATCHERS = new LinkedHashMap<>();
+    private static final LinkedHashMap<String, IExtraMatcher> EXTRA_MATCHERS = Maps.newLinkedHashMap();
 
     static {
         EXTRA_MATCHERS.put("sword", (player, stack) ->

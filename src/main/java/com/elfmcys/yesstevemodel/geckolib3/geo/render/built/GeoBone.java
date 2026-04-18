@@ -1,210 +1,101 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.render.built;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
+import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneTopLevelSnapshot;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoBone;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectLists;
 
+import javax.vecmath.Vector3f;
 import java.util.List;
 
-public class GeoBone implements IBone {
-    public GeoBone parent;
-    public List<GeoBone> childBones = new ObjectArrayList<>();
-    public List<GeoCube> childCubes = new ObjectArrayList<>();
-    public String name;
-    public Boolean mirror;
-    public Double inflate;
-    public Boolean dontRender;
-    public boolean isHidden;
-    public boolean areCubesHidden = false;
-    public boolean hideChildBonesToo;
+public class GeoBone {
+    private static final String GLOWING_PREFIX = "ysmGlow";
+
+    private GeoBone parent;
+    private final List<GeoBone> children;
+
+    private final String name;
+    private final Vector3f pivot;
+    private final Vector3f rotation;
+    private final GeoMesh cubes;
+
+    private final Boolean mirror;
+    private final Double inflate;
+    private final Boolean dontRender;
     /**
      * 我也不知道这个参数有啥用，但是 json 里面就有
      */
-    public Boolean reset;
-    public float rotationPointX;
-    public float rotationPointY;
-    public float rotationPointZ;
-    private BoneSnapshot initialSnapshot;
-    private float scaleX = 1;
-    private float scaleY = 1;
-    private float scaleZ = 1;
-    private float positionX;
-    private float positionY;
-    private float positionZ;
-    private float rotateX;
-    private float rotateY;
-    private float rotateZ;
+    private final Boolean reset;
 
-    @Override
-    public void setModelRendererName(String modelRendererName) {
-        this.name = modelRendererName;
+    private final BoneSnapshot initialSnapshot;
+    private final boolean glow;
+
+    public GeoBone(List<GeoBone> children, String name, Vector3f pivot, Vector3f rotation, GeoMesh mesh, Boolean mirror, Double inflate, Boolean dontRender, Boolean reset) {
+        this.children = ObjectLists.unmodifiable(new ObjectArrayList<>(children));
+        this.name = name;
+        this.pivot = pivot;
+        this.rotation = rotation;
+        this.cubes = mesh;
+
+        this.mirror = mirror;
+        this.inflate = inflate;
+        this.dontRender = dontRender;
+        this.reset = reset;
+
+        this.initialSnapshot = new BoneTopLevelSnapshot(new AnimatedGeoBone(this, null));
+        this.glow = name.startsWith(GLOWING_PREFIX);
     }
 
-    @Override
-    public void saveInitialSnapshot() {
-        if (this.initialSnapshot == null) {
-            this.initialSnapshot = new BoneSnapshot(this, true);
-        }
+    public GeoBone parent() {
+        return this.parent;
     }
 
-    @Override
-    public BoneSnapshot getInitialSnapshot() {
-        return this.initialSnapshot;
+    public List<GeoBone> children() {
+        return this.children;
     }
 
-    @Override
-    public String getName() {
+    public GeoMesh cubes() {
+        return this.cubes;
+    }
+
+    public String name() {
         return this.name;
     }
 
-    @Override
-    public float getRotationX() {
-        return this.rotateX;
+    public Vector3f pivot() {
+        return this.pivot;
     }
 
-    @Override
-    public float getRotationY() {
-        return this.rotateY;
+    public Vector3f rotation() {
+        return this.rotation;
     }
 
-    @Override
-    public float getRotationZ() {
-        return this.rotateZ;
+    public Boolean mirror() {
+        return this.mirror;
     }
 
-    @Override
-    public float getPositionX() {
-        return this.positionX;
+    public Double inflate() {
+        return this.inflate;
     }
 
-    @Override
-    public float getPositionY() {
-        return this.positionY;
+    public Boolean dontRender() {
+        return this.dontRender;
     }
 
-    @Override
-    public float getPositionZ() {
-        return this.positionZ;
+    public Boolean reset() {
+        return this.reset;
     }
 
-    @Override
-    public float getScaleX() {
-        return this.scaleX;
+    public BoneSnapshot initialSnapshot() {
+        return this.initialSnapshot;
     }
 
-    @Override
-    public float getScaleY() {
-        return this.scaleY;
+    public boolean glow() {
+        return this.glow;
     }
 
-    @Override
-    public float getScaleZ() {
-        return this.scaleZ;
-    }
-
-    @Override
-    public void setRotationX(float value) {
-        this.rotateX = value;
-    }
-
-    @Override
-    public void setRotationY(float value) {
-        this.rotateY = value;
-    }
-
-    @Override
-    public void setRotationZ(float value) {
-        this.rotateZ = value;
-    }
-
-    @Override
-    public void setPositionX(float value) {
-        this.positionX = value;
-    }
-
-    @Override
-    public void setPositionY(float value) {
-        this.positionY = value;
-    }
-
-    @Override
-    public void setPositionZ(float value) {
-        this.positionZ = value;
-    }
-
-    @Override
-    public void setScaleX(float value) {
-        this.scaleX = value;
-    }
-
-    @Override
-    public void setScaleY(float value) {
-        this.scaleY = value;
-    }
-
-    @Override
-    public void setScaleZ(float value) {
-        this.scaleZ = value;
-    }
-
-    @Override
-    public boolean isHidden() {
-        return this.isHidden;
-    }
-
-    @Override
-    public void setHidden(boolean hidden) {
-        this.setHidden(hidden, hidden);
-    }
-
-    @Override
-    public void setPivotX(float value) {
-        this.rotationPointX = value;
-    }
-
-    @Override
-    public void setPivotY(float value) {
-        this.rotationPointY = value;
-    }
-
-    @Override
-    public void setPivotZ(float value) {
-        this.rotationPointZ = value;
-    }
-
-    @Override
-    public float getPivotX() {
-        return this.rotationPointX;
-    }
-
-    @Override
-    public float getPivotY() {
-        return this.rotationPointY;
-    }
-
-    @Override
-    public float getPivotZ() {
-        return this.rotationPointZ;
-    }
-
-    @Override
-    public boolean cubesAreHidden() {
-        return this.areCubesHidden;
-    }
-
-    @Override
-    public boolean childBonesAreHiddenToo() {
-        return this.hideChildBonesToo;
-    }
-
-    @Override
-    public void setCubesHidden(boolean hidden) {
-        this.areCubesHidden = hidden;
-    }
-
-    @Override
-    public void setHidden(boolean selfHidden, boolean skipChildRendering) {
-        this.isHidden = selfHidden;
-        this.hideChildBonesToo = skipChildRendering;
+    public void setParent(GeoBone parent) {
+        this.parent = parent;
     }
 }

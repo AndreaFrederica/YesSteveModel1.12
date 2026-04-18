@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
@@ -15,7 +16,7 @@ public class StarButton extends FlatColorButton {
     private final static ResourceLocation ICON = new ResourceLocation(YesSteveModel.MOD_ID, "texture/icon.png");
 
     public StarButton(int x, int y) {
-        super(x, y, 20, 20, "", (b) -> {
+        super(x, y, 20, 20, StringUtils.EMPTY, (b) -> {
         });
     }
 

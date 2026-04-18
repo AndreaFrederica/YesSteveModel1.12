@@ -18,6 +18,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
@@ -53,7 +54,7 @@ public class ModelButton extends Button {
         final ExtraInfo extraInfo = ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(modelId));
         this.previewAnimation = extraInfo.getPreviewAnimation() != null ? extraInfo.getPreviewAnimation() : "idle";
         this.disablePreviewRotation = extraInfo.getDisablePreviewRotation();
-        this.modelName = extraInfo.getName() != null ? extraInfo.getName() : "";
+        this.modelName = extraInfo.getName() != null ? extraInfo.getName() : StringUtils.EMPTY;
         final String guiBackground = extraInfo.getGuiBackground();
         this.backgroundTexture = guiBackground != null && !guiBackground.isEmpty() ?
                 ModelIdUtil.getSubModelId(modelId, guiBackground) : null;

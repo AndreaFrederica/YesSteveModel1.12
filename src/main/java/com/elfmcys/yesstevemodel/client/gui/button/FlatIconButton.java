@@ -4,6 +4,7 @@ import com.elfmcys.yesstevemodel.YesSteveModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -14,7 +15,7 @@ public class FlatIconButton extends FlatColorButton {
     private final int textureY;
 
     public FlatIconButton(int x, int y, int width, int height, int textureX, int textureY, Consumer<Button> onPress) {
-        super(x, y, width, height, "", onPress);
+        super(x, y, width, height, StringUtils.EMPTY, onPress);
         this.textureX = textureX;
         this.textureY = textureY;
     }

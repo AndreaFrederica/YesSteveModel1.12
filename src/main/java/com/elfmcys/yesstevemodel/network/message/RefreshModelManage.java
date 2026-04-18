@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -28,7 +29,7 @@ public class RefreshModelManage implements IMessage {
         @Nullable
         @Override
         public IMessage onMessage(RefreshModelManage message, MessageContext ctx) {
-            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, "")) {
+            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, StringUtils.EMPTY)) {
                 FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
                     List<RequestServerModelInfo.Info> builtinInfo = ManageCommand.getFilesInfo(ServerModelManager.BUILTIN);
                     List<RequestServerModelInfo.Info> customInfo = ManageCommand.getFilesInfo(ServerModelManager.CUSTOM);

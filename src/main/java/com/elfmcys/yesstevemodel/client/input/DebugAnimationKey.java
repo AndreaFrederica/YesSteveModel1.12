@@ -5,8 +5,8 @@ import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
+import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
-import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
 import com.elfmcys.yesstevemodel.util.EntityUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -56,13 +56,14 @@ public class DebugAnimationKey {
                 return;
             }
             if (DEBUG) {
-                Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.debug_animation.true"));
+                player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.debug_animation.true"));
             } else {
-                Minecraft.getMinecraft().player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.debug_animation.false"));
+                player.sendMessage(new TextComponentTranslation("message.yes_steve_model.model.debug_animation.false"));
             }
         }
     }
 
+    // TODO：改为类似新版的调试系统
     @SubscribeEvent
     public static void render(RenderGameOverlayEvent.Text event) {
         if (!DEBUG) {

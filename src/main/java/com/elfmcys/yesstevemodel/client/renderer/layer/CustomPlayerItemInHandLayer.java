@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
+import com.elfmcys.yesstevemodel.geckolib3.core.processor.ILocationBone;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
-import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
+import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoLayerRenderer;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.ILocationModel;
 import com.elfmcys.yesstevemodel.geckolib3.util.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -19,19 +19,23 @@ import java.util.List;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerHeldItem}。
  */
-public class CustomPlayerItemInHandLayer<T extends EntityLivingBase, R extends IGeoRenderer<T>> extends GeoLayerRenderer<T, R> {
+public class CustomPlayerItemInHandLayer<T extends EntityLivingBase, E extends AnimatableEntity<T>> implements IGeoLayerRenderer<T, E> {
     //private final static String TAC_ID = "tac";
 
-    public CustomPlayerItemInHandLayer(R entityRendererIn) {
-        super(entityRendererIn);
+    public CustomPlayerItemInHandLayer() {
     }
 
     @Override
-    public void render(@Nonnull T entityLivingBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, Color renderColor) {
-        GeoModel geoModel = this.entityRenderer.getGeoModel();
+    public void render(
+            @Nonnull T entity, @Nonnull E animatable,
+            float limbSwing, float limbSwingAmount,
+            float partialTicks, float ageInTicks,
+            float netHeadYaw, float headPitch, Color renderColor
+    ) {
+        ILocationModel geoModel = animatable.getCurrentModel();
         if (geoModel == null) return;
-        renderArmWithItem(entityLivingBaseIn, geoModel.rightHandBones, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, EnumHandSide.RIGHT);
-        renderArmWithItem(entityLivingBaseIn, geoModel.leftHandBones, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, EnumHandSide.LEFT);
+        renderArmWithItem(entity, geoModel.rightHandBones(), ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, EnumHandSide.RIGHT);
+        renderArmWithItem(entity, geoModel.leftHandBones(), ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, EnumHandSide.LEFT);
 //        if (Loader.isModLoaded(TAC_ID) && TacGunRenderer.isGun(offhandItem)) {
 //            GlStateManager.pushMatrix();
 //            TacGunRenderer.renderOffhandGun(offhandItem, geoModel, entityLivingBaseIn, packedLightIn, partialTicks);
@@ -40,7 +44,7 @@ public class CustomPlayerItemInHandLayer<T extends EntityLivingBase, R extends I
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    protected static void renderArmWithItem(EntityLivingBase livingEntity, List<GeoBone> bones, ItemCameraTransforms.TransformType transformType, EnumHandSide arm) {
+    protected static void renderArmWithItem(EntityLivingBase livingEntity, List<? extends ILocationBone> bones, ItemCameraTransforms.TransformType transformType, EnumHandSide arm) {
         if (bones.isEmpty()) return;
         boolean isLeftHand = arm == EnumHandSide.LEFT;
         // 先这样处理，YSM 定位组直接就叫主副手，不好改

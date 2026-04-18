@@ -1,59 +1,68 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.processor;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatableModel;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
-import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.AnimationPoint;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.BoneAnimationQueue;
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
-import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.storage.IForeignVariableStorage;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.storage.VariableStorage;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.util.StringPool;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.value.IValue;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
-import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.DirtyTracker;
+import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneTopLevelSnapshot;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.MathUtil;
-import com.google.common.collect.Maps;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.apache.commons.lang3.tuple.Pair;
+import com.elfmcys.yesstevemodel.geckolib3.core.util.RateLimiter;
+import com.elfmcys.yesstevemodel.molang.runtime.ExpressionEvaluator;
+import com.github.bsideup.jabel.Desugar;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
+import org.lwjgl.opengl.Display;
 
-import java.util.HashMap;
+import javax.annotation.Nullable;
+import javax.vecmath.Vector3f;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class AnimationProcessor<T extends IAnimatable> {
-    private final List<IBone> modelRendererList = new ObjectArrayList<>();
-    private final IntSet animatedEntities = new IntOpenHashSet();
-    private final IAnimatableModel animatedModel;
-    public boolean reloadAnimations = false;
-    private double lastTickValue = -1;
+public class AnimationProcessor<T extends AnimatableEntity<?>> {
+    private static final int ROAMING_STRUCT_NAME = StringPool.computeIfAbsent("roaming");
 
-    public AnimationProcessor(IAnimatableModel animatedModel) {
-        this.animatedModel = animatedModel;
+    private final ReferenceArrayList<BoneTopLevelSnapshot> modelRendererList = new ReferenceArrayList<>();
+    private final Object2ReferenceOpenHashMap<String, BoneTopLevelSnapshot> modelRendererMap = new Object2ReferenceOpenHashMap<>();
+    private final VariableStorage animationStorage = new VariableStorage();
+    private final Random random = new Random();
+    private final ConcurrentLinkedQueue<PendingExpression> pendingExpressions = new ConcurrentLinkedQueue<>();
+    private final RateLimiter rateLimiter = new RateLimiter(Display.getDisplayMode().getFrequency());
+    private final T animatable;
+
+    private List<IValue> initializationValues;
+    private List<IValue> preAnimationValues;
+
+    private boolean rendererDirty = false;
+    public boolean reloadAnimations = false;
+
+    public AnimationProcessor(T animatable) {
+        this.animatable = animatable;
     }
 
-    public void tickAnimation(IAnimatable entity, int uniqueID, double seekTime, AnimationEvent<T> event, MolangParser parser, boolean crashWhenCantFindBone) {
-        if (seekTime != this.lastTickValue) {
-            this.animatedEntities.clear();
-        } else if (this.animatedEntities.contains(uniqueID)) {
-            // 如果实体已经在此 tick 上播放了
-            return;
-        }
+    @SuppressWarnings("DataFlowIssue")
+    public boolean tickAnimation(double seekTime, AnimationEvent<T> event, AnimationContext<?> ctx) {
+        var shouldUpdate = this.rateLimiter.request((float) (seekTime / 20));
 
-        this.lastTickValue = seekTime;
-        this.animatedEntities.add(uniqueID);
-        // 每一个动画都有自己的动画数据（AnimationData）
-        // 这样多个动画就能互相独立了
-        AnimationData manager = entity.getFactory().getOrCreateAnimationData(uniqueID);
-        // 追踪哪些骨骼应用了动画，并最终将没有动画的骨骼设置为默认值
-        Map<String, DirtyTracker> modelTracker = this.createNewDirtyTracker();
-        // 存储每个骨骼的 rotation/position/scale
-        this.updateBoneSnapshots(manager.getBoneSnapshotCollection());
-        Map<String, Pair<IBone, BoneSnapshot>> boneSnapshots = manager.getBoneSnapshotCollection();
-        HashMap<String, PointData> pointDataGroup = Maps.newHashMap();
-        for (AnimationController<T> controller : manager.getAnimationControllers().values()) {
+        ctx.setStorage(this.animationStorage);
+        ctx.setRandom(this.random);
+        ExpressionEvaluator<AnimationContext<?>> evaluator = ExpressionEvaluator.evaluator(ctx);
+        this.preProcess(evaluator);
+        this.processPendingExpressions(evaluator, true);
+
+        // InstancedAnimationFactory 仅保有一个 AnimationData 实例，与传入的 uniqueID 无关
+        AnimationData manager = this.animatable.getAnimationData();
+        for (AnimationController<T> controller : manager.getAnimationControllers()) {
             if (this.reloadAnimations) {
                 controller.markNeedsReload();
                 controller.getBoneAnimationQueues().clear();
@@ -62,198 +71,201 @@ public class AnimationProcessor<T extends IAnimatable> {
             // 将当前控制器设置为动画测试事件
             event.setController(controller);
             // 处理动画并向点队列添加新值
-            controller.process(seekTime, event, this.modelRendererList, boneSnapshots, parser, crashWhenCantFindBone);
+            controller.process(seekTime, event, evaluator, this.modelRendererList, false, this.rendererDirty, shouldUpdate);
+            boolean isParallelController = controller.getName().startsWith("parallel_");
             // 遍历每个骨骼，并对属性进行插值计算
-            for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues().values()) {
-                IBone bone = boneAnimation.bone();
-                BoneSnapshot snapshot = boneSnapshots.get(bone.getName()).getRight();
-                BoneSnapshot initialSnapshot = bone.getInitialSnapshot();
-                pointDataGroup.putIfAbsent(bone.getName(), new PointData());
-                PointData pointData = pointDataGroup.get(bone.getName());
-
-                AnimationPoint rXPoint = boneAnimation.rotationXQueue().poll();
-                AnimationPoint rYPoint = boneAnimation.rotationYQueue().poll();
-                AnimationPoint rZPoint = boneAnimation.rotationZQueue().poll();
-
-                AnimationPoint pXPoint = boneAnimation.positionXQueue().poll();
-                AnimationPoint pYPoint = boneAnimation.positionYQueue().poll();
-                AnimationPoint pZPoint = boneAnimation.positionZQueue().poll();
-
-                AnimationPoint sXPoint = boneAnimation.scaleXQueue().poll();
-                AnimationPoint sYPoint = boneAnimation.scaleYQueue().poll();
-                AnimationPoint sZPoint = boneAnimation.scaleZQueue().poll();
-
-                DirtyTracker dirtyTracker = modelTracker.get(bone.getName());
-                if (dirtyTracker == null) {
-                    continue;
-                }
+            for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues()) {
+                BoneTopLevelSnapshot snapshot = boneAnimation.topLevelSnapshot;
+                BoneSnapshot initialSnapshot = snapshot.bone.getInitialSnapshot();
+                PointData pointData = snapshot.cachedPointData;
 
                 // 如果此骨骼有任何旋转值
-                if (rXPoint != null && rYPoint != null && rZPoint != null) {
-                    float valueX = MathUtil.lerpValues(rXPoint, controller.easingType, controller.customEasingMethod);
-                    float valueY = MathUtil.lerpValues(rYPoint, controller.easingType, controller.customEasingMethod);
-                    float valueZ = MathUtil.lerpValues(rZPoint, controller.easingType, controller.customEasingMethod);
-                    pointData.rotationValueX += valueX;
-                    pointData.rotationValueY += valueY;
-                    pointData.rotationValueZ += valueZ;
-                    if (controller.getName().startsWith("parallel_")) {
-                        bone.setRotationX(pointData.rotationValueX + initialSnapshot.rotationValueX);
-                        bone.setRotationY(pointData.rotationValueY + initialSnapshot.rotationValueY);
-                        bone.setRotationZ(pointData.rotationValueZ + initialSnapshot.rotationValueZ);
+                if (!boneAnimation.rotationQueue().isEmpty()) {
+                    Vector3f scale = boneAnimation.rotationQueue().poll().getLerpPoint(evaluator);
+                    pointData.rotationValueX += scale.getX();
+                    pointData.rotationValueY += scale.getY();
+                    pointData.rotationValueZ += scale.getZ();
+                    if (isParallelController) {
+                        snapshot.rotationValueX = pointData.rotationValueX + initialSnapshot.rotationValueX;
+                        snapshot.rotationValueY = pointData.rotationValueY + initialSnapshot.rotationValueY;
+                        snapshot.rotationValueZ = pointData.rotationValueZ + initialSnapshot.rotationValueZ;
                     } else {
-                        bone.setRotationX(valueX + initialSnapshot.rotationValueX);
-                        bone.setRotationY(valueY + initialSnapshot.rotationValueY);
-                        bone.setRotationZ(valueZ + initialSnapshot.rotationValueZ);
+                        snapshot.rotationValueX = scale.getX() + initialSnapshot.rotationValueX;
+                        snapshot.rotationValueY = scale.getY() + initialSnapshot.rotationValueY;
+                        snapshot.rotationValueZ = scale.getZ() + initialSnapshot.rotationValueZ;
                     }
-                    snapshot.rotationValueX = bone.getRotationX();
-                    snapshot.rotationValueY = bone.getRotationY();
-                    snapshot.rotationValueZ = bone.getRotationZ();
                     snapshot.isCurrentlyRunningRotationAnimation = true;
-                    dirtyTracker.hasRotationChanged = true;
                 }
 
                 // 如果此骨骼有任何位置值
-                if (pXPoint != null && pYPoint != null && pZPoint != null) {
-                    bone.setPositionX(
-                            MathUtil.lerpValues(pXPoint, controller.easingType, controller.customEasingMethod));
-                    bone.setPositionY(
-                            MathUtil.lerpValues(pYPoint, controller.easingType, controller.customEasingMethod));
-                    bone.setPositionZ(
-                            MathUtil.lerpValues(pZPoint, controller.easingType, controller.customEasingMethod));
-                    snapshot.positionOffsetX = bone.getPositionX();
-                    snapshot.positionOffsetY = bone.getPositionY();
-                    snapshot.positionOffsetZ = bone.getPositionZ();
+                if (!boneAnimation.positionQueue().isEmpty()) {
+                    Vector3f position = boneAnimation.positionQueue().poll().getLerpPoint(evaluator);
+                    snapshot.positionOffsetX = position.getX();
+                    snapshot.positionOffsetY = position.getY();
+                    snapshot.positionOffsetZ = position.getZ();
                     snapshot.isCurrentlyRunningPositionAnimation = true;
-                    dirtyTracker.hasPositionChanged = true;
                 }
 
                 // 如果此骨骼有任何缩放点
-                if (sXPoint != null && sYPoint != null && sZPoint != null) {
-                    bone.setScaleX(MathUtil.lerpValues(sXPoint, controller.easingType, controller.customEasingMethod));
-                    bone.setScaleY(MathUtil.lerpValues(sYPoint, controller.easingType, controller.customEasingMethod));
-                    bone.setScaleZ(MathUtil.lerpValues(sZPoint, controller.easingType, controller.customEasingMethod));
-                    snapshot.scaleValueX = bone.getScaleX();
-                    snapshot.scaleValueY = bone.getScaleY();
-                    snapshot.scaleValueZ = bone.getScaleZ();
+                if (!boneAnimation.scaleQueue().isEmpty()) {
+                    Vector3f scale = boneAnimation.scaleQueue().poll().getLerpPoint(evaluator);
+                    snapshot.scaleValueX = scale.getX();
+                    snapshot.scaleValueY = scale.getY();
+                    snapshot.scaleValueZ = scale.getZ();
                     snapshot.isCurrentlyRunningScaleAnimation = true;
-                    dirtyTracker.hasScaleChanged = true;
                 }
             }
         }
+
+        this.rendererDirty = false;
         this.reloadAnimations = false;
 
-        double resetTickLength = manager.getResetSpeed();
-        for (Map.Entry<String, DirtyTracker> tracker : modelTracker.entrySet()) {
-            IBone model = tracker.getValue().model;
-            BoneSnapshot initialSnapshot = model.getInitialSnapshot();
-            BoneSnapshot saveSnapshot = boneSnapshots.get(tracker.getKey()).getRight();
-            if (saveSnapshot == null) {
-                if (crashWhenCantFindBone) {
-                    throw new RuntimeException("Could not find save snapshot for bone: " + tracker.getValue().model.getName()
-                            + ". Please don't add bones that are used in an animation at runtime.");
-                } else {
-                    continue;
+        // 追踪哪些骨骼应用了动画，并最终将没有动画的骨骼设置为默认值
+        final double resetTickLength = manager.getResetSpeed();
+        for (BoneTopLevelSnapshot topLevelSnapshot : this.modelRendererList) {
+            BoneSnapshot initialSnapshot = topLevelSnapshot.bone.getInitialSnapshot();
+
+            if (!topLevelSnapshot.isCurrentlyRunningRotationAnimation) {
+                double percentageReset = Math.min((seekTime - topLevelSnapshot.mostRecentResetRotationTick) / resetTickLength, 1);
+                if (percentageReset >= 1) {
+                    topLevelSnapshot.rotationValueX = MathUtil.lerpValues(percentageReset, topLevelSnapshot.rotationValueX,
+                            initialSnapshot.rotationValueX);
+                    topLevelSnapshot.rotationValueY = MathUtil.lerpValues(percentageReset, topLevelSnapshot.rotationValueY,
+                            initialSnapshot.rotationValueY);
+                    topLevelSnapshot.rotationValueZ = MathUtil.lerpValues(percentageReset, topLevelSnapshot.rotationValueZ,
+                            initialSnapshot.rotationValueZ);
                 }
+            } else {
+                // FIXME: 2023/7/12 莫名其妙修好了旋转 bug，原因未知
+                topLevelSnapshot.mostRecentResetRotationTick = 0;
+                topLevelSnapshot.isCurrentlyRunningRotationAnimation = false;
             }
 
-            if (!tracker.getValue().hasRotationChanged) {
-                if (saveSnapshot.isCurrentlyRunningRotationAnimation) {
-                    // FIXME: 2023/7/12 莫名其妙修好了旋转 bug，原因未知
-                    saveSnapshot.mostRecentResetRotationTick = 0;
-                    saveSnapshot.isCurrentlyRunningRotationAnimation = false;
-                }
-                double percentageReset = Math.min((seekTime - saveSnapshot.mostRecentResetRotationTick) / resetTickLength, 1);
-                model.setRotationX(MathUtil.lerpValues(percentageReset, saveSnapshot.rotationValueX,
-                        initialSnapshot.rotationValueX));
-                model.setRotationY(MathUtil.lerpValues(percentageReset, saveSnapshot.rotationValueY,
-                        initialSnapshot.rotationValueY));
-                model.setRotationZ(MathUtil.lerpValues(percentageReset, saveSnapshot.rotationValueZ,
-                        initialSnapshot.rotationValueZ));
+            if (!topLevelSnapshot.isCurrentlyRunningPositionAnimation) {
+                double percentageReset = Math.min((seekTime - topLevelSnapshot.mostRecentResetPositionTick) / resetTickLength, 1);
                 if (percentageReset >= 1) {
-                    saveSnapshot.rotationValueX = model.getRotationX();
-                    saveSnapshot.rotationValueY = model.getRotationY();
-                    saveSnapshot.rotationValueZ = model.getRotationZ();
+                    topLevelSnapshot.positionOffsetX = MathUtil.lerpValues(percentageReset, topLevelSnapshot.positionOffsetX,
+                            initialSnapshot.positionOffsetX);
+                    topLevelSnapshot.positionOffsetY = MathUtil.lerpValues(percentageReset, topLevelSnapshot.positionOffsetY,
+                            initialSnapshot.positionOffsetY);
+                    topLevelSnapshot.positionOffsetZ = MathUtil.lerpValues(percentageReset, topLevelSnapshot.positionOffsetZ,
+                            initialSnapshot.positionOffsetZ);
                 }
+            } else {
+                topLevelSnapshot.mostRecentResetPositionTick = (float) seekTime;
+                topLevelSnapshot.isCurrentlyRunningPositionAnimation = false;
             }
-            if (!tracker.getValue().hasPositionChanged) {
-                if (saveSnapshot.isCurrentlyRunningPositionAnimation) {
-                    saveSnapshot.mostRecentResetPositionTick = (float) seekTime;
-                    saveSnapshot.isCurrentlyRunningPositionAnimation = false;
-                }
-                double percentageReset = Math.min((seekTime - saveSnapshot.mostRecentResetPositionTick) / resetTickLength, 1);
-                model.setPositionX(MathUtil.lerpValues(percentageReset, saveSnapshot.positionOffsetX,
-                        initialSnapshot.positionOffsetX));
-                model.setPositionY(MathUtil.lerpValues(percentageReset, saveSnapshot.positionOffsetY,
-                        initialSnapshot.positionOffsetY));
-                model.setPositionZ(MathUtil.lerpValues(percentageReset, saveSnapshot.positionOffsetZ,
-                        initialSnapshot.positionOffsetZ));
+
+            if (!topLevelSnapshot.isCurrentlyRunningScaleAnimation) {
+                double percentageReset = Math.min((seekTime - topLevelSnapshot.mostRecentResetScaleTick) / resetTickLength, 1);
                 if (percentageReset >= 1) {
-                    saveSnapshot.positionOffsetX = model.getPositionX();
-                    saveSnapshot.positionOffsetY = model.getPositionY();
-                    saveSnapshot.positionOffsetZ = model.getPositionZ();
+                    topLevelSnapshot.scaleValueX = MathUtil.lerpValues(percentageReset, topLevelSnapshot.scaleValueX, initialSnapshot.scaleValueX);
+                    topLevelSnapshot.scaleValueY = MathUtil.lerpValues(percentageReset, topLevelSnapshot.scaleValueY, initialSnapshot.scaleValueY);
+                    topLevelSnapshot.scaleValueZ = MathUtil.lerpValues(percentageReset, topLevelSnapshot.scaleValueZ, initialSnapshot.scaleValueZ);
                 }
+            } else {
+                topLevelSnapshot.mostRecentResetScaleTick = (float) seekTime;
+                topLevelSnapshot.isCurrentlyRunningScaleAnimation = false;
             }
-            if (!tracker.getValue().hasScaleChanged) {
-                if (saveSnapshot.isCurrentlyRunningScaleAnimation) {
-                    saveSnapshot.mostRecentResetScaleTick = (float) seekTime;
-                    saveSnapshot.isCurrentlyRunningScaleAnimation = false;
-                }
-                double percentageReset = Math.min((seekTime - saveSnapshot.mostRecentResetScaleTick) / resetTickLength, 1);
-                model.setScaleX(
-                        MathUtil.lerpValues(percentageReset, saveSnapshot.scaleValueX, initialSnapshot.scaleValueX));
-                model.setScaleY(
-                        MathUtil.lerpValues(percentageReset, saveSnapshot.scaleValueY, initialSnapshot.scaleValueY));
-                model.setScaleZ(
-                        MathUtil.lerpValues(percentageReset, saveSnapshot.scaleValueZ, initialSnapshot.scaleValueZ));
-                if (percentageReset >= 1) {
-                    saveSnapshot.scaleValueX = model.getScaleX();
-                    saveSnapshot.scaleValueY = model.getScaleY();
-                    saveSnapshot.scaleValueZ = model.getScaleZ();
-                }
-            }
+
+            topLevelSnapshot.commit();
         }
         manager.isFirstTick = false;
+
+        this.processPendingExpressions(evaluator, false);
+        return true;
     }
 
-    private Map<String, DirtyTracker> createNewDirtyTracker() {
-        Map<String, DirtyTracker> tracker = new Object2ObjectOpenHashMap<>();
-        for (IBone bone : this.modelRendererList) {
-            tracker.put(bone.getName(), new DirtyTracker(false, false, false, bone));
-        }
-        return tracker;
-    }
-
-    private void updateBoneSnapshots(Map<String, Pair<IBone, BoneSnapshot>> boneSnapshotCollection) {
-        for (IBone bone : this.modelRendererList) {
-            if (!boneSnapshotCollection.containsKey(bone.getName())) {
-                boneSnapshotCollection.put(bone.getName(), Pair.of(bone, new BoneSnapshot(bone.getInitialSnapshot())));
-            }
-        }
-    }
-
+    @Nullable
     public IBone getBone(String boneName) {
-        for (IBone bone : this.modelRendererList) {
-            if (bone.getName().equals(boneName)) {
-                return bone;
+        BoneTopLevelSnapshot renderer = this.modelRendererMap.get(boneName);
+        return renderer != null ? renderer.bone : null;
+    }
+
+    public void registerModelRenderer(Map<String, IBone> boneMap) {
+        this.modelRendererMap.clear();
+        this.modelRendererList.clear();
+        this.modelRendererList.ensureCapacity(boneMap.size());
+        for (Map.Entry<String, IBone> entry : boneMap.entrySet()) {
+            BoneTopLevelSnapshot renderer = new BoneTopLevelSnapshot(entry.getValue());
+            this.modelRendererMap.put(entry.getKey(), renderer);
+            this.modelRendererList.add(renderer);
+        }
+        this.animationStorage.initialize(null);
+        this.rendererDirty = true;
+    }
+
+    public boolean isModelRendererEmpty() {
+        return this.modelRendererList.isEmpty();
+    }
+
+    public void preAnimationSetup(AnimatableEntity animatable, double seekTime) {
+    }
+
+    private void preProcess(ExpressionEvaluator<AnimationContext<?>> evaluator) {
+        if (this.rendererDirty && this.initializationValues != null) {
+            for (IValue value : this.initializationValues) {
+                value.evalAsDouble(evaluator);
+            }
+            this.initializationValues = null;
+        }
+        if (this.preAnimationValues != null) {
+            for (IValue value : this.preAnimationValues) {
+                value.evalAsDouble(evaluator);
             }
         }
-        return null;
     }
 
-    public void registerModelRenderer(IBone modelRenderer) {
-        modelRenderer.saveInitialSnapshot();
-        this.modelRendererList.add(modelRenderer);
+    private void processPendingExpressions(ExpressionEvaluator<AnimationContext<?>> evaluator, boolean executeBeforeAnimation) {
+        for (var iterator = this.pendingExpressions.iterator(); iterator.hasNext(); ) {
+            PendingExpression pendingExpression = iterator.next();
+            if (pendingExpression.executeBeforeAnimation() != executeBeforeAnimation) {
+                continue;
+            }
+            iterator.remove();
+
+            String result;
+            boolean previousAllowImpureOperations = evaluator.entity().allowImpureOperations();
+            evaluator.entity().setAllowImpureOperations(pendingExpression.allowImpureOperations());
+            try {
+                var ret = pendingExpression.value().evalUnsafe(evaluator);
+                if (ret == null) {
+                    result = "null";
+                } else if (ret instanceof String) {
+                    result = "'" + ret + "'";
+                } else {
+                    result = ret.toString();
+                }
+            } catch (Exception e) {
+                result = "Error: " + e.getMessage();
+            } finally {
+                evaluator.entity().setAllowImpureOperations(previousAllowImpureOperations);
+            }
+            if (pendingExpression.resultConsumer() != null) {
+                pendingExpression.resultConsumer().accept(result);
+            }
+        }
     }
 
-    public void clearModelRendererList() {
-        this.modelRendererList.clear();
+    public void queueExpression(
+            IValue value,
+            boolean allowImpureOperations,
+            boolean executeBeforeAnimation,
+            @Nullable Consumer<String> resultConsumer
+    ) {
+        this.pendingExpressions.add(new PendingExpression(value, allowImpureOperations, executeBeforeAnimation, resultConsumer));
     }
 
-    public List<IBone> getModelRendererList() {
-        return this.modelRendererList;
+    public IForeignVariableStorage getPublicVariableStorage() {
+        return this.animationStorage;
     }
 
-    public void preAnimationSetup(IAnimatable animatable, double seekTime) {
-        this.animatedModel.setMolangQueries(animatable, seekTime);
+    @Desugar
+    private record PendingExpression(
+            IValue value,
+            boolean allowImpureOperations,
+            boolean executeBeforeAnimation,
+            @Nullable Consumer<String> resultConsumer
+    ) {
     }
 }

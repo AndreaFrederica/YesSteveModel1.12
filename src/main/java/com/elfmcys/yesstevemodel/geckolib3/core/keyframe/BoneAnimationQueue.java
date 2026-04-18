@@ -5,61 +5,50 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.keyframe;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
+import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
+import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneTopLevelSnapshot;
+
+import javax.annotation.Nullable;
 
 public class BoneAnimationQueue {
-    public final IBone bone;
-    public final AnimationPointQueue rotationXQueue = new AnimationPointQueue();
-    public final AnimationPointQueue rotationYQueue = new AnimationPointQueue();
-    public final AnimationPointQueue rotationZQueue = new AnimationPointQueue();
-    public final AnimationPointQueue positionXQueue = new AnimationPointQueue();
-    public final AnimationPointQueue positionYQueue = new AnimationPointQueue();
-    public final AnimationPointQueue positionZQueue = new AnimationPointQueue();
-    public final AnimationPointQueue scaleXQueue = new AnimationPointQueue();
-    public final AnimationPointQueue scaleYQueue = new AnimationPointQueue();
-    public final AnimationPointQueue scaleZQueue = new AnimationPointQueue();
+    public final BoneTopLevelSnapshot topLevelSnapshot;
+    public final BoneSnapshot controllerSnapshot;
+    @Nullable
+    public BoneAnimation animation;
 
-    public BoneAnimationQueue(IBone bone) {
-        this.bone = bone;
+    public AnimationPointQueue rotationQueue = new AnimationPointQueue();
+    public AnimationPointQueue positionQueue = new AnimationPointQueue();
+    public AnimationPointQueue scaleQueue = new AnimationPointQueue();
+
+    public BoneAnimationQueue(BoneTopLevelSnapshot snapshot) {
+        this.topLevelSnapshot = snapshot;
+        this.controllerSnapshot = new BoneSnapshot(snapshot);
     }
 
-    public IBone bone() {
-        return this.bone;
+    public BoneSnapshot snapshot() {
+        return this.controllerSnapshot;
     }
 
-    public AnimationPointQueue rotationXQueue() {
-        return this.rotationXQueue;
+    public AnimationPointQueue rotationQueue() {
+        return this.rotationQueue;
     }
 
-    public AnimationPointQueue rotationYQueue() {
-        return this.rotationYQueue;
+    public AnimationPointQueue positionQueue() {
+        return this.positionQueue;
     }
 
-    public AnimationPointQueue rotationZQueue() {
-        return this.rotationZQueue;
+    public AnimationPointQueue scaleQueue() {
+        return this.scaleQueue;
     }
 
-    public AnimationPointQueue positionXQueue() {
-        return this.positionXQueue;
+    public void updateSnapshot() {
+        this.controllerSnapshot.copyFrom(this.topLevelSnapshot);
     }
 
-    public AnimationPointQueue positionYQueue() {
-        return this.positionYQueue;
-    }
-
-    public AnimationPointQueue positionZQueue() {
-        return this.positionZQueue;
-    }
-
-    public AnimationPointQueue scaleXQueue() {
-        return this.scaleXQueue;
-    }
-
-    public AnimationPointQueue scaleYQueue() {
-        return this.scaleYQueue;
-    }
-
-    public AnimationPointQueue scaleZQueue() {
-        return this.scaleZQueue;
+    // 链表重开比 clear() 快
+    public void resetQueues() {
+        this.rotationQueue = new AnimationPointQueue();
+        this.positionQueue = new AnimationPointQueue();
+        this.scaleQueue = new AnimationPointQueue();
     }
 }

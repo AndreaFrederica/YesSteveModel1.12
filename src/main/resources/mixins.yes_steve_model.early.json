@@ -6,11 +6,13 @@
   "minVersion": "0.8.5",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "ClickEventActionMixin",
     "EntityArrowMixin"
   ],
   "server": [],
   "client": [
     "client.ForgeHooksClientMixin",
+    "client.GuiScreenMixin",
     "client.RenderArrowMixin",
     "client.RenderLivingBaseMixin",
     "client.RenderPlayerMixin"

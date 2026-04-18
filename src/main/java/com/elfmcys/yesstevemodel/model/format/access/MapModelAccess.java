@@ -1,8 +1,9 @@
 package com.elfmcys.yesstevemodel.model.format.access;
 
+import com.google.common.collect.Lists;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class MapModelAccess implements IModelAccess {
     @Nonnull
     @Override
     public List<String> listFiles(String suffix) {
-        List<String> result = new ArrayList<>();
+        List<String> result = Lists.newArrayList();
         for (String key : this.data.keySet()) {
             if (key.endsWith(suffix)) {
                 result.add(key);

@@ -1,51 +1,43 @@
 package com.elfmcys.yesstevemodel.client.renderer;
 
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
-import com.elfmcys.yesstevemodel.client.model.CustomPlayerModel;
 import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerElytraLayer;
 import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerItemInHandLayer;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.event.api.SpecialPlayerRenderEvent;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
-import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<EntityPlayer, CustomPlayerEntity> {
-    private GeoModel geoModel;
-
-    @SuppressWarnings("all")
     public CustomPlayerRenderer(RenderManager ctx) {
-        super(ctx, new CustomPlayerModel(), new CustomPlayerEntity());
-        this.addLayer(new CustomPlayerItemInHandLayer<>(this));
-        this.addLayer(new CustomPlayerElytraLayer<>(this));
+        super(ctx);
+        this.addLayer(new CustomPlayerItemInHandLayer<>());
+        this.addLayer(new CustomPlayerElytraLayer<>());
     }
 
     @Override
     public void doRender(@Nonnull EntityPlayer entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        if (this.animatable != null) {
-            CapabilityEvent.getModelInfoCap(entity).ifPresent(cap -> {
-                this.animatable.setPlayer(entity);
-                this.animatable.setMainModel(ModelIdUtil.getMainId(cap.getModelId()));
-                this.animatable.setTexture(cap.getSelectTexture());
-            });
-            if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(entity, this.animatable, ModelIdUtil.getModelIdFromMainId(this.animatable.getMainModel())))) {
-                return;
-            }
+        CustomPlayerEntity animatable = this.getAnimatableEntity(entity);
+        CapabilityEvent.getModelInfoCap(entity).ifPresent(cap -> {
+            animatable.setModelLocation(ModelIdUtil.getMainId(cap.getModelId()));
+            animatable.setTextureLocation(cap.getSelectTexture());
+        });
+        if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(entity, animatable, ModelIdUtil.getModelIdFromMainId(animatable.getModelLocation())))) {
+            return;
         }
-        ResourceLocation location = this.modelProvider.getModelLocation(this.animatable);
-        GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(location);
-        if (geoModel != null) {
-            this.geoModel = geoModel;
-            super.doRender(entity, x, y, z, entityYaw, partialTicks);
-        }
+        super.render(entity, animatable, x, y, z, entityYaw, partialTicks);
+    }
+
+    @Nonnull
+    @Override
+    public CustomPlayerEntity getAnimatableEntity(EntityPlayer entity) {
+        return CapabilityEvent.getCustomPlayerEntityCap(entity)
+                .orElseGet(() -> new CustomPlayerEntity(entity));
     }
 
     @Override
@@ -62,14 +54,5 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<EntityPlayer
             return this.currentAnimatable.getHeightScale();
         }
         return super.getHeightScale(entity);
-    }
-
-    public CustomPlayerEntity getCustomPlayerEntity() {
-        return this.animatable;
-    }
-
-    @Nullable
-    public GeoModel getGeoModel() {
-        return this.geoModel;
     }
 }

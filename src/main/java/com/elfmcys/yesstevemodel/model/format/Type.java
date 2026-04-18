@@ -6,6 +6,7 @@ import com.elfmcys.yesstevemodel.model.format.access.MapModelAccess;
 import com.elfmcys.yesstevemodel.model.format.access.ZipModelAccess;
 import com.elfmcys.yesstevemodel.util.YesModelUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -95,12 +96,12 @@ public enum Type {
 
         @Override
         public String addExtension(String fileName) {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         @Override
         public String getFileName(String fileName) {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         @Nullable

@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.util;
 
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoCube;
+import com.elfmcys.yesstevemodel.geckolib3.core.processor.ILocationBone;
 import org.lwjgl.util.vector.Quaternion;
 
 import javax.vecmath.Matrix3f;
@@ -66,25 +65,15 @@ public class MatrixStack {
         this.model.peek().mul(this.tempModelMatrix);
     }
 
-    public void moveToPivot(GeoCube cube) {
-        Vector3f pivot = cube.pivot;
-        this.translate(pivot.getX() / 16f, pivot.getY() / 16f, pivot.getZ() / 16f);
-    }
-
-    public void moveBackFromPivot(GeoCube cube) {
-        Vector3f pivot = cube.pivot;
-        this.translate(-pivot.getX() / 16f, -pivot.getY() / 16f, -pivot.getZ() / 16f);
-    }
-
-    public void moveToPivot(GeoBone bone) {
+    public void moveToPivot(ILocationBone bone) {
         this.translate(bone.getPivotX() / 16f, bone.getPivotY() / 16f, bone.getPivotZ() / 16f);
     }
 
-    public void moveBackFromPivot(GeoBone bone) {
+    public void moveBackFromPivot(ILocationBone bone) {
         this.translate(-bone.getPivotX() / 16f, -bone.getPivotY() / 16f, -bone.getPivotZ() / 16f);
     }
 
-    public void translate(GeoBone bone) {
+    public void translate(ILocationBone bone) {
         this.translate(-bone.getPositionX() / 16f, bone.getPositionY() / 16f, bone.getPositionZ() / 16f);
     }
 
@@ -111,7 +100,7 @@ public class MatrixStack {
     /**
      * 如果缩放全为 0，则返回 true
      */
-    public boolean scale(GeoBone bone) {
+    public boolean scale(ILocationBone bone) {
         float scaleX = bone.getScaleX();
         float scaleY = bone.getScaleY();
         float scaleZ = bone.getScaleZ();
@@ -154,7 +143,7 @@ public class MatrixStack {
         this.normal.peek().mul(this.tempNormalMatrix);
     }
 
-    public void rotate(GeoBone bone) {
+    public void rotate(ILocationBone bone) {
         if (bone.getRotationZ() != 0.0F) {
             this.rotateZ(bone.getRotationZ());
         }
@@ -166,38 +155,9 @@ public class MatrixStack {
         }
     }
 
-    public void rotate(GeoCube bone) {
-        Vector3f rotation = bone.rotation;
-        Matrix4f matrix4f = new Matrix4f();
-        Matrix3f matrix3f = new Matrix3f();
-
-        this.tempModelMatrix.setIdentity();
-        matrix4f.rotZ(rotation.getZ());
-        this.tempModelMatrix.mul(matrix4f);
-
-        matrix4f.rotY(rotation.getY());
-        this.tempModelMatrix.mul(matrix4f);
-
-        matrix4f.rotX(rotation.getX());
-        this.tempModelMatrix.mul(matrix4f);
-
-        this.tempNormalMatrix.setIdentity();
-        matrix3f.rotZ(rotation.getZ());
-        this.tempNormalMatrix.mul(matrix3f);
-
-        matrix3f.rotY(rotation.getY());
-        this.tempNormalMatrix.mul(matrix3f);
-
-        matrix3f.rotX(rotation.getX());
-        this.tempNormalMatrix.mul(matrix3f);
-
-        this.model.peek().mul(this.tempModelMatrix);
-        this.normal.peek().mul(this.tempNormalMatrix);
-    }
-
     /* Other */
 
-    public void translateAndRotate(GeoBone bone) {
+    public void translateAndRotate(ILocationBone bone) {
         this.translate(bone);
         this.rotate(bone);
     }
@@ -205,7 +165,7 @@ public class MatrixStack {
     /**
      * 如果缩放为 0，则返回 true
      */
-    public boolean prep(GeoBone bone) {
+    public boolean prep(ILocationBone bone) {
         this.translate(bone);
         this.moveToPivot(bone);
         this.rotate(bone);

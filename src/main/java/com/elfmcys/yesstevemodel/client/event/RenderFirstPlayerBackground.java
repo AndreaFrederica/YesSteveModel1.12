@@ -7,10 +7,10 @@ import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.event.api.SpecialPlayerRenderEvent;
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
-import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
-import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoBone;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoModel;
+import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.util.AnimatableCacheUtil;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import net.minecraft.client.Minecraft;
@@ -34,10 +34,7 @@ import java.util.concurrent.ExecutionException;
 // TODO：测试
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = YesSteveModel.MOD_ID)
 public class RenderFirstPlayerBackground {
-    private static final String NAME = "Background";
-    /**
-     * 因为 RenderHandEvent 可有几率会渲染多次，所以为了避免多次渲染，这样设计
-     */
+    /// 因为 RenderHandEvent 可有几率会渲染多次，所以为了避免多次渲染，这样设计
     private static boolean ALREADY_RENDERED = false;
 
     @SubscribeEvent
@@ -60,19 +57,15 @@ public class RenderFirstPlayerBackground {
         ALREADY_RENDERED = true;
         CapabilityEvent.getModelInfoCap(player).ifPresent(cap -> {
             ResourceLocation modelId = cap.getModelId();
-            GeoModel geoModel = GeckoLibCache.getInstance().getGeoModels().get(ModelIdUtil.getArmId(cap.getModelId()));
-            if (geoModel == null || !geoModel.hasTopLevelBone(NAME)) {
-                return;
-            }
             CustomPlayerRenderer instance = ClientProxy.getInstance();
             Tessellator tess = Tessellator.getInstance();
             BufferBuilder buffer = tess.getBuffer();
-            IAnimatable animatable;
+            AnimatableEntity<?> animatable;
 
             try {
                 animatable = AnimatableCacheUtil.ANIMATABLE_CACHE.get(modelId, () -> {
-                    CustomPlayerEntity entity = new CustomPlayerEntity();
-                    entity.setTexture(cap.getSelectTexture());
+                    CustomPlayerEntity entity = new CustomPlayerEntity(null);
+                    entity.setTextureLocation(cap.getSelectTexture());
                     return entity;
                 });
             } catch (ExecutionException e) {
@@ -80,7 +73,19 @@ public class RenderFirstPlayerBackground {
             }
 
             if (animatable instanceof CustomPlayerEntity customPlayer) {
-                customPlayer.setTexture(cap.getSelectTexture());
+                customPlayer.setModelLocation(ModelIdUtil.getArmId(modelId));
+                customPlayer.setTextureLocation(cap.getSelectTexture());
+                if (!customPlayer.updateModel()) {
+                    return;
+                }
+                AnimatedGeoModel geoModel = customPlayer.getCurrentModel();
+                if (geoModel == null) {
+                    return;
+                }
+                AnimatedGeoBone bone = geoModel.background();
+                if (bone == null) {
+                    return;
+                }
                 if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(player, customPlayer, modelId))) {
                     return;
                 }
@@ -91,7 +96,7 @@ public class RenderFirstPlayerBackground {
                         bobView(event.getPartialTicks(), player);
                     }
                     GlStateManager.translate(0, -1.5, 0);
-                    geoModel.getTopLevelBone(NAME).ifPresent(bone -> instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F));
+                    instance.renderRecursively(bone, tess, 1.0F, 1.0F, 1.0F, 1.0F);
                     tess.draw();
                     GlStateManager.popMatrix();
                 }

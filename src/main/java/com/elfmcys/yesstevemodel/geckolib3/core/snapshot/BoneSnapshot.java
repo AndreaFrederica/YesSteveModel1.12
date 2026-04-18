@@ -5,10 +5,8 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.snapshot;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
-
 public class BoneSnapshot {
-    public String name;
+    public final String name;
     public float scaleValueX;
     public float scaleValueY;
     public float scaleValueZ;
@@ -18,55 +16,20 @@ public class BoneSnapshot {
     public float rotationValueX;
     public float rotationValueY;
     public float rotationValueZ;
-    public float mostRecentResetRotationTick = 0;
-    public float mostRecentResetPositionTick = 0;
-    public float mostRecentResetScaleTick = 0;
-    public boolean isCurrentlyRunningRotationAnimation = true;
-    public boolean isCurrentlyRunningPositionAnimation = true;
-    public boolean isCurrentlyRunningScaleAnimation = true;
-    private final IBone modelRenderer;
 
-    public BoneSnapshot(IBone modelRenderer) {
-        this.rotationValueX = modelRenderer.getRotationX();
-        this.rotationValueY = modelRenderer.getRotationY();
-        this.rotationValueZ = modelRenderer.getRotationZ();
+    public boolean hidden;
+    public boolean childrenHidden;
 
-        this.positionOffsetX = modelRenderer.getPositionX();
-        this.positionOffsetY = modelRenderer.getPositionY();
-        this.positionOffsetZ = modelRenderer.getPositionZ();
-
-        this.scaleValueX = modelRenderer.getScaleX();
-        this.scaleValueY = modelRenderer.getScaleY();
-        this.scaleValueZ = modelRenderer.getScaleZ();
-
-        this.modelRenderer = modelRenderer;
-        this.name = modelRenderer.getName();
-    }
-
-    public BoneSnapshot(IBone modelRenderer, boolean dontSaveRotations) {
-        if (dontSaveRotations) {
-            this.rotationValueX = 0;
-            this.rotationValueY = 0;
-            this.rotationValueZ = 0;
-        }
-
-        this.rotationValueX = modelRenderer.getRotationX();
-        this.rotationValueY = modelRenderer.getRotationY();
-        this.rotationValueZ = modelRenderer.getRotationZ();
-
-        this.positionOffsetX = modelRenderer.getPositionX();
-        this.positionOffsetY = modelRenderer.getPositionY();
-        this.positionOffsetZ = modelRenderer.getPositionZ();
-
-        this.scaleValueX = modelRenderer.getScaleX();
-        this.scaleValueY = modelRenderer.getScaleY();
-        this.scaleValueZ = modelRenderer.getScaleZ();
-
-        this.modelRenderer = modelRenderer;
-        this.name = modelRenderer.getName();
+    protected BoneSnapshot(String name) {
+        this.name = name;
     }
 
     public BoneSnapshot(BoneSnapshot snapshot) {
+        this.copyFrom(snapshot);
+        this.name = snapshot.name;
+    }
+
+    public void copyFrom(BoneSnapshot snapshot) {
         this.scaleValueX = snapshot.scaleValueX;
         this.scaleValueY = snapshot.scaleValueY;
         this.scaleValueZ = snapshot.scaleValueZ;
@@ -78,20 +41,20 @@ public class BoneSnapshot {
         this.rotationValueX = snapshot.rotationValueX;
         this.rotationValueY = snapshot.rotationValueY;
         this.rotationValueZ = snapshot.rotationValueZ;
-        this.modelRenderer = snapshot.modelRenderer;
-        this.name = snapshot.name;
+
+        this.hidden = snapshot.hidden;
+        this.childrenHidden = snapshot.childrenHidden;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
-        if (o == null || this.getClass() != o.getClass()) {
-            return false;
+        if (other instanceof BoneSnapshot that) {
+            return this.name.equals(that.name);
         }
-        BoneSnapshot that = (BoneSnapshot) o;
-        return this.name.equals(that.name);
+        return false;
     }
 
     @Override

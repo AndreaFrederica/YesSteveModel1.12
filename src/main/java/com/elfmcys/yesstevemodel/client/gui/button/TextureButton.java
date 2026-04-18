@@ -12,6 +12,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,7 @@ public class TextureButton extends Button {
     private final EntityPlayer player;
 
     public TextureButton(int pX, int pY, ResourceLocation modelId, ResourceLocation textureId, EntityPlayer player) {
-        super(pX, pY, 54, 102, "", (b) -> {
+        super(pX, pY, 54, 102, StringUtils.EMPTY, (b) -> {
         });
         this.modelId = modelId;
         this.textureId = textureId;

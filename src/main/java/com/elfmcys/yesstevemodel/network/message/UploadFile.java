@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class UploadFile implements IPacketBufferMessage {
         @Nullable
         @Override
         public IMessage onMessage(UploadFile message, MessageContext ctx) {
-            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, "")) {
+            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, StringUtils.EMPTY)) {
                 FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
                     writeFile(message, ctx.getServerHandler().player);
                 });

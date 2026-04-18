@@ -5,15 +5,16 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.keyframe;
 
-import com.elfmcys.yesstevemodel.mclib.math.IValue;
+import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.bone.BoneKeyFrame;
+import com.github.bsideup.jabel.Desugar;
 
-public class BoneAnimation {
-    public final String boneName;
-    public VectorKeyFrameList<KeyFrame<IValue>> rotationKeyFrames;
-    public VectorKeyFrameList<KeyFrame<IValue>> positionKeyFrames;
-    public VectorKeyFrameList<KeyFrame<IValue>> scaleKeyFrames;
+import java.util.List;
 
-    public BoneAnimation(String boneName) {
-        this.boneName = boneName;
-    }
+@Desugar
+public record BoneAnimation(
+        String boneName,
+        List<BoneKeyFrame> rotationKeyFrames,
+        List<BoneKeyFrame> positionKeyFrames,
+        List<BoneKeyFrame> scaleKeyFrames
+) {
 }

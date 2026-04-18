@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.compat;
 
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.sirsquidly.oe.capabilities.CapabilityRiptide;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.trident.util.EntityHelper;
 import net.minecraftforge.fml.common.Optional;
@@ -13,22 +14,22 @@ public class TridentCompat {
         return Mods.OE_INSTALLED || Mods.TM_INSTALLED;
     }
 
-    public static boolean isAutoSpinAttack(EntityPlayer player) {
-        return (Mods.OE_INSTALLED && isOEAttack(player)) ||
-                (Mods.TM_INSTALLED && isTMAttack(player));
+    public static boolean isAutoSpinAttack(EntityLivingBase living) {
+        return (Mods.OE_INSTALLED && isOEAttack(living)) ||
+                (Mods.TM_INSTALLED && isTMAttack(living));
     }
 
     @Optional.Method(modid = Mods.OCEANIC_EXPANSE)
-    private static boolean isOEAttack(EntityPlayer player) {
+    private static boolean isOEAttack(EntityLivingBase living) {
         AtomicBoolean flag = new AtomicBoolean(false);
-        CapabilityEvent.getCapability(player, CapabilityRiptide.RIPTIDE_CAP).ifPresent(cap -> {
+        CapabilityEvent.getCapability(living, CapabilityRiptide.RIPTIDE_CAP).ifPresent(cap -> {
             flag.set(cap.getRiptideAnimate());
         });
         return flag.get();
     }
 
     @Optional.Method(modid = Mods.TRIDENT_MOD)
-    private static boolean isTMAttack(EntityPlayer player) {
-        return EntityHelper.isSpinAttacking(player);
+    private static boolean isTMAttack(EntityLivingBase living) {
+        return living instanceof EntityPlayer player && EntityHelper.isSpinAttacking(player);
     }
 }

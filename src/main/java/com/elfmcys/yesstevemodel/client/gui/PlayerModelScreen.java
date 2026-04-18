@@ -23,6 +23,7 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Loader;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -96,7 +97,7 @@ public class PlayerModelScreen extends Screen {
         this.x = (this.width - 420) / 2;
         this.y = (this.height - 235) / 2;
 
-        String perText = "";
+        String perText = StringUtils.EMPTY;
         boolean focus = false;
         if (this.textField != null) {
             perText = this.textField.getText();

@@ -6,11 +6,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
 public abstract class AbstractConditionEntity {
-    private static final String EMPTY = "";
+    private static final String EMPTY = StringUtils.EMPTY;
     private final List<ResourceLocation> idTest = Lists.newArrayList();
     //private final List<ResourceLocation> tagTest = Lists.newArrayList();
     private final String idPre;

@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.client;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
 import com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager;
 import com.elfmcys.yesstevemodel.client.texture.OuterFileTexture;
 import com.elfmcys.yesstevemodel.data.ModelData;
@@ -17,6 +16,7 @@ import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.geckolib3.util.json.JsonAnimationUtils;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
+import com.elfmcys.yesstevemodel.model.format.FormatManager;
 import com.elfmcys.yesstevemodel.model.format.Type;
 import com.elfmcys.yesstevemodel.model.format.access.FolderModelAccess;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
@@ -72,10 +72,10 @@ public class ClientModelManager {
     public static void registerGeo(ResourceLocation modelId, Map<String, byte[]> modelData) {
         for (Map.Entry<String, byte[]> entry : modelData.entrySet()) {
             String partName = entry.getKey();
-            if ("info".equals(partName)) continue;
+            if (FormatManager.INFO_NAME.equals(partName)) continue;
             registerGeo(modelId, partName, entry.getValue());
         }
-        byte[] infoData = modelData.get("info");
+        byte[] infoData = modelData.get(FormatManager.INFO_NAME);
         if (infoData != null && ObjectStreamUtil.toObject(infoData) instanceof ExtraInfo extraInfo) {
             addExtraInfo(modelId, extraInfo);
         }
@@ -86,11 +86,11 @@ public class ClientModelManager {
         try {
             Object obj = ObjectStreamUtil.toObject(partData);
             if (obj instanceof RawGeoModel rawModel) {
-                if (rawModel.getFormatVersion() == FormatVersion.VERSION_1_12_0) {
+                if (rawModel.getFormatVersion() == FormatVersion.NEW) {
                     RawGeometryTree rawGeometryTree = RawGeometryTree.parseHierarchy(rawModel);
                     ResourceLocation partId = ModelIdUtil.getSubModelId(modelId, partName);
-                    GeoModel geoModel = GeoBuilder.getGeoBuilder(partId.getNamespace()).constructGeoModel(rawGeometryTree);
-                    if ("main".equals(partName)) {
+                    GeoModel geoModel = GeoBuilder.getGeoBuilder().constructGeoModel(rawGeometryTree);
+                    if (FormatManager.MAIN_MODEL_NAME.equals(partName)) {
                         SCALE_INFO.put(partId, Pair.of(rawGeometryTree.properties.getHeightScale(), rawGeometryTree.properties.getWidthScale()));
                         addExtraInfo(modelId, rawGeometryTree.properties.getExtraInfo());
                     }
@@ -118,7 +118,7 @@ public class ClientModelManager {
     }
 
     private static boolean isModelTexture(ResourceLocation infoId, String name) {
-        if (name.equals(IArrowExtraInfo.TEXTURE_NAME)) return false;
+        if (name.equals(FormatManager.ARROW_TEXTURE_FILE_NAME)) return false;
         final ExtraInfo extraInfo = EXTRA_INFO.get(infoId);
         return !name.equals(extraInfo.getGuiBackground()) && !name.equals(extraInfo.getGuiForeground());
     }

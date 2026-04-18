@@ -5,12 +5,13 @@ import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
 public class TextureCountButton extends FlatColorButton {
     public TextureCountButton(int x, int y) {
-        super(x, y, 20, 20, "", (b) -> {
+        super(x, y, 20, 20, StringUtils.EMPTY, (b) -> {
         });
     }
 

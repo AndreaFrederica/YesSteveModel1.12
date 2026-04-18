@@ -1,7 +1,11 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo;
 
+import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.google.gson.*;
 import com.google.gson.annotations.JsonAdapter;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
+import org.apache.maven.artifact.versioning.VersionRange;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -11,23 +15,43 @@ import java.lang.reflect.Type;
  */
 @JsonAdapter(FormatVersion.Serializer.class)
 public enum FormatVersion {
-    VERSION_1_12_0, VERSION_1_14_0, VERSION_1_8_0;
+    /**
+     * 旧版本基岩版模型，仅限 1.10.0
+     */
+    LEGACY("[1.10.0]"),
+    /**
+     * 新版本基岩版模型，往后的 1.14.0，1.16.0 1.21.0 通通用此版本读取
+     */
+    NEW("[1.12.0,)");
+
+    private final VersionRange versionRange;
+
+    FormatVersion(String version) {
+        this.versionRange = createFromVersionSpec(version);
+    }
 
     public static FormatVersion forValue(String value) throws IOException {
-        return switch (value) {
-            case "1.12.0" -> VERSION_1_12_0;
-            case "1.14.0" -> VERSION_1_14_0;
-            case "1.8.0" -> VERSION_1_8_0;
-            default -> throw new IOException("Cannot deserialize FormatVersion: " + value);
-        };
+        DefaultArtifactVersion inputVersion = new DefaultArtifactVersion(value);
+        if (NEW.versionRange.containsVersion(inputVersion)) {
+            return NEW;
+        }
+        return LEGACY;
     }
 
     public String toValue() {
         return switch (this) {
-            case VERSION_1_12_0 -> "1.12.0";
-            case VERSION_1_14_0 -> "1.14.0";
-            case VERSION_1_8_0 -> "1.8.0";
+            case LEGACY -> "1.10.0";
+            case NEW -> "1.12.0";
         };
+    }
+
+    private static VersionRange createFromVersionSpec(final String spec) {
+        try {
+            return VersionRange.createFromVersionSpec(spec);
+        } catch (InvalidVersionSpecificationException e) {
+            YesSteveModel.LOGGER.fatal("Failed to parse version spec {}", spec, e);
+            throw new RuntimeException("Failed to parse spec", e);
+        }
     }
 
     protected static class Serializer implements JsonSerializer<FormatVersion>, JsonDeserializer<FormatVersion> {

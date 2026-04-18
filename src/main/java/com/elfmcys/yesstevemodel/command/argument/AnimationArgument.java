@@ -1,6 +1,6 @@
 package com.elfmcys.yesstevemodel.command.argument;
 
-import com.elfmcys.yesstevemodel.client.model.CustomPlayerModel;
+import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.geckolib3.file.AnimationFile;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.google.common.collect.Sets;
@@ -18,7 +18,7 @@ public final class AnimationArgument {
             // Fixme: 应该为服务器后台也添加提示功能
             return Collections.emptySet();
         } else {
-            AnimationFile main = GeckoLibCache.getInstance().getAnimations().get(CustomPlayerModel.DEFAULT_MAIN_ANIMATION);
+            AnimationFile main = GeckoLibCache.getInstance().getAnimations().get(CustomPlayerEntity.DEFAULT_ID);
             Set<String> animations = Sets.newHashSet();
             animations.addAll(main.animations().keySet());
             animations.add(STOP);

@@ -27,7 +27,7 @@ public class VanillaPlayerRenderEvent {
         EntityPlayer player = event.getPlayer();
         CustomPlayerEntity animatable = event.getCustomPlayer();
         if (isVanillaPlayer(event.getModelId()) && player instanceof EntityPlayerSP clientPlayer) {
-            animatable.setMainModel(ModelIdUtil.getMainId(event.getModelId()));
+            animatable.setModelLocation(ModelIdUtil.getMainId(event.getModelId()));
             ResourceLocation location;
             Minecraft minecraft = Minecraft.getMinecraft();
             /// {@link net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer#renderSkull(float, float, float, EnumFacing, float, int, GameProfile, int, float)}
@@ -37,7 +37,7 @@ public class VanillaPlayerRenderEvent {
             } else {
                 location = getDefaultSkin(event.getModelId());
             }
-            animatable.setTexture(location);
+            animatable.setTextureLocation(location);
         }
     }
 

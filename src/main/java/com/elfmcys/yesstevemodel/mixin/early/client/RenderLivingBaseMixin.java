@@ -1,6 +1,6 @@
 package com.elfmcys.yesstevemodel.mixin.early.client;
 
-import com.elfmcys.yesstevemodel.geckolib3.extended.RenderLivingBaseAccessor;
+import com.elfmcys.yesstevemodel.mixininterface.RenderLivingBaseAccessor;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderLivingBase;
 import net.minecraft.client.renderer.entity.RenderManager;

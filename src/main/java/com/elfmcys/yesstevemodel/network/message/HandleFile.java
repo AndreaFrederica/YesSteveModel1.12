@@ -49,7 +49,7 @@ public class HandleFile implements IPacketBufferMessage {
         @Nullable
         @Override
         public IMessage onMessage(HandleFile message, MessageContext ctx) {
-            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, "")) {
+            if (ctx.side.isServer() && ctx.getServerHandler().player.canUseCommand(4, StringUtils.EMPTY)) {
                 FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
                     if (message.dir == UploadFile.Dir.CUSTOM) {
                         String actionIn = message.action;

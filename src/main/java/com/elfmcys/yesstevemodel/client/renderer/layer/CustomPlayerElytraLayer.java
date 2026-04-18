@@ -1,10 +1,10 @@
 package com.elfmcys.yesstevemodel.client.renderer.layer;
 
 import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
-import com.elfmcys.yesstevemodel.geckolib3.geo.GeoLayerRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoRenderer;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
+import com.elfmcys.yesstevemodel.geckolib3.geo.IGeoLayerRenderer;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.ILocationModel;
 import com.elfmcys.yesstevemodel.geckolib3.util.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -24,37 +24,41 @@ import javax.annotation.Nonnull;
 /**
  * 可参考原版实现 {@link net.minecraft.client.renderer.entity.layers.LayerElytra}。
  */
-public class CustomPlayerElytraLayer<T extends EntityLivingBase, R extends IGeoRenderer<T>> extends GeoLayerRenderer<T, R> {
+public class CustomPlayerElytraLayer<T extends EntityLivingBase, E extends AnimatableEntity<T>> implements IGeoLayerRenderer<T, E> {
     private final ModelElytra elytraModel = new ModelElytra();
 
-    public CustomPlayerElytraLayer(R entityRendererIn) {
-        super(entityRendererIn);
+    public CustomPlayerElytraLayer() {
     }
 
     @Override
-    public void render(@Nonnull T livingEntity, float pLimbSwing, float pLimbSwingAmount, float pPartialTicks, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, Color renderColor) {
-        if (!ElytraCompat.isWearingElytra(livingEntity)) return;
-        GeoModel geoModel = this.entityRenderer.getGeoModel();
-        if (geoModel == null || geoModel.elytraBones.isEmpty()) return;
+    public void render(
+            @Nonnull T entity, @Nonnull E animatable,
+            float limbSwing, float limbSwingAmount,
+            float partialTicks, float ageInTicks,
+            float netHeadYaw, float headPitch, Color renderColor
+    ) {
+        if (!ElytraCompat.isWearingElytra(entity)) return;
+        ILocationModel geoModel = animatable.getCurrentModel();
+        if (geoModel == null || geoModel.elytraBones().isEmpty()) return;
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
         GlStateManager.pushMatrix();
-        boolean scaleResult = RenderUtils.prepMatrixForLocator(geoModel.elytraBones);
+        boolean scaleResult = RenderUtils.prepMatrixForLocator(geoModel.elytraBones());
         // 缩放不为 0 才会渲染
         if (!scaleResult) {
             GlStateManager.rotate(180, 0, 0, 1);
-            ItemStack stack = livingEntity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
+            ItemStack stack = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
             Minecraft mc = Minecraft.getMinecraft();
-            mc.getTextureManager().bindTexture(getElytraTexture(livingEntity, stack.getItem()));
+            mc.getTextureManager().bindTexture(getElytraTexture(entity, stack.getItem()));
             final float scale = 1 / 16F;
-            this.elytraModel.setRotationAngles(pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale, livingEntity);
-            this.elytraModel.render(livingEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+            this.elytraModel.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, entity);
+            this.elytraModel.render(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
             if (stack.hasEffect()) {
                 RenderPlayer renderer = mc.getRenderManager().getSkinMap().get("default");
-                LayerArmorBase.renderEnchantedGlint(renderer, livingEntity, this.elytraModel, pLimbSwing, pLimbSwingAmount, pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, scale);
+                LayerArmorBase.renderEnchantedGlint(renderer, entity, this.elytraModel, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale);
             }
         }
         GlStateManager.popMatrix();

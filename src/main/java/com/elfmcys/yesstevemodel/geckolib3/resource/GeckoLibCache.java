@@ -1,16 +1,20 @@
 package com.elfmcys.yesstevemodel.geckolib3.resource;
 
+import com.elfmcys.yesstevemodel.client.animation.molang.YSMBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.file.AnimationFile;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
+import com.elfmcys.yesstevemodel.molang.runtime.binding.ObjectBinding;
 import com.google.common.collect.Maps;
 import net.minecraft.util.ResourceLocation;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class GeckoLibCache {
+    private static final Map<String, ObjectBinding> EXTRA_BINDING = new HashMap<>();
     private static GeckoLibCache INSTANCE;
-    public final MolangParser parser = new MolangParser();
+    public final MolangParser parser = createMolangParser();
     private final Map<ResourceLocation, AnimationFile> animations = Maps.newHashMap();
     private final Map<ResourceLocation, GeoModel> geoModels = Maps.newHashMap();
 
@@ -28,5 +32,12 @@ public class GeckoLibCache {
 
     public Map<ResourceLocation, GeoModel> getGeoModels() {
         return this.geoModels;
+    }
+
+    private static MolangParser createMolangParser() {
+        EXTRA_BINDING.put("ysm", YSMBinding.INSTANCE);
+//        EXTRA_BINDING.put("tlm", TLMBinding.INSTANCE);
+//        EXTRA_BINDING.put("ctrl", CtrlBinding.INSTANCE);
+        return new MolangParser(EXTRA_BINDING);
     }
 }

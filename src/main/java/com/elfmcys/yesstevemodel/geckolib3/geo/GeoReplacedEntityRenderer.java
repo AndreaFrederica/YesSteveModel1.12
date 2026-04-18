@@ -1,16 +1,15 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
-import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
-import com.elfmcys.yesstevemodel.geckolib3.extended.RenderLivingBaseAccessor;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel;
-import com.elfmcys.yesstevemodel.geckolib3.model.AnimatedGeoModel;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoModel;
 import com.elfmcys.yesstevemodel.geckolib3.model.provider.data.EntityModelData;
 import com.elfmcys.yesstevemodel.geckolib3.util.EModelRenderCycle;
 import com.elfmcys.yesstevemodel.geckolib3.util.IRenderCycle;
-import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
+import com.elfmcys.yesstevemodel.mixininterface.RenderLivingBaseAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -34,43 +33,20 @@ import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E extends IAnimatable> extends RenderLivingBase<T> implements IGeoRenderer<T> {
-    protected static final Map<Class<? extends IAnimatable>, GeoReplacedEntityRenderer<?, ?>> renderers = new ConcurrentHashMap<>();
-
-    static {
-        AnimationController.addModelFetcher((IAnimatable object) -> {
-            GeoReplacedEntityRenderer<?, ?> renderer = renderers.get(object.getClass());
-            return renderer == null ? null : renderer.getGeoModelProvider();
-        });
-    }
-
-    protected final AnimatedGeoModel<E> modelProvider;
-    protected final List<GeoLayerRenderer> layerRenderers = new ObjectArrayList<>();
-    protected E animatable;
+public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E extends AnimatableEntity<T>> extends RenderLivingBase<T> implements IGeoRenderer<T> {
+    protected final List<IGeoLayerRenderer<T, E>> layerRenderers = new ObjectArrayList<>();
     protected E currentAnimatable;
-    protected float widthScale = 1;
-    protected float heightScale = 1;
     private IRenderCycle currentModelRenderCycle = EModelRenderCycle.INITIAL;
 
-    public GeoReplacedEntityRenderer(
-            RenderManager renderManager, AnimatedGeoModel<E> modelProvider, E animatable
-    ) {
+    protected GeoReplacedEntityRenderer(RenderManager renderManager) {
         super(renderManager, new ModelPlayer(0.0F, true), 0.5F);
-        this.modelProvider = modelProvider;
-        this.animatable = animatable;
-        renderers.putIfAbsent(animatable.getClass(), this);
     }
 
-    public final boolean addLayer(GeoLayerRenderer<T, ?> layer) {
-        return this.layerRenderers.add(layer);
-    }
+    @Nonnull
+    public abstract E getAnimatableEntity(T entity);
 
     @Override
     public void doRender(
@@ -78,11 +54,11 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
             double x, double y, double z,
             float entityYaw, float partialTick
     ) {
-        this.render(entity, this.animatable, x, y, z, entityYaw, partialTick);
+        this.render(entity, this.getAnimatableEntity(entity), x, y, z, entityYaw, partialTick);
     }
 
     public void render(
-            @Nonnull T entity, E animatable,
+            @Nonnull T entity, @Nonnull E animatable,
             double x, double y, double z,
             float entityYaw, float partialTick
     ) {
@@ -135,11 +111,11 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         float headPitch = Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick);
         entityModelData.headPitch = -headPitch;
         entityModelData.netHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
-        GeoModel model = this.modelProvider.getModel(this.modelProvider.getModelLocation(animatable));
         AnimationEvent<E> predicate = new AnimationEvent<>(animatable, limbSwing, limbSwingAmount, partialTick,
                 (limbSwingAmount <= -this.getSwingMotionAnimThreshold() || limbSwingAmount <= this.getSwingMotionAnimThreshold()), Collections.singletonList(entityModelData));
-
-        this.modelProvider.setCustomAnimations(animatable, this.getInstanceId(entity), predicate);
+        AnimationContext<?> ctx = new AnimationContext<>(entity, animatable, predicate, entityModelData);
+        animatable.setCustomAnimations(ctx, predicate);
+        AnimatedGeoModel model = animatable.getCurrentModel();
 
         Minecraft mc = Minecraft.getMinecraft();
         GlStateManager.enableRescaleNormal();
@@ -156,14 +132,16 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         }
 
         Color renderColor = this.getRenderColor(entity, partialTick);
-        boolean isVisible = this.isVisible(entity);
-        boolean isGhost = !isVisible && !entity.isInvisibleToPlayer(mc.player);
-        if ((isVisible || isGhost) && this.bindEntityTexture(entity)) {
-            if (isGhost) GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
-            this.render(model, entity, partialTick,
-                    (float) renderColor.getRed() / 255f, (float) renderColor.getGreen() / 255f,
-                    (float) renderColor.getBlue() / 255f, (float) renderColor.getAlpha() / 255);
-            if (isGhost) GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+        if (model != null) {
+            boolean isVisible = this.isVisible(entity);
+            boolean isGhost = !isVisible && !entity.isInvisibleToPlayer(mc.player);
+            if ((isVisible || isGhost) && this.bindEntityTexture(entity)) {
+                if (isGhost) GlStateManager.enableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+                this.render(model, entity, partialTick,
+                        (float) renderColor.getRed() / 255f, (float) renderColor.getGreen() / 255f,
+                        (float) renderColor.getBlue() / 255f, (float) renderColor.getAlpha() / 255);
+                if (isGhost) GlStateManager.disableBlendProfile(GlStateManager.Profile.TRANSPARENT_MODEL);
+            }
         }
 
         if (!this.renderOutlines) {
@@ -172,10 +150,11 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         }
 
         if (!(entity instanceof EntityPlayer player) || !player.isSpectator()) {
-            for (GeoLayerRenderer layerRenderer : this.layerRenderers) {
+            for (IGeoLayerRenderer<T, E> layerRenderer : this.layerRenderers) {
                 boolean layerBrightness = this.setBrightness(entity, partialTick, layerRenderer.shouldCombineTextures());
                 layerRenderer.render(
-                        entity, limbSwing, limbSwingAmount,
+                        entity, animatable,
+                        limbSwing, limbSwingAmount,
                         partialTick, lerpedAge,
                         netHeadYaw, headPitch, renderColor
                 );
@@ -206,22 +185,22 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
             Entity leashHolder = mob.getLeashHolder();
             //noinspection ConstantValue
             if (leashHolder != null) {
-                this.renderLeash(mob, x, y, z, entityYaw, partialTick, leashHolder);
+                this.renderLeash(entity, x, y, z, entityYaw, partialTick, leashHolder);
             }
         }
         MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Post<>(entity, this, partialTick, x, y, z));
     }
 
-//    /**
-//     * Returns where in the swing animation the living entity is (from 0 to 1). Args
-//     * : entity, partialTickTime
-//     */
-//    protected float getSwingProgress(EntityLivingBase livingBase, float partialTickTime) {
-//        return livingBase.getSwingProgress(partialTickTime);
-//    }
-
     protected float getSwingMotionAnimThreshold() {
         return 0.15f;
+    }
+
+    public void addLayer(IGeoLayerRenderer<T, E> layer) {
+        this.layerRenderers.add(layer);
+    }
+
+    public List<IGeoLayerRenderer<T, E>> getLayerRenderers() {
+        return this.layerRenderers;
     }
 
     /**
@@ -260,7 +239,7 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
      */
     @SuppressWarnings("JavadocReference")
     protected <TEntity extends Entity> void renderLeash(
-            EntityLiving entity, double x, double y, double z,
+            T entity, double x, double y, double z,
             float entityYaw, float partialTicks, @Nonnull TEntity leashHolder
     ) {
         y = y - (1.6D - (double) entity.height) * 0.5D;
@@ -367,13 +346,12 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         GlStateManager.enableCull();
     }
 
-    @Override
-    public AnimatedGeoModel getGeoModelProvider() {
-        return this.modelProvider;
-    }
+    /*
+    IGeoRenderer
+     */
 
-    @Override
     @Nonnull
+    @Override
     public IRenderCycle getCurrentModelRenderCycle() {
         return this.currentModelRenderCycle;
     }
@@ -383,19 +361,9 @@ public abstract class GeoReplacedEntityRenderer<T extends EntityLivingBase, E ex
         this.currentModelRenderCycle = currentModelRenderCycle;
     }
 
-    @Override
-    public float getWidthScale(T entity) {
-        return this.widthScale;
-    }
-
-    @Override
-    public float getHeightScale(T entity) {
-        return this.heightScale;
-    }
-
-    @Nullable
+    @Nonnull
     @Override
     public ResourceLocation getEntityTexture(@Nonnull T entity) {
-        return this.modelProvider.getTextureLocation(this.currentAnimatable);
+        return this.currentAnimatable.getTextureLocation();
     }
 }

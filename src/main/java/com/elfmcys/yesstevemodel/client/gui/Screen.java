@@ -1,6 +1,7 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
+import com.google.common.collect.Lists;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -10,13 +11,13 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Screen extends GuiScreen {
@@ -115,13 +116,13 @@ public class Screen extends GuiScreen {
      * Can be seen as a better version of {@link net.minecraft.client.gui.FontRenderer#listFormattedStringToWidth(String, int)}.
      */
     public List<String> listLineBreakStringToWidth(@Nullable String text, int wrapWidth) {
-        final List<String> lineList = new ArrayList<>();
+        final List<String> lineList = Lists.newArrayList();
         if (text == null) return lineList;
         text = text.replace("\\n", "\n");
         String[] paragraphs = text.split("\n", -1);
         for (String para : paragraphs) {
             if (para.isEmpty()) {
-                lineList.add("");
+                lineList.add(StringUtils.EMPTY);
                 continue;
             }
             lineList.addAll(this.fontRenderer.listFormattedStringToWidth(para, wrapWidth));

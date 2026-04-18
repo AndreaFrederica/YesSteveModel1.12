@@ -94,11 +94,11 @@ public class ModelManageScreen extends Screen {
             RequestServerModelInfo.Info info = this.getModels().get(this.index);
             UploadFile.Dir dir = isCustomModels ? UploadFile.Dir.CUSTOM : UploadFile.Dir.AUTH;
             if (this.action == Action.DELETE) {
-                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "delete", ""));
+                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "delete", StringUtils.EMPTY));
                 canConfirm = true;
             }
             if (this.action == Action.MOVE) {
-                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "move", ""));
+                NetworkHandler.CHANNEL.sendToServer(new HandleFile(info.getFullFileName(), dir, "move", StringUtils.EMPTY));
                 canConfirm = true;
             }
             if (this.action == Action.RENAME) {
@@ -209,7 +209,7 @@ public class ModelManageScreen extends Screen {
 
         this.addButton(new FlatColorButton(this.x + 175, this.y + 5, 80, 18, I18n.format("gui.yes_steve_model.model_manage.upload"), (b) -> {
             if (UploadManager.STATUE == UploadManager.Statue.FULFILL) {
-                UploadManager.FILE_PATH = "";
+                UploadManager.FILE_PATH = StringUtils.EMPTY;
             }
             this.action = Action.UPLOAD;
             this.refreshGui();

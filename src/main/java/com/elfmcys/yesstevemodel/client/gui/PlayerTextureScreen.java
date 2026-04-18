@@ -14,9 +14,9 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerTextureScreen extends Screen {
@@ -30,7 +30,7 @@ public class PlayerTextureScreen extends Screen {
     private final List<ResourceLocation> textures;
     private final List<String> animations;
     private final EntityPlayer player;
-    private String animation = "";
+    private String animation = StringUtils.EMPTY;
     private int maxTexturePage;
     private int texturePage;
     private int maxAnimationPage;
@@ -50,7 +50,7 @@ public class PlayerTextureScreen extends Screen {
         this.modelId = modelId;
         this.textures = textures;
         this.textures.sort(ResourceLocation::compareTo);
-        this.animations = new ArrayList<>(ClientModelManager.DEFAULT_ANIMATION_FILE.animations().keySet());
+        this.animations = Lists.newArrayList(ClientModelManager.DEFAULT_ANIMATION_FILE.animations().keySet());
         this.animations.sort(String::compareTo);
         this.player = parent.player;
     }
@@ -73,7 +73,7 @@ public class PlayerTextureScreen extends Screen {
         }));
 
         this.addButton(new FlatIconButton(this.x + 281, this.y + 2, 16, 16, 64, 16, (b) -> {
-            this.animation = "";
+            this.animation = StringUtils.EMPTY;
         }).setTooltips("gui.yes_steve_model.model.stop"));
         this.addButton(new FlatIconButton(this.x + 263, this.y + 2, 16, 16, 48, 16, (b) -> {
             this.posX = 0;

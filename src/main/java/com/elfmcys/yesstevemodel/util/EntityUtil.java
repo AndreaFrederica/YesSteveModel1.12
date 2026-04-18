@@ -2,7 +2,7 @@ package com.elfmcys.yesstevemodel.util;
 
 import com.elfmcys.yesstevemodel.client.compat.CameraCompat;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.MathUtil;
-import com.elfmcys.yesstevemodel.mclib.utils.Interpolations;
+import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;

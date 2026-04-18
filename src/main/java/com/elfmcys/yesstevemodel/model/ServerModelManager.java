@@ -186,9 +186,9 @@ public final class ServerModelManager {
     public static ModelData getModelData(IModelAccess access, String modelId, boolean isAuth, Type type) throws IOException {
         Map<String, byte[]> model = Maps.newHashMap();
         // info.json
-        byte[] infoBytes = access.readFile(INFO_FILE_NAME);
-        if (infoBytes != null && infoBytes.length > 0) {
-            String infoJson = new String(infoBytes, StandardCharsets.UTF_8);
+        byte[] infoData = access.readFile(INFO_FILE_NAME);
+        if (infoData != null && infoData.length > 0) {
+            String infoJson = new String(infoData, StandardCharsets.UTF_8);
             ExtraInfo info = YesSteveModel.GSON.fromJson(infoJson, ExtraInfo.class);
             model.put(INFO_NAME, ObjectStreamUtil.toByteArray(info));
         }
@@ -215,7 +215,7 @@ public final class ServerModelManager {
         for (String animName : ANIMATION_NAMES) {
             byte[] animData = access.readFile(getAnimFileName(animName));
             if (animData == null || animData.length == 0) {
-                java.io.File defaultFile = getDefaultAnimFile(animName);
+                File defaultFile = getDefaultAnimFile(animName);
                 if (defaultFile.isFile()) {
                     animData = FileUtils.readFileToByteArray(defaultFile);
                 }

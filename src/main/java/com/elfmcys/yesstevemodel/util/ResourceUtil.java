@@ -3,13 +3,43 @@ package com.elfmcys.yesstevemodel.util;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
+
 /**
- * {@link ResourceLocation} 的辅助方法。验证移植自 1.16.5。
+ * {@link ResourceLocation} 的辅助方法。验证移植自更高版本。
  */
 public final class ResourceUtil {
-    public static boolean isValidResourceLocation(String resourceName) {
-        String[] decompose = ResourceLocation.splitObjectName(resourceName);
-        return isValidNamespace(StringUtils.isEmpty(decompose[0]) ? "minecraft" : decompose[0]) && isValidPath(decompose[1]);
+    /**
+     * Attempts to parse the specified {@code location} as a {@code ResourceLocation} by splitting it into a
+     * namespace and path by a colon.
+     * <p>
+     * If no colon is present in the {@code location}, the namespace defaults to {@code minecraft}, taking the {@code
+     * location} as the path.
+     *
+     * @param pLocation the location string to try to parse as a {@code ResourceLocation}
+     * @return the parsed resource location; otherwise {@code null} if there is a non {@code [a-z0-9_.-]} character in
+     * the decomposed namespace or a non {@code [a-z0-9/._-]} character in the decomposed path
+     */
+    @Nullable
+    public static ResourceLocation tryParse(String pLocation) {
+        String[] astring = ResourceLocation.splitObjectName(pLocation);
+        if (!isValidNamespace(astring[0]) || !isValidPath(astring[1])) return null;
+        return new ResourceLocation(astring[0], astring[1]);
+    }
+
+    /**
+     * Splits the specified {@code location} into a namespace and path by a colon, checking both are valid.
+     * <p>
+     * If no colon is present in the {@code location}, the namespace defaults to {@code minecraft}, taking the {@code
+     * location} as the path.</p>
+     *
+     * @return {@code true} if both the decomposed namespace and path are valid
+     * @see #isValidPath(String)
+     * @see #isValidNamespace(String)
+     */
+    public static boolean isValidResourceLocation(String pLocation) {
+        String[] astring = ResourceLocation.splitObjectName(pLocation);
+        return isValidNamespace(StringUtils.isEmpty(astring[0]) ? "minecraft" : astring[0]) && isValidPath(astring[1]);
     }
 
     private static boolean isValidPath(String path) {

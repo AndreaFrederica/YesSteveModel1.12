@@ -1,12 +1,12 @@
 package com.elfmcys.yesstevemodel.model.format.access;
 
 import com.elfmcys.yesstevemodel.util.InputStreamUtils;
+import com.google.common.collect.Lists;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -36,7 +36,7 @@ public class ZipModelAccess implements IModelAccess {
     @Nonnull
     @Override
     public List<String> listFiles(String suffix) {
-        List<String> result = new ArrayList<>();
+        List<String> result = Lists.newArrayList();
         this.zipFile.stream().forEach(entry -> {
             if (!entry.isDirectory() && entry.getName().endsWith(suffix)) {
                 result.add(entry.getName());

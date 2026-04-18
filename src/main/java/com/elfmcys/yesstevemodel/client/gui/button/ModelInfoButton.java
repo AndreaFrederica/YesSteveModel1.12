@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -15,7 +16,7 @@ public class ModelInfoButton extends Button {
     private boolean isSelect = false;
 
     public ModelInfoButton(int pX, int pY, int pHeight, RequestServerModelInfo.Info info, Consumer<Button> pOnPress) {
-        super(pX, pY, 250, pHeight, "", pOnPress);
+        super(pX, pY, 250, pHeight, StringUtils.EMPTY, pOnPress);
         this.info = info;
     }
 

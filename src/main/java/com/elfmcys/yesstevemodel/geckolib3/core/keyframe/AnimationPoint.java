@@ -5,27 +5,39 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.keyframe;
 
-import com.github.bsideup.jabel.Desugar;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationControllerContext;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
+import com.elfmcys.yesstevemodel.molang.runtime.ExpressionEvaluator;
 
-/**
- * @param currentTick         动画插值中要从中获取的当前 tick
- * @param animationEndTick    当前动画结束的 tick
- * @param animationStartValue 动画起始值
- * @param animationEndValue   动画结束值
- * @param keyframe            当前关键帧
- */
-@SuppressWarnings("rawtypes")
-@Desugar
-public record AnimationPoint(
-        KeyFrame keyframe,
-        double currentTick,
-        double animationEndTick,
-        double animationStartValue,
-        double animationEndValue
-) {
-    @Override
-    public String toString() {
-        return "Tick: " + this.currentTick + " | End Tick: " + this.animationEndTick + " | Start Value: " + this.animationStartValue
-                + " | End Value: " + this.animationEndValue;
+import javax.vecmath.Vector3f;
+
+public abstract class AnimationPoint {
+    /**
+     * 当前关键帧播放进度
+     */
+    public final double currentTick;
+    /**
+     * 当前关键帧总长度
+     */
+    public final double totalTick;
+    /**
+     * 与动画控制器相关的 molang 上下文
+     */
+    private final AnimationControllerContext context;
+
+    public AnimationPoint(double currentTick, double totalTick, AnimationControllerContext context) {
+        this.currentTick = currentTick;
+        this.totalTick = totalTick;
+        this.context = context;
     }
+
+    protected double getPercentCompleted() {
+        return this.totalTick == 0 ? 1 : (this.currentTick / this.totalTick);
+    }
+
+    protected void setupControllerContext(ExpressionEvaluator<AnimationContext<?>> evaluator) {
+        evaluator.entity().setAnimationControllerContext(this.context);
+    }
+
+    public abstract Vector3f getLerpPoint(ExpressionEvaluator<AnimationContext<?>> evaluator);
 }

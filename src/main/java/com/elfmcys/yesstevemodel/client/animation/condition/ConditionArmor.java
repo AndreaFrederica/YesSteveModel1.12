@@ -8,6 +8,7 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ConditionArmor {
     private static final Pattern ID_PRE_REG = Pattern.compile("^(.+?)\\$(.*?)$");
     private static final Pattern ORE_PRE_REG = Pattern.compile("^(.+?)~(.*?)$");
     //private static final Pattern TAG_PRE_REG = Pattern.compile("^(.+?)#(.*?)$");
-    private static final String EMPTY = "";
+    private static final String EMPTY = StringUtils.EMPTY;
 
     private final Map<EntityEquipmentSlot, List<ResourceLocation>> idTest = Maps.newHashMap();
     private final Map<EntityEquipmentSlot, List<String>> oreTest = Maps.newHashMap();

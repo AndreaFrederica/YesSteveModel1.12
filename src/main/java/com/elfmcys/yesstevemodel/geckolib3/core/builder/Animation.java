@@ -4,20 +4,19 @@
  */
 package com.elfmcys.yesstevemodel.geckolib3.core.builder;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType.EDefaultLoopTypes;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.BoneAnimation;
-import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.EventKeyFrame;
-import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.ParticleEventKeyFrame;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.event.EventKeyFrame;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.value.IValue;
+import com.github.bsideup.jabel.Desugar;
 
 import java.util.List;
 
-public class Animation {
-    public String animationName;
-    public double animationLength = -1;
-    public ILoopType loop = EDefaultLoopTypes.LOOP;
-    public List<BoneAnimation> boneAnimations;
-    public List<EventKeyFrame<String>> soundKeyFrames = new ObjectArrayList<>();
-    public List<ParticleEventKeyFrame> particleKeyFrames = new ObjectArrayList<>();
-    public List<EventKeyFrame<String>> customInstructionKeyframes = new ObjectArrayList<>();
+@Desugar
+public record Animation(
+        String animationName,
+        double animationLength,
+        ILoopType loop,
+        List<BoneAnimation> boneAnimations,
+        List<EventKeyFrame<IValue[]>> customInstructionKeyframes
+) {
 }

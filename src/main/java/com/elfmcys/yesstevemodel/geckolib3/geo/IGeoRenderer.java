@@ -1,50 +1,52 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.util.Color;
-import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.*;
-import com.elfmcys.yesstevemodel.geckolib3.model.provider.GeoModelProvider;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoBone;
+import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoModel;
+import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoMesh;
 import com.elfmcys.yesstevemodel.geckolib3.util.EModelRenderCycle;
 import com.elfmcys.yesstevemodel.geckolib3.util.IRenderCycle;
 import com.elfmcys.yesstevemodel.geckolib3.util.MatrixStack;
+import com.elfmcys.yesstevemodel.geckolib3.util.VectorUtils;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
 
-@SuppressWarnings("unused")
 public interface IGeoRenderer<T> {
     MatrixStack MATRIX_STACK = new MatrixStack();
-    String GLOW_PREFIX = "ysmGlow";
-
-    @SuppressWarnings("rawtypes")
-    GeoModelProvider getGeoModelProvider();
-
-    ResourceLocation getEntityTexture(T entity);
-
-    @Nullable
-    default GeoModel getGeoModel() {
-        return null;
-    }
+    Vector3f C000 = new Vector3f();
+    Vector3f C100 = new Vector3f();
+    Vector3f C110 = new Vector3f();
+    Vector3f C010 = new Vector3f();
+    Vector3f C001 = new Vector3f();
+    Vector3f C101 = new Vector3f();
+    Vector3f C111 = new Vector3f();
+    Vector3f C011 = new Vector3f();
+    Vector3f dx = new Vector3f();
+    Vector3f dy = new Vector3f();
+    Vector3f dz = new Vector3f();
+    Vector3f nx = new Vector3f();
+    Vector3f ny = new Vector3f();
+    Vector3f nz = new Vector3f();
 
     default void render(
-            GeoModel model, T entity, float partialTicks,
+            AnimatedGeoModel model, T entity, float partialTick,
             float red, float green, float blue, float alpha
     ) {
-        this.renderEarly(entity, partialTicks, red, green, blue, alpha);
-        this.renderLate(entity, partialTicks, red, green, blue, alpha);
+        this.renderEarly(entity, partialTick, red, green, blue, alpha);
+        this.renderLate(entity, partialTick, red, green, blue, alpha);
 
         Tessellator tess = Tessellator.getInstance();
         tess.getBuffer().begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
         // 渲染所有根骨骼
-        for (GeoBone group : model.topLevelBones) {
+        for (AnimatedGeoBone group : model.topLevelBones()) {
             this.renderRecursively(group, tess, red, green, blue, alpha);
         }
         tess.draw();
@@ -53,13 +55,17 @@ public interface IGeoRenderer<T> {
     }
 
     default void renderRecursively(
-            GeoBone bone, Tessellator tess,
+            AnimatedGeoBone bone, Tessellator tess,
             float red, float green, float blue, float alpha
     ) {
+        if ((bone.getScaleX() == 0 ? 0 : 1) + (bone.getScaleY() == 0 ? 0 : 1) + (bone.getScaleZ() == 0 ? 0 : 1) < 2) {
+            return;
+        }
         MATRIX_STACK.push();
         MATRIX_STACK.prep(bone);
         BufferBuilder buffer = tess.getBuffer();
-        if (bone.getName().startsWith(GLOW_PREFIX)) {
+//        if (!SodiumCompat.sodiumRenderCubesOfBone(bone, poseStack, buffer, cubePackedLight, packedOverlay, red, green, blue, alpha)) {
+        if (bone.geoBone().glow()) {
             // 先绘制出已有的顶点
             tess.draw();
             // 设置自发光条件
@@ -81,74 +87,148 @@ public interface IGeoRenderer<T> {
         } else {
             this.renderCubesOfBone(bone, buffer, red, green, blue, alpha);
         }
+//        }
         this.renderChildBones(bone, tess, red, green, blue, alpha);
         MATRIX_STACK.pop();
     }
 
     default void renderCubesOfBone(
-            GeoBone bone, BufferBuilder buffer,
+            AnimatedGeoBone bone, BufferBuilder buffer,
             float red, float green, float blue, float alpha
     ) {
         if (bone.isHidden()) {
             return;
         }
-        for (GeoCube cube : bone.childCubes) {
-            if (!bone.cubesAreHidden()) {
-                MATRIX_STACK.push();
-                this.renderCube(buffer, cube, red, green, blue, alpha);
-                MATRIX_STACK.pop();
+        if (bone.cubesAreHidden()) {
+            return;
+        }
+
+        GeoMesh mesh = bone.geoBone().cubes();
+
+        for (int i = 0; i < mesh.cubeCount(); i++) {
+            Matrix4f pose = MATRIX_STACK.getModelMatrix();
+            VectorUtils.mulPosition(pose, mesh.position(i), C000);
+            pose.transform(mesh.dx(i), dx);
+            pose.transform(mesh.dy(i), dy);
+            pose.transform(mesh.dz(i), dz);
+
+            C100.add(C000, dx);
+            C110.add(C100, dy);
+            C010.add(C000, dy);
+            C001.add(C000, dz);
+            C101.add(C100, dz);
+            C111.add(C110, dz);
+            C011.add(C010, dz);
+
+            nx.cross(dy, dz);
+            nx.normalize();
+            ny.cross(dz, dx);
+            ny.normalize();
+            nz.cross(dx, dy);
+            nz.normalize();
+
+            int faces = mesh.faces(i);
+            boolean mirrored = (faces & 0b1000000) != 0;
+            if (mirrored) {
+                nx.scale(-1);
+                ny.scale(-1);
+                nz.scale(-1);
+            }
+
+            if ((faces & 0b000001) != 0) // DOWN
+            {
+                buildVertex(buffer, C101.x, C101.y, C101.z, red, green, blue, alpha, mesh.downU0(i), mesh.downV1(i),
+                        -ny.x, -ny.y, -ny.z);
+                buildVertex(buffer, C001.x, C001.y, C001.z, red, green, blue, alpha, mesh.downU1(i), mesh.downV1(i),
+                        -ny.x, -ny.y, -ny.z);
+                buildVertex(buffer, C000.x, C000.y, C000.z, red, green, blue, alpha, mesh.downU1(i), mesh.downV0(i),
+                        -ny.x, -ny.y, -ny.z);
+                buildVertex(buffer, C100.x, C100.y, C100.z, red, green, blue, alpha, mesh.downU0(i), mesh.downV0(i),
+                        -ny.x, -ny.y, -ny.z);
+            }
+            if ((faces & 0b000010) != 0) // UP
+            {
+                buildVertex(buffer, C110.x, C110.y, C110.z, red, green, blue, alpha, mesh.upU0(i), mesh.upV1(i),
+                        ny.x, ny.y, ny.z);
+                buildVertex(buffer, C010.x, C010.y, C010.z, red, green, blue, alpha, mesh.upU1(i), mesh.upV1(i),
+                        ny.x, ny.y, ny.z);
+                buildVertex(buffer, C011.x, C011.y, C011.z, red, green, blue, alpha, mesh.upU1(i), mesh.upV0(i),
+                        ny.x, ny.y, ny.z);
+                buildVertex(buffer, C111.x, C111.y, C111.z, red, green, blue, alpha, mesh.upU0(i), mesh.upV0(i),
+                        ny.x, ny.y, ny.z);
+            }
+            if ((faces & 0b000100) != 0) // NORTH
+            {
+                buildVertex(buffer, C100.x, C100.y, C100.z, red, green, blue, alpha, mesh.northU0(i), mesh.northV1(i),
+                        -nz.x, -nz.y, -nz.z);
+                buildVertex(buffer, C000.x, C000.y, C000.z, red, green, blue, alpha, mesh.northU1(i), mesh.northV1(i),
+                        -nz.x, -nz.y, -nz.z);
+                buildVertex(buffer, C010.x, C010.y, C010.z, red, green, blue, alpha, mesh.northU1(i), mesh.northV0(i),
+                        -nz.x, -nz.y, -nz.z);
+                buildVertex(buffer, C110.x, C110.y, C110.z, red, green, blue, alpha, mesh.northU0(i), mesh.northV0(i),
+                        -nz.x, -nz.y, -nz.z);
+            }
+            if ((faces & 0b001000) != 0) // SOUTH
+            {
+                buildVertex(buffer, C001.x, C001.y, C001.z, red, green, blue, alpha, mesh.southU0(i), mesh.southV1(i),
+                        nz.x, nz.y, nz.z);
+                buildVertex(buffer, C101.x, C101.y, C101.z, red, green, blue, alpha, mesh.southU1(i), mesh.southV1(i),
+                        nz.x, nz.y, nz.z);
+                buildVertex(buffer, C111.x, C111.y, C111.z, red, green, blue, alpha, mesh.southU1(i), mesh.southV0(i),
+                        nz.x, nz.y, nz.z);
+                buildVertex(buffer, C011.x, C011.y, C011.z, red, green, blue, alpha, mesh.southU0(i), mesh.southV0(i),
+                        nz.x, nz.y, nz.z);
+            }
+            if ((faces & 0b010000) != 0) // WEST
+            {
+                buildVertex(buffer, C000.x, C000.y, C000.z, red, green, blue, alpha, mesh.westU0(i), mesh.westV1(i),
+                        -nx.x, -nx.y, -nx.z);
+                buildVertex(buffer, C001.x, C001.y, C001.z, red, green, blue, alpha, mesh.westU1(i), mesh.westV1(i),
+                        -nx.x, -nx.y, -nx.z);
+                buildVertex(buffer, C011.x, C011.y, C011.z, red, green, blue, alpha, mesh.westU1(i), mesh.westV0(i),
+                        -nx.x, -nx.y, -nx.z);
+                buildVertex(buffer, C010.x, C010.y, C010.z, red, green, blue, alpha, mesh.westU0(i), mesh.westV0(i),
+                        -nx.x, -nx.y, -nx.z);
+            }
+            if ((faces & 0b100000) != 0) // EAST
+            {
+                buildVertex(buffer, C101.x, C101.y, C101.z, red, green, blue, alpha, mesh.eastU0(i), mesh.eastV1(i),
+                        nx.x, nx.y, nx.z);
+                buildVertex(buffer, C100.x, C100.y, C100.z, red, green, blue, alpha, mesh.eastU1(i), mesh.eastV1(i),
+                        nx.x, nx.y, nx.z);
+                buildVertex(buffer, C110.x, C110.y, C110.z, red, green, blue, alpha, mesh.eastU1(i), mesh.eastV0(i),
+                        nx.x, nx.y, nx.z);
+                buildVertex(buffer, C111.x, C111.y, C111.z, red, green, blue, alpha, mesh.eastU0(i), mesh.eastV0(i),
+                        nx.x, nx.y, nx.z);
             }
         }
     }
 
+    static void buildVertex(
+            BufferBuilder buffer,
+            float x, float y, float z,
+            float red, float green, float blue, float alpha,
+            float texU, float texV,
+            float normalX, float normalY, float normalZ
+    ) {
+        buffer.pos(x, y, z).tex(texU, texV).color(red, green, blue, alpha).normal(normalX, normalY, normalZ).endVertex();
+    }
+
     default void renderChildBones(
-            GeoBone bone, Tessellator tess,
+            AnimatedGeoBone bone, Tessellator tess,
             float red, float green, float blue, float alpha
     ) {
         if (bone.childBonesAreHiddenToo()) {
             return;
         }
-        for (GeoBone childBone : bone.childBones) {
+        for (AnimatedGeoBone childBone : bone.children()) {
             this.renderRecursively(childBone, tess, red, green, blue, alpha);
         }
     }
 
-    default void renderCube(BufferBuilder builder, GeoCube cube, float red, float green, float blue, float alpha) {
-        MATRIX_STACK.moveToPivot(cube);
-        MATRIX_STACK.rotate(cube);
-        MATRIX_STACK.moveBackFromPivot(cube);
-        for (GeoQuad quad : cube.quads) {
-            if (quad == null) {
-                continue;
-            }
-            Vector3f normal = new Vector3f(quad.normal.getX(), quad.normal.getY(), quad.normal.getZ());
-            MATRIX_STACK.getNormalMatrix().transform(normal);
-            if ((cube.size.y == 0 || cube.size.z == 0) && normal.getX() < 0) {
-                normal.x *= -1;
-            }
-            if ((cube.size.x == 0 || cube.size.z == 0) && normal.getY() < 0) {
-                normal.y *= -1;
-            }
-            if ((cube.size.x == 0 || cube.size.y == 0) && normal.getZ() < 0) {
-                normal.z *= -1;
-            }
-            this.createVerticesOfQuad(quad, normal, builder, red, green, blue, alpha);
-        }
-    }
-
-    default void createVerticesOfQuad(
-            GeoQuad quad, Vector3f normal, BufferBuilder builder,
-            float red, float green, float blue, float alpha
+    default void renderEarly(
+            T entity, float partialTick, float red, float green, float blue, float alpha
     ) {
-        for (GeoVertex vertex : quad.vertices) {
-            Vector4f vector4f = new Vector4f(vertex.position.getX(), vertex.position.getY(), vertex.position.getZ(), 1);
-            MATRIX_STACK.getModelMatrix().transform(vector4f);
-            builder.pos(vector4f.getX(), vector4f.getY(), vector4f.getZ()).tex(vertex.textureU, vertex.textureV)
-                    .color(red, green, blue, alpha).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-        }
-    }
-
-    default void renderEarly(T entity, float ticks, float red, float green, float blue, float partialTicks) {
         if (this.getCurrentModelRenderCycle() == EModelRenderCycle.INITIAL) {
             float width = this.getWidthScale(entity);
             float height = this.getHeightScale(entity);
@@ -156,15 +236,13 @@ public interface IGeoRenderer<T> {
         }
     }
 
-    default void renderLate(T entity, float ticks, float red, float green, float blue, float partialTicks) {
+    default void renderLate(
+            T entity, float partialTick, float red, float green, float blue, float alpha
+    ) {
     }
 
     default Color getRenderColor(T entity, float partialTicks) {
         return Color.WHITE;
-    }
-
-    default int getInstanceId(T entity) {
-        return entity.hashCode();
     }
 
     @Nonnull

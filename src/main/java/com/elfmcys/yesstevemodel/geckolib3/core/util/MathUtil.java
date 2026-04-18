@@ -1,46 +1,33 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.util;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingManager;
-import com.elfmcys.yesstevemodel.geckolib3.core.easing.EasingType;
-import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.AnimationPoint;
+import javax.vecmath.Vector3f;
 
-import java.util.function.DoubleUnaryOperator;
-
-public class MathUtil {
+public final class MathUtil {
     private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180F;
     private static final float RADIANS_TO_DEGREES = 180F / (float) Math.PI;
 
-    /**
-     * 对一个 AnimationPoint 进行线性插值计算
-     *
-     * @param animationPoint 动画信息
-     * @return 线性插值
-     */
-    @SuppressWarnings({"ConstantValue", "unchecked"})
-    public static float lerpValues(AnimationPoint animationPoint, EasingType easingType, DoubleUnaryOperator customEasingMethod) {
-        if (animationPoint.currentTick() >= animationPoint.animationEndTick()) {
-            return (float) animationPoint.animationEndValue();
-        }
-        if (animationPoint.currentTick() == 0 && animationPoint.animationEndTick() == 0) {
-            return (float) animationPoint.animationEndValue();
-        }
-        if (easingType == EasingType.CUSTOM && customEasingMethod != null) {
-            return lerpValues(customEasingMethod.applyAsDouble(animationPoint.currentTick() / animationPoint.animationEndTick()),
-                    animationPoint.animationStartValue(), animationPoint.animationEndValue());
-        } else if (easingType == EasingType.NONE && animationPoint.keyframe() != null) {
-            easingType = animationPoint.keyframe().easingType;
-        }
-        double ease = EasingManager.ease(animationPoint.currentTick() / animationPoint.animationEndTick(), easingType,
-                animationPoint.keyframe() == null ? null : animationPoint.keyframe().easingArgs);
-        return lerpValues(ease, animationPoint.animationStartValue(), animationPoint.animationEndValue());
+    public static Vector3f lerpValues(double percentCompleted, Vector3f begin, Vector3f end) {
+        return new Vector3f(lerpValues(percentCompleted, begin.getX(), end.getX()),
+                lerpValues(percentCompleted, begin.getY(), end.getY()),
+                lerpValues(percentCompleted, begin.getZ(), end.getZ()));
     }
 
     public static float lerpValues(double percentCompleted, double startValue, double endValue) {
-        return (float) lerp(percentCompleted, startValue, endValue);
+        return (float) (startValue + percentCompleted * (endValue - startValue));
     }
 
-    public static double lerp(double pct, double start, double end) {
-        return start + pct * (end - start);
+    public static Vector3f catmullRom(double percentCompleted, Vector3f left, Vector3f begin, Vector3f end, Vector3f right) {
+        return new Vector3f(catmullRom(percentCompleted, left.getX(), begin.getX(), end.getX(), right.getX()),
+                catmullRom(percentCompleted, left.getY(), begin.getY(), end.getY(), right.getY()),
+                catmullRom(percentCompleted, left.getZ(), begin.getZ(), end.getZ(), right.getZ()));
+    }
+
+    public static float catmullRom(double percent, double left, double begin, double end, double right) {
+        double v0 = (end - left) * 0.5;
+        double v1 = (right - begin) * 0.5;
+        double t2 = percent * percent;
+        double t3 = percent * t2;
+        return (float) ((2 * begin - 2 * end + v0 + v1) * t3 + (-3 * begin + 3 * end - 2 * v0 - v1) * t2 + v0 * percent + begin);
     }
 
     public static float degreesToRadians(float degrees) {

@@ -25,6 +25,8 @@ public final class Mods {
     static boolean CARRY_ON_INSTALLED = false;
     static final String CLEANROOM = "cleanroom";
     static boolean CRL_INSTALLED = false;
+    static final String BAUBLES = "baubles";
+    static boolean BAUBLES_INSTALLED = false;
 
     public static void init() {
         AA_INSTALLED = Loader.isModLoaded(AQUA_ACROBATICS);
@@ -38,6 +40,7 @@ public final class Mods {
         UT_INSTALLED = Loader.isModLoaded(UNIVERSAL_TWEAKS);
         CARRY_ON_INSTALLED = Loader.isModLoaded(CARRY_ON);
         CRL_INSTALLED = Loader.isModLoaded(CLEANROOM);
+        BAUBLES_INSTALLED = Loader.isModLoaded(BAUBLES);
 
         CarryOnCompat.init();
         RenderArmCompat.init();

@@ -1,14 +1,18 @@
 package com.elfmcys.yesstevemodel.capability;
 
+import com.elfmcys.yesstevemodel.YesSteveModel;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
 public class ArrowModelCapability {
-    private String modelId = "";
+    public static final String DEFAULT = new ResourceLocation(YesSteveModel.MOD_ID, "default").toString();
+    public static final String EMPTY = new ResourceLocation(YesSteveModel.MOD_ID, "ysm_empty").toString();
+    private String modelId = EMPTY;
 
     public String getModelId() {
         return this.modelId;

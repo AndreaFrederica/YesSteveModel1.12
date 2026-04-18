@@ -1,8 +1,11 @@
 package com.elfmcys.yesstevemodel.event;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
-import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
 import com.elfmcys.yesstevemodel.capability.*;
+import com.elfmcys.yesstevemodel.client.capability.CustomArrowEntityCapabilityProvider;
+import com.elfmcys.yesstevemodel.client.capability.CustomPlayerEntityCapabilityProvider;
+import com.elfmcys.yesstevemodel.client.entity.CustomArrowEntity;
+import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SyncArrowModel;
@@ -34,9 +37,13 @@ public final class CapabilityEvent {
     private static final ResourceLocation STAR_MODELS_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "star_models");
     private static final ResourceLocation ARROW_MODEL_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "arrow_model");
 
+    private static final ResourceLocation CUSTOM_PLAYER_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "custom_player");
+    private static final ResourceLocation CUSTOM_ARROW_CAP = new ResourceLocation(YesSteveModel.MOD_ID, "custom_arrow");
+
     @SubscribeEvent
     public static void onAttachCapabilityEvent(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof EntityPlayer player) {
+        Entity entity = event.getObject();
+        if (entity instanceof EntityPlayer player) {
             if (!CapabilityEvent.getModelInfoCap(player).isPresent() && !event.getCapabilities().containsKey(MODEL_INFO_CAP)) {
                 event.addCapability(MODEL_INFO_CAP, new ModelInfoCapabilityProvider());
             }
@@ -46,11 +53,22 @@ public final class CapabilityEvent {
             if (!CapabilityEvent.getStarModelsCap(player).isPresent() && !event.getCapabilities().containsKey(STAR_MODELS_CAP)) {
                 event.addCapability(STAR_MODELS_CAP, new StarModelsCapabilityProvider());
             }
-            return;
-        }
-        if (event.getObject() instanceof EntityArrow arrow) {
+        } else if (entity instanceof EntityArrow arrow) {
             if (!CapabilityEvent.getArrowModelCap(arrow).isPresent() && !event.getCapabilities().containsKey(ARROW_MODEL_CAP)) {
                 event.addCapability(ARROW_MODEL_CAP, new ArrowModelCapabilityProvider());
+            }
+        }
+
+        // Entity Cap - 附着在实体上，绑定 Geo 实体，运行时创建，客户端专用
+        if (entity.world.isRemote) {
+            if (entity instanceof EntityPlayer player) {
+                if (!getCustomPlayerEntityCap(player).isPresent() && !event.getCapabilities().containsKey(CUSTOM_PLAYER_CAP)) {
+                    event.addCapability(CUSTOM_PLAYER_CAP, new CustomPlayerEntityCapabilityProvider(player));
+                }
+            } else if (entity instanceof EntityArrow arrow) {
+                if (!getCustomArrowEntityCap(arrow).isPresent() && !event.getCapabilities().containsKey(CUSTOM_ARROW_CAP)) {
+                    event.addCapability(CUSTOM_ARROW_CAP, new CustomArrowEntityCapabilityProvider(arrow));
+                }
             }
         }
     }
@@ -72,18 +90,20 @@ public final class CapabilityEvent {
 
     @SubscribeEvent
     public static void onTrackingPlayer(PlayerEvent.StartTracking event) {
-        if (event.getTarget() instanceof EntityPlayer trackPlayer) {
+        Entity entity = event.getTarget();
+        if (entity instanceof EntityPlayer trackPlayer) {
             EntityPlayer player = event.getEntityPlayer();
             getModelInfoCap(trackPlayer).ifPresent(cap -> {
                 SyncModelInfo syncMsg = new SyncModelInfo(trackPlayer.getEntityId(), cap);
                 NetworkHandler.sendToClientPlayer(syncMsg, player);
             });
-            return;
-        }
-        if (event.getTarget() instanceof EntityArrow arrow) {
-            String modelId = ((IArrowExtraInfo) arrow).getYsmModelId();
-            if (!IArrowExtraInfo.EMPTY.equals(modelId)) {
-                NetworkHandler.CHANNEL.sendToAllTracking(new SyncArrowModel(arrow.getEntityId(), modelId), arrow);
+        } else if (entity instanceof EntityArrow arrow) {
+            Optional<ArrowModelCapability> optional = getArrowModelCap(arrow);
+            if (optional.isPresent()) {
+                String modelId = optional.get().getModelId();
+                if (!ArrowModelCapability.EMPTY.equals(modelId)) {
+                    NetworkHandler.CHANNEL.sendToAllTracking(new SyncArrowModel(arrow.getEntityId(), modelId), arrow);
+                }
             }
         }
     }
@@ -148,6 +168,16 @@ public final class CapabilityEvent {
 
     public static Optional<ArrowModelCapability> getArrowModelCap(EntityArrow arrow) {
         return getCapability(arrow, ArrowModelCapabilityProvider.ARROW_MODEL_CAP);
+    }
+
+    // Entity Cap
+
+    public static Optional<CustomPlayerEntity> getCustomPlayerEntityCap(EntityPlayer player) {
+        return getCapability(player, CustomPlayerEntityCapabilityProvider.CAP);
+    }
+
+    public static Optional<CustomArrowEntity> getCustomArrowEntityCap(EntityArrow arrow) {
+        return getCapability(arrow, CustomArrowEntityCapabilityProvider.CAP);
     }
 
     public static <T> Optional<T> getCapability(@Nullable ICapabilityProvider provider, Capability<T> capability) {

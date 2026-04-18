@@ -1,17 +1,13 @@
 package com.elfmcys.yesstevemodel.client.entity;
 
-import com.elfmcys.yesstevemodel.api.IArrowExtraInfo;
-import com.elfmcys.yesstevemodel.client.model.CustomArrowModel;
-import com.elfmcys.yesstevemodel.geckolib3.core.IAnimatable;
+import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.PlayState;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationBuilder;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.ILoopType;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
-import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
-import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationFactory;
 import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
-import com.elfmcys.yesstevemodel.geckolib3.util.GeckoLibUtil;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -19,61 +15,59 @@ import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
 
-import static com.elfmcys.yesstevemodel.api.IArrowExtraInfo.TEXTURE_NAME;
+public class CustomArrowEntity extends AnimatableEntity<EntityArrow> {
+    private static final ResourceLocation DEFAULT_ID = ModelIdUtil.getMainId(new ResourceLocation(YesSteveModel.MOD_ID, "default"));
+    private static final ResourceLocation DEFAULT_TEXTURE = new ResourceLocation(YesSteveModel.MOD_ID, "default/arrow.png");
+    private static final int FPS = 60;
 
-public class CustomArrowEntity implements IAnimatable {
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this, true);
-    private ResourceLocation mainModel = CustomArrowModel.DEFAULT_MAIN_MODEL;
-    private ResourceLocation texture = CustomArrowModel.DEFAULT_TEXTURE;
-    private EntityArrow arrow = null;
+    private ResourceLocation mainModel = DEFAULT_ID;
+    private ResourceLocation texture = DEFAULT_TEXTURE;
 
-    @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "main", 2, this::predicateMain));
+    public CustomArrowEntity(EntityArrow entity) {
+        super(entity, FPS);
+        this.registerControllers();
+    }
+
+    private void registerControllers() {
+        this.addAnimationController(new AnimationController<>(this, "main", 2, CustomArrowEntity::predicateMain));
         for (int i = 0; i < 8; i++) {
             String controllerName = String.format("parallel_%d_controller", i);
             String animationName = String.format("parallel%d", i);
-            data.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> this.predicateParallel(e, animationName)));
+            this.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> predicateParallel(e, animationName)));
         }
     }
 
-    public ResourceLocation getMainModel() {
-        if (GeckoLibCache.getInstance().getGeoModels().containsKey(this.mainModel)) {
-            return this.mainModel;
-        }
-        return CustomArrowModel.DEFAULT_MAIN_MODEL;
+    public void setModelLocation(ResourceLocation mainModel) {
+        this.mainModel = mainModel;
     }
 
-    public ResourceLocation getAnimation() {
-        if (GeckoLibCache.getInstance().getAnimations().containsKey(this.mainModel)) {
-            return this.mainModel;
-        }
-        return CustomArrowModel.DEFAULT_MAIN_ANIMATION;
-    }
-
-    public ResourceLocation getTexture() {
-        return this.texture;
+    public void setTextureLocation(ResourceLocation texture) {
+        this.texture = texture;
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
-    }
-
-    public EntityArrow getArrow() {
-        return this.arrow;
-    }
-
-    public void setArrow(EntityArrow arrow) {
-        this.arrow = arrow;
-        if (arrow instanceof IArrowExtraInfo extraInfo) {
-            this.mainModel = ModelIdUtil.getArrowId(new ResourceLocation(extraInfo.getYsmModelId()));
-            this.texture = ModelIdUtil.getSubModelId(new ResourceLocation(extraInfo.getYsmModelId()), TEXTURE_NAME);
+    public ResourceLocation getModelLocation() {
+        if (GeckoLibCache.getInstance().getGeoModels().containsKey(this.mainModel)) {
+            return this.mainModel;
         }
+        return DEFAULT_ID;
     }
 
-    public PlayState predicateMain(AnimationEvent<CustomArrowEntity> event) {
-        EntityArrow arrowEntity = event.getAnimatable().getArrow();
+    @Override
+    public ResourceLocation getAnimationFileLocation() {
+        if (GeckoLibCache.getInstance().getAnimations().containsKey(this.mainModel)) {
+            return this.mainModel;
+        }
+        return DEFAULT_ID;
+    }
+
+    @Override
+    public ResourceLocation getTextureLocation() {
+        return this.texture;
+    }
+
+    public static PlayState predicateMain(AnimationEvent<CustomArrowEntity> event) {
+        EntityArrow arrowEntity = event.getAnimatableEntity().getEntity();
         if (arrowEntity == null) {
             return PlayState.STOP;
         }
@@ -90,7 +84,7 @@ public class CustomArrowEntity implements IAnimatable {
         }
     }
 
-    public PlayState predicateParallel(AnimationEvent<CustomArrowEntity> event, String animationName) {
+    public static PlayState predicateParallel(AnimationEvent<CustomArrowEntity> event, String animationName) {
         if (Minecraft.getMinecraft().isGamePaused()) {
             return PlayState.STOP;
         }
@@ -99,7 +93,7 @@ public class CustomArrowEntity implements IAnimatable {
     }
 
     @Nonnull
-    private static <P extends IAnimatable> PlayState playAnimation(AnimationEvent<P> event, String animationName) {
+    private static <P extends AnimatableEntity<?>> PlayState playAnimation(AnimationEvent<P> event, String animationName) {
         return PlayState.CONTINUE;
     }
 }

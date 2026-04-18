@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.model.format.access;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
@@ -7,7 +8,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class FolderModelAccess implements IModelAccess {
     @Nonnull
     @Override
     public List<String> listFiles(String suffix) {
-        List<String> result = new ArrayList<>();
+        List<String> result = Lists.newArrayList();
         Collection<File> files = FileUtils.listFiles(this.rootPath.toFile(), null, true);
         for (File file : files) {
             if (file.getName().endsWith(suffix)) {
