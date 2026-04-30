@@ -15,7 +15,7 @@ import org.apache.logging.log4j.Logger;
         modid = YesSteveModel.MOD_ID,
         name = Tags.MOD_NAME,
         version = Tags.VERSION,
-        dependencies = "required-after:mixinbooter@[8.0,)",
+        dependencies = "required-after:mixinbooter@[8.0,);after:universaltweaks@[1.19.0,)",
         guiFactory = "com.elfmcys.yesstevemodel.client.config.ConfigGuiFactory",
         customProperties = {
                 @Mod.CustomProperty(k = "license", v = "BSD-3-Clause"),

@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 import com.elfmcys.yesstevemodel.client.gui.button.FlatColorButton;
 import com.elfmcys.yesstevemodel.client.gui.button.ModelInfoButton;
 import com.elfmcys.yesstevemodel.client.upload.UploadManager;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.model.format.Type;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.HandleFile;
@@ -277,9 +278,9 @@ public class ModelManageScreen extends Screen {
             if (StringUtils.isNoneBlank(UploadManager.FILE_PATH)) {
                 fileUpload = UploadManager.FILE_PATH;
             }
-            int yOffset = this.drawWordWrap(I18n.format("gui.yes_steve_model.model_manage.file", TextFormatting.RESET + fileUpload), this.x + 272, this.y + 59, 145, 0xFFFFFF);
+            int yOffset = RenderUtil.drawWordWrap(this.fontRenderer, I18n.format("gui.yes_steve_model.model_manage.file", TextFormatting.RESET + fileUpload), this.x + 272, this.y + 59, 145, 0xFFFFFF);
             if (this.uploadError != null) {
-                this.drawWordWrap(this.uploadError, this.x + 272, this.y + 60 + yOffset, 145, 0xFFFFFF);
+                RenderUtil.drawWordWrap(this.fontRenderer, this.uploadError, this.x + 272, this.y + 60 + yOffset, 145, 0xFFFFFF);
             }
         }
 

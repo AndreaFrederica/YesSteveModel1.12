@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client.renderer;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerElytraLayer;
 import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerItemInHandLayer;
+import com.elfmcys.yesstevemodel.client.renderer.layer.CustomPlayerParrotOnShoulderLayer;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.event.api.SpecialPlayerRenderEvent;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
@@ -18,6 +19,7 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<EntityPlayer
         super(ctx);
         this.addLayer(new CustomPlayerItemInHandLayer<>());
         this.addLayer(new CustomPlayerElytraLayer<>());
+        this.addLayer(new CustomPlayerParrotOnShoulderLayer<>(ctx));
     }
 
     @Override

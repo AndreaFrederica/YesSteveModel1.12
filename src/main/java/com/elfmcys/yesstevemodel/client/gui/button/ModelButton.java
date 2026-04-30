@@ -5,12 +5,12 @@ import com.elfmcys.yesstevemodel.bukkit.message.OpenModelGuiMessage;
 import com.elfmcys.yesstevemodel.bukkit.message.SetNpcModelAndTexture;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetModelAndTexture;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
-import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
@@ -52,15 +52,20 @@ public class ModelButton extends Button {
         this.player = player;
         final ResourceLocation modelId = this.modelInfo.getLeft();
         final ExtraInfo extraInfo = ClientModelManager.EXTRA_INFO.get(ModelIdUtil.getInfoId(modelId));
-        this.previewAnimation = extraInfo.getPreviewAnimation() != null ? extraInfo.getPreviewAnimation() : "idle";
-        this.disablePreviewRotation = extraInfo.getDisablePreviewRotation();
-        this.modelName = extraInfo.getName() != null ? extraInfo.getName() : StringUtils.EMPTY;
-        final String guiBackground = extraInfo.getGuiBackground();
-        this.backgroundTexture = guiBackground != null && !guiBackground.isEmpty() ?
-                ModelIdUtil.getSubModelId(modelId, guiBackground) : null;
-        final String guiForeground = extraInfo.getGuiForeground();
-        this.foregroundTexture = guiForeground != null && !guiForeground.isEmpty() ?
-                ModelIdUtil.getSubModelId(modelId, guiForeground) : null;
+        this.previewAnimation = extraInfo != null && extraInfo.getPreviewAnimation() != null ? extraInfo.getPreviewAnimation() : "idle";
+        this.disablePreviewRotation = extraInfo != null && extraInfo.getDisablePreviewRotation();
+        this.modelName = extraInfo != null && extraInfo.getName() != null ? extraInfo.getName() : StringUtils.EMPTY;
+        if (extraInfo != null) {
+            final String guiBackground = extraInfo.getGuiBackground();
+            this.backgroundTexture = guiBackground != null && !guiBackground.isEmpty() ?
+                    ModelIdUtil.getSubModelId(modelId, guiBackground) : null;
+            final String guiForeground = extraInfo.getGuiForeground();
+            this.foregroundTexture = guiForeground != null && !guiForeground.isEmpty() ?
+                    ModelIdUtil.getSubModelId(modelId, guiForeground) : null;
+        } else {
+            this.backgroundTexture = null;
+            this.foregroundTexture = null;
+        }
     }
 
     @Override

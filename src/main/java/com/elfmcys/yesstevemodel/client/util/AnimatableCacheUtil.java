@@ -1,4 +1,4 @@
-package com.elfmcys.yesstevemodel.util;
+package com.elfmcys.yesstevemodel.client.util;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.google.common.cache.Cache;

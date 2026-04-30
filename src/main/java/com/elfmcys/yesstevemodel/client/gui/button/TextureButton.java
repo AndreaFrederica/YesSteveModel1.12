@@ -2,11 +2,11 @@ package com.elfmcys.yesstevemodel.client.gui.button;
 
 import com.elfmcys.yesstevemodel.bukkit.message.OpenModelGuiMessage;
 import com.elfmcys.yesstevemodel.bukkit.message.SetNpcModelAndTexture;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.network.NetworkHandler;
 import com.elfmcys.yesstevemodel.network.message.SetModelAndTexture;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
-import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;

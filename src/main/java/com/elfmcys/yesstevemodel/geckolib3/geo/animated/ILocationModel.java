@@ -10,16 +10,15 @@ public interface ILocationModel {
         return Collections.emptyList();
     }
 
-    // 仅作为预留，女仆模组有
-    default List<List<? extends ILocationBone>> extraLeftHandBones() {
-        return Collections.emptyList();
-    }
-
     default List<? extends ILocationBone> rightHandBones() {
         return Collections.emptyList();
     }
 
-    default List<List<? extends ILocationBone>> extraRightHandBones() {
+    default List<? extends ILocationBone> leftShoulderBones() {
+        return Collections.emptyList();
+    }
+
+    default List<? extends ILocationBone> rightShoulderBones() {
         return Collections.emptyList();
     }
 

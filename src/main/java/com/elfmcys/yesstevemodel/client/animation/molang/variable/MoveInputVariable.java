@@ -1,9 +1,9 @@
 package com.elfmcys.yesstevemodel.client.animation.molang.variable;
 
+import com.elfmcys.yesstevemodel.client.util.EntityUtil;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.IContext;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.MathUtil;
 import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
-import com.elfmcys.yesstevemodel.util.EntityUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 

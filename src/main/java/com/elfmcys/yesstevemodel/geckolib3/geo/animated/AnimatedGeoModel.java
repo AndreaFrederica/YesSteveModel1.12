@@ -20,6 +20,8 @@ public class AnimatedGeoModel implements ILocationModel {
 
     private final List<AnimatedGeoBone> leftHandBones;
     private final List<AnimatedGeoBone> rightHandBones;
+    private final List<AnimatedGeoBone> leftShoulderBones;
+    private final List<AnimatedGeoBone> rightShoulderBones;
     private final List<AnimatedGeoBone> leftWaistBones;
     private final List<AnimatedGeoBone> rightWaistBones;
     private final List<AnimatedGeoBone> elytraBones;
@@ -47,8 +49,10 @@ public class AnimatedGeoModel implements ILocationModel {
         this.bones = Object2ObjectMaps.unmodifiable(bones);
 
         // https://ysm.cfpa.team/wiki/tph2yetr/#%E4%B8%BB%E6%A8%A1%E5%9E%8B
-        this.leftHandBones = this.getLocatorHierarchy("LeftHandLocator"); // 左手手持物品的定位组
-        this.rightHandBones = this.getLocatorHierarchy("RightHandLocator"); // 右手手持物品的定位组
+        this.leftHandBones = this.getLocatorHierarchy("LeftHandLocator"); // 左手手持物品定位组
+        this.rightHandBones = this.getLocatorHierarchy("RightHandLocator"); // 右手手持物品定位组
+        this.leftShoulderBones = this.getLocatorHierarchy("LeftShoulderLocator"); // 左肩鹦鹉定位组
+        this.rightShoulderBones = this.getLocatorHierarchy("RightShoulderLocator"); // 右肩鹦鹉定位组
         this.leftWaistBones = this.getLocatorHierarchy("LeftWaistLocator"); // 主手拔刀剑定位组
         this.rightWaistBones = this.getLocatorHierarchy("RightWaistLocator"); // 副手拔刀剑定位组
         this.elytraBones = this.getLocatorHierarchy("ElytraLocator"); // 鞘翅定位组
@@ -105,6 +109,16 @@ public class AnimatedGeoModel implements ILocationModel {
     @Override
     public List<AnimatedGeoBone> rightHandBones() {
         return this.rightHandBones;
+    }
+
+    @Override
+    public List<AnimatedGeoBone> leftShoulderBones() {
+        return this.leftShoulderBones;
+    }
+
+    @Override
+    public List<AnimatedGeoBone> rightShoulderBones() {
+        return this.rightShoulderBones;
     }
 
     @Override

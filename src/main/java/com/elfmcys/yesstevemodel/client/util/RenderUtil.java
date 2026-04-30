@@ -1,14 +1,17 @@
-package com.elfmcys.yesstevemodel.util;
+package com.elfmcys.yesstevemodel.client.util;
 
 import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
+import com.elfmcys.yesstevemodel.util.ModelIdUtil;
+import com.google.common.collect.Lists;
 import net.minecraft.block.BlockFlower;
 import net.minecraft.block.BlockTallGrass;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -28,8 +31,12 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -129,9 +136,7 @@ public final class RenderUtil {
                 if (entity.hasPreviewAnimation("boat")) {
                     GlStateManager.translate(0, -0.45, 0);
                 }
-                GlStateManager.pushMatrix();
                 renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
-                GlStateManager.popMatrix();
                 // 清理实体渲染
                 GlStateManager.enableRescaleNormal();
                 GlStateManager.enableColorMaterial();
@@ -347,9 +352,7 @@ public final class RenderUtil {
         xp = 180.0F - xp;
         dispatcher.setPlayerViewY(xp);
         dispatcher.setRenderShadow(false);
-        GlStateManager.pushMatrix();
         renderer.render(player, entity, 0, 0, 0, 0.0F, 1.0F);
-        GlStateManager.popMatrix();
         dispatcher.setRenderShadow(true);
 
         player.renderYawOffset = yBodyRot;
@@ -417,6 +420,9 @@ public final class RenderUtil {
         GlStateManager.rotate(-135.0F, 0, 1, 0);
     }
 
+    /**
+     * 使用 GUI 像素坐标的裁剪方法。
+     */
     public static void scissor(int screenX, int screenY, int boxWidth, int boxHeight) {
         final Minecraft mc = Minecraft.getMinecraft();
         int scale = new ScaledResolution(mc).getScaleFactor();
@@ -428,5 +434,45 @@ public final class RenderUtil {
                 Math.max(0, boxWidth * scale),
                 Math.max(0, boxHeight * scale)
         );
+    }
+
+    /**
+     * 把文字截为多行，并逐行画出。
+     *
+     * @return 最后一行的相对 Y 坐标。
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static int drawWordWrap(@Nonnull FontRenderer font, @Nullable String text, int x, int y, int wrapWidth, int color) {
+        int currentY = 0;
+        if (text == null) return currentY;
+        for (String line : listLineBreakStringToWidth(font, text, wrapWidth)) {
+            if (line.isEmpty()) {
+                currentY += font.FONT_HEIGHT;
+                continue;
+            }
+            font.drawStringWithShadow(line, x, y + currentY, color);
+            currentY += font.FONT_HEIGHT;
+        }
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        return currentY;
+    }
+
+    /**
+     * 把可能包含 {@code \n} 或者 {@code \\n} 的文字截为多行。<br>
+     * {@link FontRenderer#listFormattedStringToWidth(String, int)} 的优化版，它不可以处理换行。
+     */
+    public static List<String> listLineBreakStringToWidth(@Nonnull FontRenderer font, @Nullable String text, int wrapWidth) {
+        final List<String> lineList = Lists.newArrayList();
+        if (text == null) return lineList;
+        text = text.replace("\\n", "\n");
+        String[] paragraphs = text.split("\n", -1);
+        for (String para : paragraphs) {
+            if (para.isEmpty()) {
+                lineList.add(StringUtils.EMPTY);
+                continue;
+            }
+            lineList.addAll(font.listFormattedStringToWidth(para, wrapWidth));
+        }
+        return lineList;
     }
 }

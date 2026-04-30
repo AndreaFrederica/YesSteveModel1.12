@@ -120,7 +120,7 @@ public class ClientModelManager {
     private static boolean isModelTexture(ResourceLocation infoId, String name) {
         if (name.equals(FormatManager.ARROW_TEXTURE_FILE_NAME)) return false;
         final ExtraInfo extraInfo = EXTRA_INFO.get(infoId);
-        return !name.equals(extraInfo.getGuiBackground()) && !name.equals(extraInfo.getGuiForeground());
+        return extraInfo == null || (!name.equals(extraInfo.getGuiBackground()) && !name.equals(extraInfo.getGuiForeground()));
     }
 
     private static void registerTexture(ResourceLocation textureId, byte[] data) {

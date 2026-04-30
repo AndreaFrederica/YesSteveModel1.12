@@ -1,4 +1,4 @@
-package com.elfmcys.yesstevemodel.util;
+package com.elfmcys.yesstevemodel.client.util;
 
 import com.elfmcys.yesstevemodel.client.compat.CameraCompat;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.MathUtil;
@@ -15,25 +15,44 @@ import net.minecraft.util.math.Vec3d;
  * 用于补全一部分旧版缺失的内容
  */
 public final class EntityUtil {
+    // 旧版没有分离的视角旋转获取方法，但是在 getLook 对 getVectorForRotation 的调用中可见踪迹
+
     public static float getViewXRot(Entity entity, float partialTick) {
+        /// {@link EntityPlayerSP#getLook(float)}
+        if (entity instanceof EntityPlayerSP) {
+            return entity.rotationPitch;
+        }
+        /// {@link Entity#getLook(float)}
         return partialTick == 1.0F ? entity.rotationPitch : Interpolations.lerp(entity.prevRotationPitch, entity.rotationPitch, partialTick);
     }
 
-    @SuppressWarnings("unused")
-    public static float getViewXRot(EntityPlayerSP player, float partialTick) {
-        return player.rotationPitch;
-    }
-
     public static float getViewYRot(Entity entity, float partialTick) {
+        /// {@link EntityPlayerSP#getLook(float)}
+        if (entity instanceof EntityPlayerSP clientPlayer) {
+            return clientPlayer.rotationYaw;
+        }
+        /// {@link EntityLivingBase#getLook(float)}
+        if (entity instanceof EntityLivingBase livingEntity) {
+            return partialTick == 1.0F ? livingEntity.rotationYawHead : Interpolations.lerp(livingEntity.prevRotationYawHead, livingEntity.rotationYawHead, partialTick);
+        }
+        /// {@link Entity#getLook(float)}
         return partialTick == 1.0F ? entity.rotationYaw : Interpolations.lerp(entity.prevRotationYaw, entity.rotationYaw, partialTick);
     }
 
-    public static float getViewYRot(EntityLivingBase livingEntity, float partialTick) {
-        return partialTick == 1.0F ? livingEntity.rotationYawHead : Interpolations.lerp(livingEntity.prevRotationYawHead, livingEntity.rotationYawHead, partialTick);
+    public static float getCameraXRot(Minecraft mc, float partialTick) {
+        Entity entity = mc.getRenderViewEntity();
+        if (entity == null) return 0.0F;
+
+        float xRot = getViewXRot(entity, partialTick);
+        return mc.gameSettings.thirdPersonView == 2 && !mc.gameSettings.debugCamEnable ? -xRot : xRot;
     }
 
-    public static float getViewYRot(EntityPlayerSP player, float partialTick) {
-        return player.isRiding() ? getViewYRot((EntityLivingBase) player, partialTick) : player.rotationYaw;
+    public static float getCameraYRot(Minecraft mc, float partialTick) {
+        Entity entity = mc.getRenderViewEntity();
+        if (entity == null) return 0.0F;
+
+        float yRot = getViewYRot(entity, partialTick);
+        return mc.gameSettings.thirdPersonView == 2 && !mc.gameSettings.debugCamEnable ? yRot + 180.0F : yRot;
     }
 
     public static float getYawSpeed(Entity entity) {
@@ -114,15 +133,15 @@ public final class EntityUtil {
             );
 
             // 终点：拉远后相机的边角
-            // 然而，原版把 Z 轴偏移错误地加到了 X 轴 上……
             Vec3d endPos = new Vec3d(
-                    eyeX - offsetX + (double) boxOffsetX + (double) boxOffsetZ, // <--- boxOffsetZ，不应该加的
+                    CameraCompat.cameraOrientation() ? eyeX - offsetX + (double) boxOffsetX :
+                            eyeX - offsetX + (double) boxOffsetX + (double) boxOffsetZ, // 原版的一处 BUG，为了还原也加上了
                     eyeY - offsetY + (double) boxOffsetY,
                     eyeZ - offsetZ + (double) boxOffsetZ
             );
 
             // 发射检测射线
-            RayTraceResult rayTrace = CameraCompat.bypassesNonSolidBlocks() ?
+            RayTraceResult rayTrace = CameraCompat.thirdPersonIgnoresNonSolidBlocks() ?
                     /// {@link mod.acgaming.universaltweaks.tweaks.entities.playerf5.mixin.UTEntityRendererMixin}
                     mc.world.rayTraceBlocks(startPos, endPos, false, true, true) :
                     mc.world.rayTraceBlocks(startPos, endPos);

@@ -5,18 +5,17 @@ import com.elfmcys.yesstevemodel.client.ClientModelManager;
 import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.client.gui.button.*;
 import com.elfmcys.yesstevemodel.client.input.PlayerModelScreenKey;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.config.Config;
 import com.elfmcys.yesstevemodel.event.CapabilityEvent;
 import com.elfmcys.yesstevemodel.geckolib3.geo.raw.pojo.ExtraInfo;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
-import com.elfmcys.yesstevemodel.util.RenderUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
@@ -197,15 +196,16 @@ public class PlayerModelScreen extends Screen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        final float zLevel = this.zLevel;
+        this.zLevel -= 1000;
         this.drawDefaultBackground();
-
         this.drawGradientRect(this.x, this.y, this.x + 135, this.y + 235, 0xff_222222, 0xff_222222);
         this.drawGradientRect(this.x + 138, this.y, this.x + 420, this.y + 235, 0xff_222222, 0xff_222222);
         this.drawGradientRect(this.x + 351, this.y + 7, this.x + 352, this.y + 21, 0xFF_F3EFE0, 0xFF_F3EFE0);
+        this.zLevel = zLevel;
 
         this.textField.drawTextBox();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderUtil.scissor(this.x + 5, this.y + 54, 125, 146);
+        RenderUtil.scissor(this.x + 5, this.y + 29, 125, 171);
         GuiInventory.drawEntityOnScreen(this.x + 67, this.y + 195, 64, this.x + 67 - mouseX, this.y + 190 - 95 - mouseY, this.player);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 

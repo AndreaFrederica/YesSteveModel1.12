@@ -1,7 +1,6 @@
 package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
-import com.google.common.collect.Lists;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -11,14 +10,11 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
-import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.List;
 
 public class Screen extends GuiScreen {
     @Override
@@ -91,54 +87,15 @@ public class Screen extends GuiScreen {
         MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.InitGuiEvent.Post(this, this.buttonList));
     }
 
-    /**
-     * List string to width and draw text which contains "\n" or "\\n".
-     *
-     * @return The relative y pos of the last line.
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public int drawWordWrap(@Nullable String text, int x, int y, int wrapWidth, int color) {
-        int currentY = 0;
-        if (text == null) return currentY;
-        for (String line : this.listLineBreakStringToWidth(text, wrapWidth)) {
-            if (line.isEmpty()) {
-                currentY += this.fontRenderer.FONT_HEIGHT;
-                continue;
-            }
-            this.drawString(this.fontRenderer, line, x, y + currentY, color);
-            currentY += this.fontRenderer.FONT_HEIGHT;
-        }
-        return currentY;
-    }
-
-    /**
-     * Get a list of string lines from a raw string, which may contain "\n" or "\\n".
-     * Can be seen as a better version of {@link net.minecraft.client.gui.FontRenderer#listFormattedStringToWidth(String, int)}.
-     */
-    public List<String> listLineBreakStringToWidth(@Nullable String text, int wrapWidth) {
-        final List<String> lineList = Lists.newArrayList();
-        if (text == null) return lineList;
-        text = text.replace("\\n", "\n");
-        String[] paragraphs = text.split("\n", -1);
-        for (String para : paragraphs) {
-            if (para.isEmpty()) {
-                lineList.add(StringUtils.EMPTY);
-                continue;
-            }
-            lineList.addAll(this.fontRenderer.listFormattedStringToWidth(para, wrapWidth));
-        }
-        return lineList;
-    }
-
     @Override
-    public void drawCenteredString(@Nonnull FontRenderer fontRenderer, @Nonnull String text, int x, int y, int color) {
-        super.drawCenteredString(fontRenderer, text, x, y, color);
+    public void drawCenteredString(@Nonnull FontRenderer font, @Nonnull String text, int x, int y, int color) {
+        super.drawCenteredString(font, text, x, y, color);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override
-    public void drawString(@Nonnull FontRenderer fontRenderer, @Nonnull String text, int x, int y, int color) {
-        super.drawString(fontRenderer, text, x, y, color);
+    public void drawString(@Nonnull FontRenderer font, @Nonnull String text, int x, int y, int color) {
+        super.drawString(font, text, x, y, color);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 

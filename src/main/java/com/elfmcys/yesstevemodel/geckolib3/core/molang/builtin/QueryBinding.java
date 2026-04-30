@@ -1,11 +1,11 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin;
 
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
+import com.elfmcys.yesstevemodel.client.util.EntityUtil;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.ContextBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.query.*;
 import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
-import com.elfmcys.yesstevemodel.util.EntityUtil;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,7 +30,7 @@ public class QueryBinding extends ContextBinding {
         this.function("equipped_item_any_tag", new EmptyFunction());
         this.function("position", new Position());
         this.function("position_delta", new PositionDelta());
-        this.function("rotation_to_camera", new EmptyFunction());
+        this.function("rotation_to_camera", new RotationToCamera());
 
         this.function("max_durability", new ItemMaxDurability());
         this.function("remaining_durability", new ItemRemainingDurability());
@@ -64,9 +64,7 @@ public class QueryBinding extends ContextBinding {
         this.entityVar("is_on_ground", ctx -> ctx.entity().onGround);
         this.entityVar("is_riding", ctx -> ctx.entity().isRiding());
         this.entityVar("is_sneaking", ctx -> ctx.entity().onGround && ctx.entity().isSneaking());
-        this.playerEntityVar("is_spectator", ctx -> ctx.entity().isSpectator());
         this.entityVar("is_sprinting", ctx -> ctx.entity().isSprinting());
-        this.playerEntityVar("is_swimming", ctx -> SwimmingCompat.isSwimming(ctx.entity()));
 
         this.livingEntityVar("body_x_rotation", ctx -> Interpolations.lerp(ctx.entity().prevRotationPitch, ctx.entity().rotationPitch, ctx.animationEvent().getPartialTick()));
         this.livingEntityVar("body_y_rotation", ctx -> MathHelper.wrapDegrees(Interpolations.lerp(ctx.entity().prevRotationYaw, ctx.entity().rotationYaw, ctx.animationEvent().getPartialTick())));
@@ -84,6 +82,8 @@ public class QueryBinding extends ContextBinding {
 
         this.playerEntityVar("cape_flap_amount", ctx -> getCapeFlapAmount(ctx.entity(), ctx.animationEvent().getPartialTick()));
         this.playerEntityVar("player_level", ctx -> ctx.entity().experienceLevel);
+        this.playerEntityVar("is_spectator", ctx -> ctx.entity().isSpectator());
+        this.playerEntityVar("is_swimming", ctx -> SwimmingCompat.isSwimming(ctx.entity()));
         this.playerEntityVar("is_jumping", ctx -> !ctx.entity().capabilities.isFlying && !ctx.entity().isRiding() && !ctx.entity().onGround && !ctx.entity().isInWater());
         this.abstractClientPlayerVar("has_cape", ctx -> hasCape(ctx.entity()));
     }
@@ -117,18 +117,18 @@ public class QueryBinding extends ContextBinding {
 
     /// {@link net.minecraft.client.renderer.entity.layers.LayerCape#doRenderLayer(AbstractClientPlayer, float, float, float, float, float, float, float)}
     private static float getCapeFlapAmount(EntityPlayer player, float partialTick) {
-        double deltaX = Interpolations.lerp(player.prevChasingPosX, player.chasingPosX, partialTick) - Interpolations.lerp(player.prevPosX, player.posX, partialTick);
-        double deltaY = Interpolations.lerp(player.prevChasingPosY, player.chasingPosY, partialTick) - Interpolations.lerp(player.prevPosY, player.posY, partialTick);
-        double deltaZ = Interpolations.lerp(player.prevChasingPosZ, player.chasingPosZ, partialTick) - Interpolations.lerp(player.prevPosZ, player.posZ, partialTick);
+        float deltaX = (float) (Interpolations.lerp(player.prevChasingPosX, player.chasingPosX, partialTick) - Interpolations.lerp(player.prevPosX, player.posX, partialTick));
+        float deltaY = (float) (Interpolations.lerp(player.prevChasingPosY, player.chasingPosY, partialTick) - Interpolations.lerp(player.prevPosY, player.posY, partialTick));
+        float deltaZ = (float) (Interpolations.lerp(player.prevChasingPosZ, player.chasingPosZ, partialTick) - Interpolations.lerp(player.prevPosZ, player.posZ, partialTick));
 
         float bodyYaw = Interpolations.lerp(player.prevRenderYawOffset, player.renderYawOffset, partialTick);
-        double sinYaw = MathHelper.sin(bodyYaw * ((float) Math.PI / 180F));
-        double cosYaw = -MathHelper.cos(bodyYaw * ((float) Math.PI / 180F));
+        float sinYaw = MathHelper.sin(bodyYaw * ((float) Math.PI / 180F));
+        float cosYaw = -MathHelper.cos(bodyYaw * ((float) Math.PI / 180F));
 
-        float verticalFlap = (float) (deltaY * 10.0F);
+        float verticalFlap = deltaY * 10.0F;
         verticalFlap = MathHelper.clamp(verticalFlap, -6.0F, 32.0F);
 
-        float forwardMovement = (float) ((deltaX * sinYaw + deltaZ * cosYaw) * 100.0F);
+        float forwardMovement = (deltaX * sinYaw + deltaZ * cosYaw) * 100.0F;
         forwardMovement = MathHelper.clamp(forwardMovement, 0.0F, 150.0F);
         forwardMovement = Math.min(forwardMovement, 0.0F);
 

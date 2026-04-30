@@ -3,6 +3,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 import com.elfmcys.yesstevemodel.client.config.GeneralConfig;
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
 import com.elfmcys.yesstevemodel.client.gui.button.Checkbox;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.config.Config;
 import net.minecraft.client.resources.I18n;
 
@@ -19,7 +20,7 @@ public class DisclaimerScreen extends Screen {
     @Override
     public void initGui() {
         String mainText = I18n.format("gui.yes_steve_model.disclaimer.text");
-        List<String> splitMainText = this.listLineBreakStringToWidth(mainText, 400);
+        List<String> splitMainText = RenderUtil.listLineBreakStringToWidth(this.fontRenderer, mainText, 400);
         int totalHeight = splitMainText.size() * this.fontRenderer.FONT_HEIGHT + 20 + 20 + 10 + 20;
         this.x = (this.width - 400) / 2;
         this.y = (this.height - totalHeight) / 2;
@@ -42,7 +43,7 @@ public class DisclaimerScreen extends Screen {
     @Override
     public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
         this.drawDefaultBackground();
-        this.drawWordWrap(I18n.format("gui.yes_steve_model.disclaimer.text"), this.x, this.y, 400, 0xffffffff);
+        RenderUtil.drawWordWrap(this.fontRenderer, I18n.format("gui.yes_steve_model.disclaimer.text"), this.x, this.y, 400, 0xffffffff);
         super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }
 }

@@ -2,8 +2,8 @@ package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.client.config.ExtraPlayerScreenConfig;
 import com.elfmcys.yesstevemodel.client.input.ExtraPlayerConfigKey;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.config.Config;
-import com.elfmcys.yesstevemodel.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import org.lwjgl.input.Keyboard;
@@ -54,7 +54,7 @@ public class ExtraPlayerConfigScreen extends Screen {
 
         int y = 15;
         String component = I18n.format("gui.yes_steve_model.extra_player_render.tips");
-        List<String> split = this.listLineBreakStringToWidth(component, 500);
+        List<String> split = RenderUtil.listLineBreakStringToWidth(this.fontRenderer, component, 500);
         for (String charSequence : split) {
             int w = this.fontRenderer.getStringWidth(charSequence);
             this.drawString(this.fontRenderer, charSequence, this.width - 15 - w, y, 0xFFFFFF);

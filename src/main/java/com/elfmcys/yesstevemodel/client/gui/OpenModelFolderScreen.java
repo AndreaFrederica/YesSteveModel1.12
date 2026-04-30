@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.gui;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.gui.button.Button;
+import com.elfmcys.yesstevemodel.client.util.RenderUtil;
 import com.elfmcys.yesstevemodel.model.ServerModelManager;
 import net.minecraft.client.resources.I18n;
 
@@ -35,7 +36,7 @@ public class OpenModelFolderScreen extends Screen {
     @Override
     public void drawScreen(int pMouseX, int pMouseY, float pPartialTick) {
         this.drawDefaultBackground();
-        this.drawWordWrap(I18n.format("gui.yes_steve_model.open_model_folder.tips"),
+        RenderUtil.drawWordWrap(this.fontRenderer, I18n.format("gui.yes_steve_model.open_model_folder.tips"),
                 (this.width - 400) / 2, this.height / 2 - 80, 400, 0XFFFFFF);
         super.drawScreen(pMouseX, pMouseY, pPartialTick);
     }

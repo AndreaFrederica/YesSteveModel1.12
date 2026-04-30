@@ -22,11 +22,13 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityEnderPearl;
 import net.minecraft.entity.item.EntityExpBottle;
+import net.minecraft.entity.passive.EntityParrot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.*;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
@@ -127,10 +129,10 @@ public class YSMBinding extends ContextBinding {
 
         this.playerEntityVar("texture_name", ctx -> StringUtils.EMPTY);
         this.playerEntityVar("first_person_mod_hide", ctx -> false);
-        this.playerEntityVar("has_left_shoulder_parrot", ctx -> false);
-        this.playerEntityVar("has_right_shoulder_parrot", ctx -> false);
-        this.playerEntityVar("left_shoulder_parrot_variant", ctx -> 0);
-        this.playerEntityVar("right_shoulder_parrot_variant", ctx -> 0);
+        this.playerEntityVar("has_left_shoulder_parrot", ctx -> !ctx.entity().getLeftShoulderEntity().isEmpty());
+        this.playerEntityVar("has_right_shoulder_parrot", ctx -> !ctx.entity().getRightShoulderEntity().isEmpty());
+        this.playerEntityVar("left_shoulder_parrot_variant", ctx -> getParrotVariant(ctx.entity().getLeftShoulderEntity()));
+        this.playerEntityVar("right_shoulder_parrot_variant", ctx -> getParrotVariant(ctx.entity().getRightShoulderEntity()));
 
         this.playerEntityVar("attack_damage", ctx -> ctx.entity().getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue());
         this.playerEntityVar("attack_speed", ctx -> ctx.entity().getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED).getAttributeValue());
@@ -351,5 +353,20 @@ public class YSMBinding extends ContextBinding {
     private static String getHookedIn(EntityFishHook fishHook) {
         String entityId = EntityList.getEntityString(fishHook.caughtEntity);
         return entityId == null ? StringUtils.EMPTY : entityId;
+    }
+
+    private static String getParrotVariant(NBTTagCompound shoulderCompound) {
+        /// {@link net.minecraft.client.renderer.entity.layers.LayerEntityOnShoulder#doRenderLayer(EntityPlayer, float, float, float, float, float, float, float)}
+        if (EntityList.getClassFromName(shoulderCompound.getString("id")) == EntityParrot.class) {
+            return switch (shoulderCompound.getInteger("Variant")) {
+                case 0 -> "red_blue";
+                case 1 -> "blue";
+                case 2 -> "green";
+                case 3 -> "yellow_blue";
+                case 4 -> "grey";
+                default -> "empty";
+            };
+        }
+        return "empty";
     }
 }
