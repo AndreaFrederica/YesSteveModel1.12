@@ -1,9 +1,3 @@
-# 告示
-
-本项目现已转为闭源，支持加解密 1.2.0 以上版本模型版本将在完善后以混淆 + 原生库的形式发布。
-
-本库仅作为旧开源版本存档，不会再有大更新，仅提供有限的支持。
-
 # Yes Steve Model
 
 [旧版 Yes Steve Model 模组](https://github.com/YesSteveModel/LgeacyYSM) 的 Minecraft 1.12.2 和 1.7.10 完整移植。
@@ -26,7 +20,7 @@ Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。
   - 兼容 1.1.6 及以下版本三种格式的模型
   - 对 1.2.0 的非加密模型存在兼容问题
   - 暂不兼容 2.2.1 及以上版本文件夹和 ZIP 格式的模型
-  - 永远不会兼容 1.2.0 及以上版本 YSM 加密格式的模型
+  - 可能不会兼容 1.2.0 及以上版本 YSM 加密格式的模型
 
 - 模组
   - 兼容 [Aqua Acrobatics](https://github.com/embeddedt/aquaacrobatics) 的游泳动作
