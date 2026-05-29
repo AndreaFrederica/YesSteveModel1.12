@@ -4,7 +4,7 @@ import com.elfmcys.yesstevemodel.client.compat.ExtraAction;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.*;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
@@ -78,27 +78,27 @@ public abstract class AbstractConditionItem {
         }
     }
 
-    public String doTest(EntityPlayer player, EnumHand hand) {
-        if (player.getHeldItem(hand).isEmpty()) {
+    public String doTest(EntityLivingBase entity, EnumHand hand) {
+        if (entity.getHeldItem(hand).isEmpty()) {
             return EMPTY;
         }
         String result;
-        result = this.doIdTest(player, hand);
+        result = this.doIdTest(entity, hand);
         if (!result.isEmpty()) return result;
-        result = this.doOreTest(player, hand);
+        result = this.doOreTest(entity, hand);
         if (!result.isEmpty()) return result;
 //        result = this.doTagTest(player, hand);
 //        if (!result.isEmpty()) return result;
-        result = this.doExtraTest(player, hand);
+        result = this.doExtraTest(entity, hand);
         if (!result.isEmpty()) return result;
         return EMPTY;
     }
 
-    private String doIdTest(EntityPlayer player, EnumHand hand) {
+    private String doIdTest(EntityLivingBase entity, EnumHand hand) {
         if (this.idTest.isEmpty()) {
             return EMPTY;
         }
-        ItemStack itemInHand = player.getHeldItem(hand);
+        ItemStack itemInHand = entity.getHeldItem(hand);
         ResourceLocation registryName = itemInHand.getItem().getRegistryName();
         if (registryName == null) {
             return EMPTY;
@@ -109,11 +109,11 @@ public abstract class AbstractConditionItem {
         return EMPTY;
     }
 
-    private String doOreTest(EntityPlayer player, EnumHand hand) {
+    private String doOreTest(EntityLivingBase entity, EnumHand hand) {
         if (this.oreTest.isEmpty()) {
             return EMPTY;
         }
-        ItemStack itemInHand = player.getHeldItem(hand);
+        ItemStack itemInHand = entity.getHeldItem(hand);
         for (int id : OreDictionary.getOreIDs(itemInHand)) {
             String name = OreDictionary.getOreName(id);
             if ("Unknown".equals(name)) continue;
@@ -139,15 +139,15 @@ public abstract class AbstractConditionItem {
 //        }).findFirst().map(itemTagKey -> this.tagPre + itemTagKey).orElse(EMPTY);
 //    }
 
-    private String doExtraTest(EntityPlayer player, EnumHand hand) {
+    private String doExtraTest(EntityLivingBase entity, EnumHand hand) {
         if (this.extraTest.isEmpty()) {
             return EMPTY;
         }
-        ItemStack stack = player.getHeldItem(hand);
+        ItemStack stack = entity.getHeldItem(hand);
         for (Pair<String, IExtraMatcher> pair : this.extraTest) {
             String key = pair.getLeft();
             // 同名或同类均可
-            if (isSameActionName(stack, key) || (pair.getRight() != null && pair.getRight().matches(player, stack))) {
+            if (isSameActionName(stack, key) || (pair.getRight() != null && pair.getRight().matches(entity, stack))) {
                 return this.extraPre + key;
             }
         }
@@ -155,7 +155,7 @@ public abstract class AbstractConditionItem {
     }
 
     protected interface IExtraMatcher {
-        boolean matches(EntityPlayer player, ItemStack stack);
+        boolean matches(EntityLivingBase entity, ItemStack stack);
     }
 
     /// Inner Name, Inner Matcher

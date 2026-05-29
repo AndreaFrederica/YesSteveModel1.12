@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Map;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -173,6 +174,40 @@ public final class EncryptTools {
         SecretKeySpec secretKey = new SecretKeySpec(uuid, ENCRYPTION_METHOD);
         IvParameterSpec iv = new IvParameterSpec(uuid);
         return AESUtil.encrypt(secretKey, iv, input).toByteArray();
+    }
+
+    public static byte[] deriveModernCacheKey(byte[] rawPassword) {
+        if (rawPassword == null || rawPassword.length == 0) {
+            return ByteArrays.EMPTY_ARRAY;
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] key = digest.digest(rawPassword);
+
+            digest.reset();
+            digest.update("ysm-modern-cache".getBytes(StandardCharsets.UTF_8));
+            digest.update(rawPassword);
+            byte[] ivSeed = digest.digest();
+
+            byte[] output = new byte[56];
+            System.arraycopy(key, 0, output, 0, 32);
+            System.arraycopy(ivSeed, 0, output, 32, 24);
+            return output;
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to derive modern cache key", e);
+        }
+    }
+
+    public static byte[] deriveModernCacheKey(byte[] uuid, byte[] encryptedPassword) {
+        try {
+            byte[] rawPassword = decryptPassword(uuid, encryptedPassword);
+            if (rawPassword.length == 0) {
+                return ByteArrays.EMPTY_ARRAY;
+            }
+            return deriveModernCacheKey(rawPassword);
+        } catch (Exception e) {
+            return ByteArrays.EMPTY_ARRAY;
+        }
     }
 
     private static byte[] decryptPassword(byte[] uuid, byte[] input) throws Exception {

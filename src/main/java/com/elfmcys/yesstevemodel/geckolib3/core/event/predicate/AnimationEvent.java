@@ -1,7 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.event.predicate;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
-import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public class AnimationEvent<T extends AnimatableEntity<?>> {
     private final boolean isMoving;
     private final List<Object> extraData;
     public double animationTick;
-    protected AnimationController<T> controller;
+    protected IAnimationController<T> controller;
 
     public AnimationEvent(T animatable, float limbSwing, float limbSwingAmount, float partialTick, boolean isMoving,
                           List<Object> extraData) {
@@ -53,11 +53,11 @@ public class AnimationEvent<T extends AnimatableEntity<?>> {
         return this.isMoving;
     }
 
-    public AnimationController<T> getController() {
+    public IAnimationController<T> getController() {
         return this.controller;
     }
 
-    public void setController(AnimationController<T> controller) {
+    public void setController(IAnimationController<T> controller) {
         this.controller = controller;
     }
 

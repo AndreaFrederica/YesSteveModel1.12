@@ -1,5 +1,7 @@
 package com.elfmcys.yesstevemodel.geckolib3.resource;
 
+import com.elfmcys.yesstevemodel.client.animation.molang.CtrlBinding;
+import com.elfmcys.yesstevemodel.client.animation.molang.FnBinding;
 import com.elfmcys.yesstevemodel.client.animation.molang.YSMBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.file.AnimationFile;
@@ -12,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GeckoLibCache {
-    private static final Map<String, ObjectBinding> EXTRA_BINDING = new HashMap<>();
     private static GeckoLibCache INSTANCE;
     public final MolangParser parser = createMolangParser();
     private final Map<ResourceLocation, AnimationFile> animations = Maps.newHashMap();
@@ -34,10 +35,16 @@ public class GeckoLibCache {
         return this.geoModels;
     }
 
+    public static MolangParser getMolangParser() {
+        return createMolangParser();
+    }
+
     private static MolangParser createMolangParser() {
-        EXTRA_BINDING.put("ysm", YSMBinding.INSTANCE);
-//        EXTRA_BINDING.put("tlm", TLMBinding.INSTANCE);
-//        EXTRA_BINDING.put("ctrl", CtrlBinding.INSTANCE);
-        return new MolangParser(EXTRA_BINDING);
+        HashMap<String, ObjectBinding> map = new HashMap<>();
+        map.put("ysm", YSMBinding.INSTANCE);
+//        map.put("tlm", TLMBinding.INSTANCE);
+        map.put("ctrl", CtrlBinding.INSTANCE);
+        map.put("fn", new FnBinding());
+        return new MolangParser(map);
     }
 }

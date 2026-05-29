@@ -29,6 +29,7 @@ public class CustomPlayerRenderer extends GeoReplacedEntityRenderer<EntityPlayer
             animatable.setModelLocation(ModelIdUtil.getMainId(cap.getModelId()));
             animatable.setTextureLocation(cap.getSelectTexture());
         });
+        animatable.installControllers();
         if (MinecraftForge.EVENT_BUS.post(new SpecialPlayerRenderEvent(entity, animatable, ModelIdUtil.getModelIdFromMainId(animatable.getModelLocation())))) {
             return;
         }

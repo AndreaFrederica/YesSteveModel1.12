@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+FMLCorePlugin: com.elfmcys.yesstevemodel.mixin.EarlyMixin
+FMLCorePluginContainsFMLMod: true
+FMLAT: yes_steve_model_at.cfg
+

@@ -19,22 +19,38 @@ import java.util.Locale;
 
 public class SendModelFile implements IPacketBufferMessage {
     private byte[] data;
+    private String modelId;
+    private boolean auth;
 
     public SendModelFile() {
     }
 
     public SendModelFile(byte[] data) {
+        this(data, null, false);
+    }
+
+    public SendModelFile(byte[] data, @Nullable String modelId) {
+        this(data, modelId, false);
+    }
+
+    public SendModelFile(byte[] data, @Nullable String modelId, boolean auth) {
         this.data = data;
+        this.modelId = modelId;
+        this.auth = auth;
     }
 
     @Override
     public void toBytes(PacketBuffer buf) {
         buf.writeByteArray(this.data);
+        buf.writeString(this.modelId == null ? "" : this.modelId);
+        buf.writeBoolean(this.auth);
     }
 
     @Override
     public void fromBytes(PacketBuffer buf) {
         this.data = buf.readByteArray();
+        this.modelId = buf.readString(Short.MAX_VALUE);
+        this.auth = buf.readBoolean();
     }
 
     public static class Handler implements IMessageHandler<SendModelFile, IMessage> {
@@ -57,7 +73,7 @@ public class SendModelFile implements IPacketBufferMessage {
                     File file = ServerModelManager.CACHE_CLIENT.resolve(fileName).toFile();
                     try {
                         FileUtils.writeByteArrayToFile(file, message.data);
-                        RequestLoadModel.loadModel(fileName);
+                        RequestLoadModel.loadModel(fileName, message.modelId, message.auth);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

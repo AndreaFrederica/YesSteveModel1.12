@@ -1,10 +1,11 @@
 package com.elfmcys.yesstevemodel.geckolib3.core.molang.binding;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.variable.ForeignVariableBinding;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.variable.ControllerVariableBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.variable.ScopedVariableBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.variable.TempVariableBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.MathBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.QueryBinding;
+import com.elfmcys.yesstevemodel.molang.runtime.Variable;
 import com.elfmcys.yesstevemodel.molang.runtime.binding.ObjectBinding;
 import com.elfmcys.yesstevemodel.molang.runtime.binding.StandardBindings;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
@@ -13,9 +14,11 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 public class PrimaryBinding implements ObjectBinding {
+    private static final Variable NULL_VALUE = context -> null;
+
     protected final Object2ReferenceOpenHashMap<String, Object> bindings = new Object2ReferenceOpenHashMap<>();
     protected final ScopedVariableBinding scopedBinding = new ScopedVariableBinding();
-    protected final ForeignVariableBinding foreignBinding = new ForeignVariableBinding();
+    protected final ControllerVariableBinding controllerBinding = new ControllerVariableBinding();
     protected final TempVariableBinding tempBinding = new TempVariableBinding();
 
     public PrimaryBinding(@Nullable Map<String, ObjectBinding> extraBindings) {
@@ -25,14 +28,15 @@ public class PrimaryBinding implements ObjectBinding {
         this.bindings.put("math", MathBinding.INSTANCE);
         this.bindings.put("query", QueryBinding.INSTANCE);
         this.bindings.put("q", QueryBinding.INSTANCE);
+        this.bindings.put("null", NULL_VALUE);
         this.bindings.put("loop", StandardBindings.LOOP_FUNC);
         this.bindings.put("for_each", StandardBindings.FOR_EACH_FUNC);
 
         this.bindings.put("variable", this.scopedBinding);
         this.bindings.put("v", this.scopedBinding);
 
-        this.bindings.put("context", this.foreignBinding);
-        this.bindings.put("c", this.foreignBinding);
+        this.bindings.put("context", this.controllerBinding);
+        this.bindings.put("c", this.controllerBinding);
 
         this.bindings.put("temp", this.tempBinding);
         this.bindings.put("t", this.tempBinding);
@@ -45,7 +49,7 @@ public class PrimaryBinding implements ObjectBinding {
 
     public void reset() {
         this.scopedBinding.reset();
-        this.foreignBinding.reset();
+        this.controllerBinding.reset();
         this.tempBinding.reset();
     }
 

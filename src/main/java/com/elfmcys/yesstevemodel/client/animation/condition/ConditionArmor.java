@@ -3,7 +3,7 @@ package com.elfmcys.yesstevemodel.client.animation.condition;
 import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -88,22 +88,22 @@ public class ConditionArmor {
 //        }
     }
 
-    public String doTest(EntityPlayer player, EntityEquipmentSlot slot) {
-        ItemStack item = player.getItemStackFromSlot(slot);
+    public String doTest(EntityLivingBase entity, EntityEquipmentSlot slot) {
+        ItemStack item = entity.getItemStackFromSlot(slot);
         if (item.isEmpty()) {
             return EMPTY;
         }
         String result;
-        result = this.doIdTest(player, slot);
+        result = this.doIdTest(entity, slot);
         if (!result.isEmpty()) return result;
-        result = this.doOreTest(player, slot);
+        result = this.doOreTest(entity, slot);
         if (!result.isEmpty()) return result;
 //        result = this.doTagTest(player, slot);
 //        if (!result.isEmpty()) return result;
         return EMPTY;
     }
 
-    private String doIdTest(EntityPlayer player, EntityEquipmentSlot slot) {
+    private String doIdTest(EntityLivingBase entity, EntityEquipmentSlot slot) {
         if (this.idTest.isEmpty()) {
             return EMPTY;
         }
@@ -111,7 +111,7 @@ public class ConditionArmor {
             return EMPTY;
         }
         List<ResourceLocation> idListTest = this.idTest.get(slot);
-        ItemStack item = player.getItemStackFromSlot(slot);
+        ItemStack item = entity.getItemStackFromSlot(slot);
         ResourceLocation registryName = item.getItem().getRegistryName();
         if (registryName == null) {
             return EMPTY;
@@ -122,7 +122,7 @@ public class ConditionArmor {
         return EMPTY;
     }
 
-    private String doOreTest(EntityPlayer player, EntityEquipmentSlot slot) {
+    private String doOreTest(EntityLivingBase entity, EntityEquipmentSlot slot) {
         if (this.oreTest.isEmpty()) {
             return EMPTY;
         }
@@ -130,7 +130,7 @@ public class ConditionArmor {
             return EMPTY;
         }
         List<String> tagListTest = this.oreTest.get(slot);
-        ItemStack item = player.getItemStackFromSlot(slot);
+        ItemStack item = entity.getItemStackFromSlot(slot);
         for (int id : OreDictionary.getOreIDs(item)) {
             String name = OreDictionary.getOreName(id);
             if ("Unknown".equals(name)) continue;
@@ -158,6 +158,10 @@ public class ConditionArmor {
 //            return false;
 //        }).findFirst().map(itemTagKey -> slot.getName() + "#" + itemTagKey).orElse(EMPTY);
 //    }
+
+    public boolean hasFilter(EntityEquipmentSlot slot) {
+        return this.idTest.containsKey(slot) || this.oreTest.containsKey(slot);
+    }
 
     @Nullable
     public static EntityEquipmentSlot getType(String type) {

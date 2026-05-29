@@ -2,11 +2,11 @@ package com.elfmcys.yesstevemodel.client.entity;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.ClientModelManager;
-import com.elfmcys.yesstevemodel.client.animation.AnimationManager;
 import com.elfmcys.yesstevemodel.client.animation.molang.ClientChatDebugOutputSink;
+import com.elfmcys.yesstevemodel.client.model.ModelAssembly;
 import com.elfmcys.yesstevemodel.client.input.DebugAnimationKey;
-import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
-import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
+import com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.DebugOutputSink;
@@ -17,7 +17,6 @@ import com.elfmcys.yesstevemodel.geckolib3.resource.GeckoLibCache;
 import com.elfmcys.yesstevemodel.util.ModelIdUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +26,7 @@ import javax.annotation.Nullable;
 import javax.vecmath.Vector2f;
 import java.util.List;
 
-public class CustomPlayerEntity extends AnimatableEntity<EntityPlayer> {
+public class CustomPlayerEntity extends LivingAnimatable<EntityPlayer> {
     public static final ResourceLocation DEFAULT_ID = ModelIdUtil.getMainId(new ResourceLocation(YesSteveModel.MOD_ID, "default"));
     private static final ResourceLocation DEFAULT_TEXTURE = new ResourceLocation(YesSteveModel.MOD_ID, "default/default.png");
     private static final int FPS = 60;
@@ -35,6 +34,7 @@ public class CustomPlayerEntity extends AnimatableEntity<EntityPlayer> {
     private final ItemStack[] handItemsForAnimation = new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY};
     private final Vector2f headRot = new Vector2f();
     private final @Nullable PlayerState state;
+    private boolean controllersInstalled = false;
     private ResourceLocation mainModel = DEFAULT_ID;
     private ResourceLocation texture = DEFAULT_TEXTURE;
     private String previewAnimation = StringUtils.EMPTY;
@@ -44,36 +44,22 @@ public class CustomPlayerEntity extends AnimatableEntity<EntityPlayer> {
     public CustomPlayerEntity(@Nullable EntityPlayer player) {
         super(player, FPS);
         this.state = player != null ? new PlayerState(player) : null;
-        this.registerControllers();
     }
 
-    private void registerControllers() {
-        AnimationManager manager = AnimationManager.getInstance();
-        for (int i = 0; i < 8; i++) {
-            String controllerName = String.format("pre_parallel_%d_controller", i);
-            String animationName = String.format("pre_parallel%d", i);
-            this.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
+    public void installControllers() {
+        if (this.controllersInstalled) {
+            return;
         }
-        this.addAnimationController(new AnimationController<>(this, "main", 2, manager::predicateMain));
-        this.addAnimationController(new AnimationController<>(this, "hold_offhand", 0, manager::predicateOffhandHold));
-        this.addAnimationController(new AnimationController<>(this, "hold_mainhand", 0, manager::predicateMainhandHold));
-        this.addAnimationController(new AnimationController<>(this, "swing", 0, manager::predicateSwing));
-        this.addAnimationController(new AnimationController<>(this, "use", 2, manager::predicateUse));
-//        this.addAnimationController(new AnimationController<>(this, "magic_casting", 2, manager::predicateMagicCastingAnimation));
-//        this.addAnimationController(new AnimationController<>(this, "misc", 2, manager::predicateMisc));
-        this.addAnimationController(new AnimationController<>(this, "passenger", 2, manager::predicatePassengerAnimation));
-        for (int i = 0; i < 8; i++) {
-            String controllerName = String.format("parallel_%d_controller", i);
-            String animationName = String.format("parallel%d", i);
-            this.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateParallel(e, animationName)));
-        }
-        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
-            if (slot.getSlotType() == EntityEquipmentSlot.Type.ARMOR) {
-                String controllerName = String.format("%s_controller", slot.getName());
-                this.addAnimationController(new AnimationController<>(this, controllerName, 0, e -> manager.predicateArmor(e, slot)));
+        ModelAssembly assembly = this.getModelAssembly();
+        if (assembly != null) {
+            this.setModelConfig(assembly.getAnimationBundle().getConditionManager());
+            this.onModelLoaded(assembly);
+            var installer = assembly.getAnimationBundle().getPlayerControllerInstaller();
+            if (installer != null) {
+                installer.accept(this);
             }
+            this.controllersInstalled = true;
         }
-        this.addAnimationController(new AnimationController<>(this, "cap_controller", 2, manager::predicateCap));
     }
 
     @Override
@@ -148,6 +134,12 @@ public class CustomPlayerEntity extends AnimatableEntity<EntityPlayer> {
     }
 
     public void setModelLocation(ResourceLocation mainModel) {
+        if (!this.mainModel.equals(mainModel)) {
+            this.controllersInstalled = false;
+            this.resetInitFlag();
+            this.setModelConfig(null);
+            this.clearAnimationControllers();
+        }
         this.mainModel = mainModel;
     }
 
@@ -171,6 +163,63 @@ public class CustomPlayerEntity extends AnimatableEntity<EntityPlayer> {
 
     public ItemStack[] getHandItemsForAnimation() {
         return this.handItemsForAnimation;
+    }
+
+    @Nullable
+    @Override
+    public ModelAssembly getModelAssembly() {
+        ModelAssembly assembly = ClientModelManager.getModernModel(this.mainModel);
+        if (assembly != null) {
+            return assembly;
+        }
+        if (this.mainModel.getPath().endsWith("/main")) {
+            return ClientModelManager.getModernModel(ModelIdUtil.getModelIdFromMainId(this.mainModel));
+        }
+        return null;
+    }
+
+    @Nullable
+    public com.elfmcys.yesstevemodel.client.animation.condition.ConditionManager getConditionManager() {
+        ModelAssembly assembly = this.getModelAssembly();
+        return assembly != null ? assembly.getAnimationBundle().getConditionManager() : null;
+    }
+
+    @Nullable
+    @Override
+    public Animation getAnimation(String name) {
+        ModelAssembly assembly = this.getModelAssembly();
+        if (assembly != null) {
+            Animation animation = assembly.getAnimationBundle().getMainAnimations().get(name);
+            if (animation != null) {
+                return animation;
+            }
+        }
+        return super.getAnimation(name);
+    }
+
+    @Nullable
+    @Override
+    public AnimationController getAnimationEntries(String controllerName) {
+        ModelAssembly assembly = this.getModelAssembly();
+        if (assembly != null) {
+            return assembly.getAnimationBundle().getAnimationControllers().get(controllerName);
+        }
+        return super.getAnimationEntries(controllerName);
+    }
+
+    public boolean isModelSwitching() {
+        return false;
+    }
+
+    public boolean isDisabledState() {
+        return false;
+    }
+
+    public void enableModel() {
+    }
+
+    public String getSelectedModelId() {
+        return this.mainModel.toString();
     }
 
     /*

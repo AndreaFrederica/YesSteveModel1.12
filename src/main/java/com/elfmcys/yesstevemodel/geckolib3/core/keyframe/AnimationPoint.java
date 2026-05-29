@@ -25,13 +25,15 @@ public abstract class AnimationPoint {
      */
     private final AnimationControllerContext context;
 
+    public Vector3f cachedValue;
+
     public AnimationPoint(double currentTick, double totalTick, AnimationControllerContext context) {
         this.currentTick = currentTick;
         this.totalTick = totalTick;
         this.context = context;
     }
 
-    protected double getPercentCompleted() {
+    public double getPercentCompleted() {
         return this.totalTick == 0 ? 1 : (this.currentTick / this.totalTick);
     }
 

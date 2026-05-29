@@ -35,7 +35,7 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class AnimationController<T extends AnimatableEntity<?>> {
+public class AnimationController<T extends AnimatableEntity<?>> implements IAnimationController<T> {
     /**
      * 动画控制器名称
      */
@@ -124,6 +124,26 @@ public class AnimationController<T extends AnimatableEntity<?>> {
      * 你可以每帧运行此方法，如果每次都传入相同的 AnimationBuilder，它将不会重新启动。
      * 此外，它还可以在动画状态之间平滑过渡
      */
+    @Override
+    public void setAnimation(String animationName, ILoopType loopType) {
+        if (animationName == null || animationName.isEmpty()) {
+            this.animationState = AnimationState.STOPPED;
+            return;
+        }
+        AnimationBuilder builder = new AnimationBuilder().addAnimation(animationName, loopType);
+        this.setAnimation(builder);
+    }
+
+    @Override
+    public void setAnimation(String animationName) {
+        if (animationName == null || animationName.isEmpty()) {
+            this.animationState = AnimationState.STOPPED;
+            return;
+        }
+        AnimationBuilder builder = new AnimationBuilder().addAnimation(animationName);
+        this.setAnimation(builder);
+    }
+
     public void setAnimation(AnimationBuilder builder) {
         if (builder == null || builder.getRawAnimationList().isEmpty()) {
             this.animationState = AnimationState.STOPPED;
@@ -493,8 +513,32 @@ public class AnimationController<T extends AnimatableEntity<?>> {
         this.needsAnimationReload = true;
     }
 
+    public void reset() {
+        this.animationState = AnimationState.STOPPED;
+        this.currentAnimation = null;
+        this.currentAnimationLoop = null;
+        this.currentAnimationBuilder = new AnimationBuilder();
+        this.animationQueue.clear();
+        this.activeBoneAnimationQueues.clear();
+        this.shouldResetTick = false;
+        this.justStartedTransition = false;
+        this.needsAnimationReload = false;
+        this.justStopped = false;
+        this.tickOffset = 0.0d;
+        this.isJustStarting = false;
+    }
+
     public void clearAnimationCache() {
         this.currentAnimationBuilder = new AnimationBuilder();
+    }
+
+    /**
+     * 旧版控制器不实现 forEachTransform，由 AnimationProcessor 直接轮询骨队列。
+     * 新版控制器（如 PredicateBasedController）会覆写此方法。
+     */
+    @Override
+    public void forEachTransform(java.util.function.Consumer<BoneTransformProvider> consumer) {
+        // 默认空实现 — 旧版 AnimationProcessor 通过 getBoneAnimationQueues() 直接消费
     }
 
     public double getAnimationSpeed() {

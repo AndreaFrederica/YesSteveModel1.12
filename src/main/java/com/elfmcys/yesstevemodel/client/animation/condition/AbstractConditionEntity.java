@@ -4,7 +4,7 @@ import com.elfmcys.yesstevemodel.util.ResourceUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +43,7 @@ public abstract class AbstractConditionEntity {
 //        }
     }
 
-    public abstract String doTest(EntityPlayer player);
+    public abstract String doTest(EntityLivingBase entity);
 
     protected String doTest(Entity entity) {
         if (entity == null || !entity.isEntityAlive()) {

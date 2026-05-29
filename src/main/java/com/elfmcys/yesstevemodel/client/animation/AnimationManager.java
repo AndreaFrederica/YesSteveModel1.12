@@ -138,9 +138,9 @@ public final class AnimationManager {
                 playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.LOOP);
             }
 
-            ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-            ConditionalHold conditionalHold = ConditionManager.getHoldOffhand(id);
-            if (conditionalHold != null) {
+            ConditionManager conditionManager = animatable.getConditionManager();
+            if (conditionManager != null) {
+                ConditionalHold conditionalHold = conditionManager.getHoldOffhand();
                 String name = conditionalHold.doTest(player, EnumHand.OFF_HAND);
                 if (StringUtils.isNoneBlank(name)) {
                     return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -184,9 +184,9 @@ public final class AnimationManager {
                 playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.LOOP);
             }
 
-            ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-            ConditionalHold conditionalHold = ConditionManager.getHoldMainhand(id);
-            if (conditionalHold != null) {
+            ConditionManager conditionManager = animatable.getConditionManager();
+            if (conditionManager != null) {
+                ConditionalHold conditionalHold = conditionManager.getHoldMainhand();
                 String name = conditionalHold.doTest(player, EnumHand.MAIN_HAND);
                 if (StringUtils.isNoneBlank(name)) {
                     return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -204,13 +204,12 @@ public final class AnimationManager {
         }
         if (player.isSwingInProgress && !player.isPlayerSleeping()) {
             if (player.swingProgressInt == 0) {
-                // 空动画用于重置 PLAY_ONCE 动画
                 playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
             }
             EnumHand swingingHand = player.swingingHand;
-            ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-            ConditionalSwing conditionalSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? ConditionManager.getSwingMainhand(id) : ConditionManager.getSwingOffhand(id);
-            if (conditionalSwing != null) {
+            ConditionManager conditionManager = event.getAnimatableEntity().getConditionManager();
+            if (conditionManager != null) {
+                ConditionalSwing conditionalSwing = (player.swingingHand == EnumHand.MAIN_HAND) ? conditionManager.getSwingMainhand() : conditionManager.getSwingOffhand();
                 String name = conditionalSwing.doTest(player, swingingHand);
                 if (StringUtils.isNoneBlank(name)) {
                     return playAnimation(event, name, ILoopType.EDefaultLoopTypes.PLAY_ONCE);
@@ -232,10 +231,10 @@ public final class AnimationManager {
             if (player.getItemInUseMaxCount() == 1) {
                 playAnimation(event, "empty", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
             }
+            ConditionManager conditionManager = event.getAnimatableEntity().getConditionManager();
             if (player.getActiveHand() == EnumHand.MAIN_HAND) {
-                ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-                ConditionalUse conditionalUse = ConditionManager.getUseMainhand(id);
-                if (conditionalUse != null) {
+                if (conditionManager != null) {
+                    ConditionalUse conditionalUse = conditionManager.getUseMainhand();
                     String name = conditionalUse.doTest(player, EnumHand.MAIN_HAND);
                     if (StringUtils.isNoneBlank(name)) {
                         return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -243,9 +242,8 @@ public final class AnimationManager {
                 }
                 return playAnimation(event, "use_mainhand", ILoopType.EDefaultLoopTypes.LOOP);
             } else {
-                ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-                ConditionalUse conditionalUse = ConditionManager.getUseOffhand(id);
-                if (conditionalUse != null) {
+                if (conditionManager != null) {
+                    ConditionalUse conditionalUse = conditionManager.getUseOffhand();
                     String name = conditionalUse.doTest(player, EnumHand.OFF_HAND);
                     if (StringUtils.isNoneBlank(name)) {
                         return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -268,9 +266,9 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
 
-        ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-        ConditionArmor conditionArmor = ConditionManager.getArmor(id);
-        if (conditionArmor != null) {
+        ConditionManager conditionManager = event.getAnimatableEntity().getConditionManager();
+        if (conditionManager != null) {
+            ConditionArmor conditionArmor = conditionManager.getArmor();
             String name = conditionArmor.doTest(player, slot);
             if (StringUtils.isNoneBlank(name)) {
                 return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -295,11 +293,10 @@ public final class AnimationManager {
         if (vehicle == null || !vehicle.isEntityAlive()) {
             return null;
         }
-        ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
 
-        // 其他情况
-        ConditionalVehicle vehicleCondition = ConditionManager.getVehicle(id);
-        if (vehicleCondition != null) {
+        ConditionManager conditionManager = event.getAnimatableEntity().getConditionManager();
+        if (conditionManager != null) {
+            ConditionalVehicle vehicleCondition = conditionManager.getVehicle();
             String name = vehicleCondition.doTest(player);
             if (StringUtils.isNoneBlank(name)) {
                 return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);
@@ -319,9 +316,9 @@ public final class AnimationManager {
             return PlayState.STOP;
         }
 
-        ResourceLocation id = event.getAnimatableEntity().getAnimationFileLocation();
-        ConditionalPassenger conditionalPassenger = ConditionManager.getPassenger(id);
-        if (conditionalPassenger != null) {
+        ConditionManager conditionManager = event.getAnimatableEntity().getConditionManager();
+        if (conditionManager != null) {
+            ConditionalPassenger conditionalPassenger = conditionManager.getPassenger();
             String name = conditionalPassenger.doTest(player);
             if (StringUtils.isNoneBlank(name)) {
                 return playAnimation(event, name, ILoopType.EDefaultLoopTypes.LOOP);

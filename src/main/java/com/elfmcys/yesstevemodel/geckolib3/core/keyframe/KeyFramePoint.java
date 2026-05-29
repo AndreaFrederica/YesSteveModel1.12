@@ -18,6 +18,12 @@ public class KeyFramePoint extends AnimationPoint {
     @Override
     public Vector3f getLerpPoint(ExpressionEvaluator<AnimationContext<?>> evaluator) {
         this.setupControllerContext(evaluator);
-        return this.keyframe.getLerpPoint(evaluator, this.getPercentCompleted());
+        Vector3f vector3f = this.keyframe.getLerpPoint(evaluator, this.getPercentCompleted());
+        if (this.cachedValue == null) {
+            this.cachedValue = new Vector3f(vector3f);
+        } else {
+            this.cachedValue.set(vector3f);
+        }
+        return vector3f;
     }
 }

@@ -1,6 +1,6 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumHand;
 
 public class ConditionalHold extends AbstractConditionItem {
@@ -12,10 +12,10 @@ public class ConditionalHold extends AbstractConditionItem {
     }
 
     @Override
-    public String doTest(EntityPlayer player, EnumHand hand) {
-        if (player.getHeldItem(hand).isEmpty()) {
+    public String doTest(EntityLivingBase entity, EnumHand hand) {
+        if (entity.getHeldItem(hand).isEmpty()) {
             return hand == EnumHand.MAIN_HAND ? EMPTY_MAINHAND : EMPTY_OFFHAND;
         }
-        return super.doTest(player, hand);
+        return super.doTest(entity, hand);
     }
 }

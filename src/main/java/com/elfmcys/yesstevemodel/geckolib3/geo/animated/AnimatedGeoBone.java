@@ -1,5 +1,6 @@
 package com.elfmcys.yesstevemodel.geckolib3.geo.animated;
 
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.util.StringPool;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
 import com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoBone;
@@ -25,10 +26,16 @@ public class AnimatedGeoBone implements IBone {
     private final Vector3f scale = new Vector3f(1, 1, 1);
     private final Vector3f position = new Vector3f();
     private final Vector3f rotation = new Vector3f();
+    private final Vector3f initialRotation;
+    private final Vector3f pivotAbs = new Vector3f();
+    private final int boneId;
+    private boolean trackingXform;
 
     public AnimatedGeoBone(GeoBone geoBone, @Nullable Map<String, AnimatedGeoBone> bones) {
         this.geoBone = geoBone;
         this.rotation.set(geoBone.rotation());
+        this.initialRotation = new Vector3f(geoBone.rotation());
+        this.boneId = StringPool.computeIfAbsent(geoBone.name());
 
         if (bones != null) {
             bones.put(geoBone.name(), this);
@@ -54,6 +61,16 @@ public class AnimatedGeoBone implements IBone {
     @Override
     public String getName() {
         return this.geoBone.name();
+    }
+
+    @Override
+    public Vector3f getInitialRotation() {
+        return this.initialRotation;
+    }
+
+    @Override
+    public int getBoneId() {
+        return this.boneId;
     }
 
     @Override
@@ -169,6 +186,35 @@ public class AnimatedGeoBone implements IBone {
     @Override
     public float getPivotZ() {
         return this.geoBone.pivot().z;
+    }
+
+    @Override
+    public boolean isTrackingXform() {
+        return this.trackingXform;
+    }
+
+    @Override
+    public void setTrackXform(boolean track) {
+        this.trackingXform = track;
+    }
+
+    @Override
+    public float getPivotAbsX() {
+        return this.pivotAbs.x;
+    }
+
+    @Override
+    public float getPivotAbsY() {
+        return this.pivotAbs.y;
+    }
+
+    @Override
+    public float getPivotAbsZ() {
+        return this.pivotAbs.z;
+    }
+
+    public void setPivotAbs(float x, float y, float z) {
+        this.pivotAbs.set(x, y, z);
     }
 
     @Override

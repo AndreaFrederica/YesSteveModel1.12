@@ -2,8 +2,11 @@ package com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin;
 
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.util.EntityUtil;
+import com.elfmcys.yesstevemodel.geckolib3.core.EntityFrameStateTracker;
+import com.elfmcys.yesstevemodel.geckolib3.core.enums.PlaybackFlags;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.ContextBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.query.*;
+import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
 import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -37,15 +40,15 @@ public class QueryBinding extends ContextBinding {
 
         this.var("actor_count", ctx -> ctx.level().getLoadedEntityList().size());
         this.var("anim_time", ctx -> ctx.animationControllerContext().animTime());
-        this.var("all_animations_finished", ctx -> false);
-        this.var("any_animation_finished", ctx -> false);
+        this.var("all_animations_finished", ctx -> getPlaybackFlags(ctx) != null && getPlaybackFlags(ctx).isPaused());
+        this.var("any_animation_finished", ctx -> getPlaybackFlags(ctx) != null && getPlaybackFlags(ctx).isStopped());
         this.var("life_time", ctx -> ctx.geoInstance().getSeekTime() / 20.0);
         this.var("head_x_rotation", ctx -> ctx.data().netHeadYaw);
         this.var("head_y_rotation", ctx -> ctx.data().headPitch);
         this.var("moon_phase", ctx -> ctx.level().getMoonPhase());
         this.var("time_of_day", ctx -> MolangUtils.normalizeTime(ctx.level().getWorldTime()));
         this.var("time_stamp", ctx -> ctx.level().getWorldTime());
-        this.var("delta_time", ctx -> 0.0);
+        this.var("delta_time", ctx -> ctx.geoInstance().getPositionTracker().getTimeDelta() / 20.0f);
 
         this.entityVar("yaw_speed", ctx -> EntityUtil.getYawSpeed(ctx.entity()));
         this.entityVar("cardinal_facing_2d", ctx -> ctx.entity().getHorizontalFacing().getIndex());
@@ -54,7 +57,7 @@ public class QueryBinding extends ContextBinding {
         this.entityVar("eye_target_y_rotation", ctx -> EntityUtil.getViewYRot(ctx.entity(), ctx.animationEvent().getPartialTick()));
         this.entityVar("ground_speed", ctx -> EntityUtil.getGroundSpeed(ctx.entity()));
         this.entityVar("modified_distance_moved", ctx -> ctx.entity().distanceWalkedModified);
-        this.entityVar("vertical_speed", ctx -> EntityUtil.getVerticalSpeed(ctx.entity()));
+        this.entityVar("vertical_speed", ctx -> getVerticalSpeed(ctx.geoInstance().getPositionTracker()));
         this.entityVar("walk_distance", ctx -> ctx.entity().distanceWalkedOnStepModified);
         this.entityVar("has_rider", ctx -> ctx.entity().isBeingRidden());
         this.entityVar("is_first_person", ctx -> ctx.mc().gameSettings.thirdPersonView == 0);
@@ -90,6 +93,21 @@ public class QueryBinding extends ContextBinding {
 
     private static boolean hasCape(AbstractClientPlayer player) {
         return player.hasPlayerInfo() && !player.isInvisible() && player.isWearing(EnumPlayerModelParts.CAPE) && player.getLocationCape() != null;
+    }
+
+    private static PlaybackFlags getPlaybackFlags(Object context) {
+        if (context instanceof AnimationContext<?> animationContext) {
+            return animationContext.getPlaybackFlags();
+        }
+        return null;
+    }
+
+    private static float getVerticalSpeed(EntityFrameStateTracker<?> positionTracker) {
+        float timeDelta = positionTracker.getTimeDelta();
+        if (timeDelta <= 0.0f) {
+            return 0.0f;
+        }
+        return (20.0f * (float) positionTracker.getPositionDelta().y) / timeDelta;
     }
 
     private static int getEquipmentCount(EntityLivingBase entity) {

@@ -8,11 +8,13 @@ import javax.vecmath.Vector3f;
 public abstract class BoneKeyFrame {
     protected final double startTick;
     protected final double totalTick;
+    protected final double endTick;
     protected final Vector3v beginPoint;
 
     public BoneKeyFrame(double startTick, double totalTick, Vector3v beginPoint) {
         this.startTick = startTick;
         this.totalTick = totalTick;
+        this.endTick = startTick + totalTick;
         this.beginPoint = beginPoint;
     }
 
@@ -22,6 +24,10 @@ public abstract class BoneKeyFrame {
 
     public double getTotalTick() {
         return this.totalTick;
+    }
+
+    public float getEndTick() {
+        return (float) this.endTick;
     }
 
     public abstract Vector3f getLerpPoint(ExpressionEvaluator<?> evaluator, double percentCompleted);

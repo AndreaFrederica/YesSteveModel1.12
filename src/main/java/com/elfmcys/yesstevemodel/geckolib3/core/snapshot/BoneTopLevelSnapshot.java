@@ -5,33 +5,20 @@ import com.elfmcys.yesstevemodel.geckolib3.core.processor.PointData;
 
 public class BoneTopLevelSnapshot extends BoneSnapshot {
     public final IBone bone;
-    public final PointData cachedPointData = new PointData(); // 并行动画控制器需要缓存旋转参数
+    public final PointData cachedPointData = new PointData();
 
     public float mostRecentResetRotationTick = 0;
     public float mostRecentResetPositionTick = 0;
     public float mostRecentResetScaleTick = 0;
+    public boolean isCurrentlyRunningAnimation = false;
     public boolean isCurrentlyRunningRotationAnimation = true;
     public boolean isCurrentlyRunningPositionAnimation = true;
     public boolean isCurrentlyRunningScaleAnimation = true;
 
     public BoneTopLevelSnapshot(IBone bone) {
         super(bone.getName());
-        this.rotationValueX = bone.getRotationX();
-        this.rotationValueY = bone.getRotationY();
-        this.rotationValueZ = bone.getRotationZ();
-
-        this.positionOffsetX = bone.getPositionX();
-        this.positionOffsetY = bone.getPositionY();
-        this.positionOffsetZ = bone.getPositionZ();
-
-        this.scaleValueX = bone.getScaleX();
-        this.scaleValueY = bone.getScaleY();
-        this.scaleValueZ = bone.getScaleZ();
-
-        this.hidden = bone.isHidden();
-        this.childrenHidden = bone.childBonesAreHiddenToo();
-
         this.bone = bone;
+        applyTransform(bone);
     }
 
     public BoneTopLevelSnapshot(IBone bone, boolean dontSaveRotations) {
@@ -40,6 +27,7 @@ public class BoneTopLevelSnapshot extends BoneSnapshot {
             this.rotationValueX = 0;
             this.rotationValueY = 0;
             this.rotationValueZ = 0;
+            this.rotation.set(0, 0, 0);
         }
     }
 
@@ -61,5 +49,18 @@ public class BoneTopLevelSnapshot extends BoneSnapshot {
         this.cachedPointData.rotationValueX = 0;
         this.cachedPointData.rotationValueY = 0;
         this.cachedPointData.rotationValueZ = 0;
+    }
+
+    public void reset() {
+        this.bone.setHidden(this.hidden, this.childrenHidden);
+        this.bone.setRotationX(this.rotation.x);
+        this.bone.setRotationY(this.rotation.y);
+        this.bone.setRotationZ(this.rotation.z);
+        this.bone.setPositionX(this.position.x);
+        this.bone.setPositionY(this.position.y);
+        this.bone.setPositionZ(this.position.z);
+        this.bone.setScaleX(this.scale.x);
+        this.bone.setScaleY(this.scale.y);
+        this.bone.setScaleZ(this.scale.z);
     }
 }

@@ -38,4 +38,21 @@ public interface IValue {
      * 依次执行表达式，返回最后一个表达式的值，或第一个 return 语句的值，返回值的类型不确定，并且可能抛出异常。
      */
     Object evalUnsafe(ExpressionEvaluator<?> evaluator) throws Exception;
+
+    default Object evalSafe(ExpressionEvaluator<?> evaluator) {
+        try {
+            return evalUnsafe(evaluator);
+        } catch (Throwable th) {
+            YesSteveModel.LOGGER.debug("Failed to evaluate molang expression.", th);
+            return null;
+        }
+    }
+
+    default float evalAsFloat(ExpressionEvaluator<?> evaluator) {
+        return ValueConversions.asFloat(evalSafe(evaluator));
+    }
+
+    default int evalAsInt(ExpressionEvaluator<?> evaluator) {
+        return ValueConversions.asInt(evalSafe(evaluator));
+    }
 }

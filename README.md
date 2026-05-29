@@ -4,6 +4,16 @@
 
 本分支提供 1.12.2 版本支持。开发时，以 1.12.2 优先，1.7.10 版本的内容会定期与 1.12.2 同步。
 
+## 开发环境
+
+当前 1.12.2 工程已对齐 Cleanroom 新基线：
+
+- 使用 RetroFuturaGradle 2.0.2
+- 使用 Gradle 9.4.1 Wrapper
+- Gradle 运行时需要 Java 25
+
+本地开发时，请先将 JAVA_HOME 指向 Java 25，再运行 gradlew 相关任务。
+
 ## 概述
 
 Yes Steve Model 是一个修改原版玩家模型的 Minecraft 模组。

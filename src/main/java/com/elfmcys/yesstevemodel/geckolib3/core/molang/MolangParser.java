@@ -22,8 +22,13 @@ public class MolangParser {
 
     @SuppressWarnings("unused")
     public IValue parseExpression(String molangExpression) {
+        return this.parseExpression(molangExpression, false);
+    }
+
+    @SuppressWarnings("unused")
+    public IValue parseExpression(String molangExpression, boolean isScript) {
         try {
-            return this.parseExpressionUnsafe(molangExpression);
+            return this.parseExpressionUnsafe(molangExpression, isScript);
         } catch (Exception e) {
             YesSteveModel.LOGGER.error("Failed to parse value \"{}\": {}", molangExpression, e.getMessage());
             return DoubleValue.ZERO;
@@ -31,9 +36,77 @@ public class MolangParser {
     }
 
     public IValue parseExpressionUnsafe(String molangExpression) throws ParseException {
-        MolangValue value = new MolangValue(this.engine.parse(molangExpression));
+        return this.parseExpressionUnsafe(molangExpression, false);
+    }
+
+    public IValue parseExpressionUnsafe(String molangExpression, boolean isScript) throws ParseException {
+        MolangValue value = new MolangValue(this.engine.parse(isScript ? stripComments(molangExpression) : molangExpression));
         this.primaryBinding.popStackFrame();
         return value;
+    }
+
+    private static String stripComments(String input) {
+        if (input.indexOf('/') < 0) {
+            return input;
+        }
+
+        int len = input.length();
+        StringBuilder result = new StringBuilder(len);
+        boolean inBlockComment = false;
+        boolean inLineComment = false;
+        boolean inStringLiteral = false;
+
+        for (int i = 0; i < len; i++) {
+            char currentChar = input.charAt(i);
+
+            if (inStringLiteral) {
+                if (currentChar == '\'') {
+                    inStringLiteral = false;
+                }
+                result.append(currentChar);
+                continue;
+            }
+
+            if (inLineComment) {
+                if (currentChar == '\r' || currentChar == '\n') {
+                    inLineComment = false;
+                    result.append('\n');
+                }
+                continue;
+            }
+
+            if (inBlockComment) {
+                if (currentChar == '*' && i + 1 < len && input.charAt(i + 1) == '/') {
+                    inBlockComment = false;
+                    i++;
+                }
+                continue;
+            }
+
+            if (currentChar == '\'') {
+                inStringLiteral = true;
+                result.append(currentChar);
+                continue;
+            }
+
+            if (currentChar == '/' && i + 1 < len) {
+                char nextChar = input.charAt(i + 1);
+                if (nextChar == '/') {
+                    inLineComment = true;
+                    i++;
+                    continue;
+                }
+                if (nextChar == '*') {
+                    inBlockComment = true;
+                    i++;
+                    continue;
+                }
+            }
+
+            result.append(currentChar);
+        }
+
+        return result.toString();
     }
 
     @SuppressWarnings("unused")

@@ -94,6 +94,7 @@ public class CustomArrowEntity extends AnimatableEntity<EntityArrow> {
 
     @Nonnull
     private static <P extends AnimatableEntity<?>> PlayState playAnimation(AnimationEvent<P> event, String animationName) {
+        event.getController().setAnimation(new AnimationBuilder().addAnimation(animationName, ILoopType.EDefaultLoopTypes.LOOP));
         return PlayState.CONTINUE;
     }
 }

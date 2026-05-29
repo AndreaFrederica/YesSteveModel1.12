@@ -1,15 +1,19 @@
 package com.elfmcys.yesstevemodel.geckolib3.core;
 
 import com.elfmcys.yesstevemodel.YesSteveModel;
+import com.elfmcys.yesstevemodel.audio.AudioPlayerManager;
 import com.elfmcys.yesstevemodel.client.animation.molang.PhysicsManager;
 import com.elfmcys.yesstevemodel.geckolib3.core.builder.Animation;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.DebugOutputSink;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.value.IValue;
 import com.elfmcys.yesstevemodel.geckolib3.core.processor.AnimationProcessor;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import com.elfmcys.yesstevemodel.geckolib3.core.util.RateLimiter;
 import com.elfmcys.yesstevemodel.geckolib3.file.AnimationFile;
 import com.elfmcys.yesstevemodel.geckolib3.geo.animated.AnimatedGeoModel;
@@ -20,6 +24,7 @@ import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked,rawtypes")
@@ -27,27 +32,45 @@ public abstract class AnimatableEntity<E extends Entity> {
     private final AnimationData manager = new AnimationData();
     private final AnimationProcessor animationProcessor;
     private final RateLimiter rateLimiter;
+    private final EntityFrameStateTracker<E> positionTracker;
 
     /// 若为 null，则代表在 UI 中渲染，所有动画都不播放
     protected final @Nullable E entity;
     protected final PhysicsManager physicsManager;
+    private final AudioPlayerManager audioPlayerManager = new AudioPlayerManager();
 
     private AnimatedGeoModel currentModel;
     private double seekTime;
     private double lastGameTickTime;
+    private final Object2ReferenceOpenHashMap<String, AnimationState> animationStates = new Object2ReferenceOpenHashMap<>();
+    private Object2ReferenceMap<String, List<IValue>> animationMap = new Object2ReferenceOpenHashMap<>();
 
     public AnimatableEntity(@Nullable E entity, int fps) {
         this.entity = entity;
+        this.positionTracker = this.createPositionTracker(entity);
         this.rateLimiter = new RateLimiter(fps);
         this.animationProcessor = new AnimationProcessor(this);
         this.physicsManager = new PhysicsManager();
     }
 
+    public EntityFrameStateTracker<E> createPositionTracker(@Nullable E entity) {
+        return new EntityFrameStateTracker<>(entity);
+    }
+
+    public EntityFrameStateTracker<E> getPositionTracker() {
+        return this.positionTracker;
+    }
+
     /**
      * 注册动画控制器
      */
-    public void addAnimationController(AnimationController value) {
+    public void addAnimationController(IAnimationController value) {
         this.manager.addAnimationController(value);
+    }
+
+    public void clearAnimationControllers() {
+        this.manager.clear();
+        this.animationStates.clear();
     }
 
     public AnimationData getAnimationData() {
@@ -88,7 +111,12 @@ public abstract class AnimatableEntity<E extends Entity> {
         }
 
         this.physicsManager.update((float) this.seekTime);
+        if (this.entity != null) {
+            this.positionTracker.updateState(this.entity.ticksExisted, (float) this.seekTime, animationEvent.getPartialTick());
+        }
+        this.setupAnim((float) this.seekTime, false);
         this.animationProcessor.tickAnimation(this.seekTime, animationEvent, ctx);
+        this.afterSetupAnim((float) this.seekTime, false);
         return true;
     }
 
@@ -109,6 +137,11 @@ public abstract class AnimatableEntity<E extends Entity> {
         return animation.getAnimation(name);
     }
 
+    @Nullable
+    public com.elfmcys.yesstevemodel.geckolib3.core.builder.AnimationController getAnimationEntries(String controllerName) {
+        return null;
+    }
+
     public abstract ResourceLocation getAnimationFileLocation();
 
     public boolean updateModel() {
@@ -127,6 +160,25 @@ public abstract class AnimatableEntity<E extends Entity> {
     @Nullable
     public AnimatedGeoModel getCurrentModel() {
         return this.currentModel;
+    }
+
+    @Nullable
+    public final List<IValue> getAnimationExpressions(String str) {
+        return this.animationMap.get(str);
+    }
+
+    public Object2ReferenceMap<String, List<IValue>> getAnimationExpressionMap() {
+        return this.animationMap;
+    }
+
+    public void setAnimationMap(Object2ReferenceMap<String, List<IValue>> animationMap) {
+        this.animationMap = animationMap;
+    }
+
+    public void setupAnim(float seekTime, boolean isFirstPerson) {
+    }
+
+    public void afterSetupAnim(float seekTime, boolean isFirstPerson) {
     }
 
     public double getCurrentTick(AnimationEvent<?> animationEvent) {
@@ -162,6 +214,10 @@ public abstract class AnimatableEntity<E extends Entity> {
         return this.physicsManager;
     }
 
+    public AudioPlayerManager getAudioPlayerManager() {
+        return this.audioPlayerManager;
+    }
+
     @Nullable
     public DebugOutputSink getDebugOutputSink() {
         return null;
@@ -174,5 +230,22 @@ public abstract class AnimatableEntity<E extends Entity> {
             @Nullable Consumer<String> resultConsumer
     ) {
         this.animationProcessor.queueExpression(value, allowImpureOperations, executeBeforeAnimation, resultConsumer);
+    }
+
+    public void setAnimationState(String name, AnimationState state) {
+        this.animationStates.put(name, state);
+    }
+
+    public AnimationState getAnimationState(String name) {
+        return this.animationStates.getOrDefault(name, AnimationState.IDLE);
+    }
+
+    public void resetAnimationState() {
+        this.animationStates.clear();
+    }
+
+    @Nullable
+    public IValue resolveExpression(String str) {
+        return null;
     }
 }

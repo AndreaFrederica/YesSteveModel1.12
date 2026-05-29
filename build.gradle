@@ -222,6 +222,7 @@ processResources {
 }
 
 jar {
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.EXCLUDE
     manifest {
         def attribute_map = [:]
         if (propertyBool('is_coremod')) {
@@ -240,7 +241,9 @@ jar {
         attributes(attribute_map)
     }
     // Add all embedded dependencies into the jar
-    from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} })
+    from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} }) {
+        exclude 'module-info.class'
+    }
 }
 
 idea {

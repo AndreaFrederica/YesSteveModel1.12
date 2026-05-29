@@ -2,20 +2,19 @@ package com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.query;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.IContext;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.function.entity.EntityFunction;
-import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.molang.runtime.ExecutionContext;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
 
 public class PositionDelta extends EntityFunction {
     @Override
     protected Object eval(ExecutionContext<IContext<Entity>> context, ArgumentCollection arguments) {
         int axis = arguments.getAsInt(context, 0);
-        float partialTicks = context.entity().animationEvent().getPartialTick();
-        Entity entity = context.entity().entity();
+        Vec3d delta = context.entity().geoInstance().getPositionTracker().getPositionDelta();
         return switch (axis) {
-            case 0 -> Interpolations.lerp(entity.prevPosX, entity.posY, partialTicks) - entity.prevPosX;
-            case 1 -> Interpolations.lerp(entity.prevPosY, entity.posY, partialTicks) - entity.prevPosY;
-            case 2 -> Interpolations.lerp(entity.prevPosZ, entity.posZ, partialTicks) - entity.prevPosZ;
+            case 0 -> delta.x;
+            case 1 -> delta.y;
+            case 2 -> delta.z;
             default -> null;
         };
     }

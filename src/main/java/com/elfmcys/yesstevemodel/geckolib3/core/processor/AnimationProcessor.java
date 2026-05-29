@@ -3,6 +3,8 @@ package com.elfmcys.yesstevemodel.geckolib3.core.processor;
 import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.BoneTransformProvider;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.BoneAnimationQueue;
 import com.elfmcys.yesstevemodel.geckolib3.core.manager.AnimationData;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.context.AnimationContext;
@@ -62,58 +64,108 @@ public class AnimationProcessor<T extends AnimatableEntity<?>> {
 
         // InstancedAnimationFactory 仅保有一个 AnimationData 实例，与传入的 uniqueID 无关
         AnimationData manager = this.animatable.getAnimationData();
-        for (AnimationController<T> controller : manager.getAnimationControllers()) {
-            if (this.reloadAnimations) {
-                controller.markNeedsReload();
-                controller.getBoneAnimationQueues().clear();
-            }
-            controller.isJustStarting = manager.isFirstTick;
-            // 将当前控制器设置为动画测试事件
-            event.setController(controller);
-            // 处理动画并向点队列添加新值
-            controller.process(seekTime, event, evaluator, this.modelRendererList, false, this.rendererDirty, shouldUpdate);
-            boolean isParallelController = controller.getName().startsWith("parallel_");
-            // 遍历每个骨骼，并对属性进行插值计算
-            for (BoneAnimationQueue boneAnimation : controller.getBoneAnimationQueues()) {
-                BoneTopLevelSnapshot snapshot = boneAnimation.topLevelSnapshot;
-                BoneSnapshot initialSnapshot = snapshot.bone.getInitialSnapshot();
-                PointData pointData = snapshot.cachedPointData;
+        for (IAnimationController<T> controller : manager.getAnimationControllers()) {
+            if (controller instanceof AnimationController) {
+                // 旧版路径：AnimationController 直接管理骨队列
+                AnimationController<T> legacyController = (AnimationController<T>) controller;
+                if (this.reloadAnimations) {
+                    legacyController.markNeedsReload();
+                    legacyController.getBoneAnimationQueues().clear();
+                }
+                legacyController.isJustStarting = manager.isFirstTick;
+                event.setController(legacyController);
+                legacyController.process(seekTime, event, evaluator, this.modelRendererList, false, this.rendererDirty, shouldUpdate);
+                boolean isParallelController = legacyController.getName().startsWith("parallel_");
+                for (BoneAnimationQueue boneAnimation : legacyController.getBoneAnimationQueues()) {
+                    BoneTopLevelSnapshot snapshot = boneAnimation.topLevelSnapshot;
+                    BoneSnapshot initialSnapshot = snapshot.bone.getInitialSnapshot();
+                    PointData pointData = snapshot.cachedPointData;
 
-                // 如果此骨骼有任何旋转值
-                if (!boneAnimation.rotationQueue().isEmpty()) {
-                    Vector3f scale = boneAnimation.rotationQueue().poll().getLerpPoint(evaluator);
-                    pointData.rotationValueX += scale.getX();
-                    pointData.rotationValueY += scale.getY();
-                    pointData.rotationValueZ += scale.getZ();
-                    if (isParallelController) {
-                        snapshot.rotationValueX = pointData.rotationValueX + initialSnapshot.rotationValueX;
-                        snapshot.rotationValueY = pointData.rotationValueY + initialSnapshot.rotationValueY;
-                        snapshot.rotationValueZ = pointData.rotationValueZ + initialSnapshot.rotationValueZ;
-                    } else {
-                        snapshot.rotationValueX = scale.getX() + initialSnapshot.rotationValueX;
-                        snapshot.rotationValueY = scale.getY() + initialSnapshot.rotationValueY;
-                        snapshot.rotationValueZ = scale.getZ() + initialSnapshot.rotationValueZ;
+                    if (!boneAnimation.rotationQueue().isEmpty()) {
+                        Vector3f scale = boneAnimation.rotationQueue().poll().getLerpPoint(evaluator);
+                        pointData.rotationValueX += scale.getX();
+                        pointData.rotationValueY += scale.getY();
+                        pointData.rotationValueZ += scale.getZ();
+                        if (isParallelController) {
+                            snapshot.rotationValueX = pointData.rotationValueX + initialSnapshot.rotationValueX;
+                            snapshot.rotationValueY = pointData.rotationValueY + initialSnapshot.rotationValueY;
+                            snapshot.rotationValueZ = pointData.rotationValueZ + initialSnapshot.rotationValueZ;
+                        } else {
+                            snapshot.rotationValueX = scale.getX() + initialSnapshot.rotationValueX;
+                            snapshot.rotationValueY = scale.getY() + initialSnapshot.rotationValueY;
+                            snapshot.rotationValueZ = scale.getZ() + initialSnapshot.rotationValueZ;
+                        }
+                        snapshot.isCurrentlyRunningRotationAnimation = true;
                     }
-                    snapshot.isCurrentlyRunningRotationAnimation = true;
-                }
 
-                // 如果此骨骼有任何位置值
-                if (!boneAnimation.positionQueue().isEmpty()) {
-                    Vector3f position = boneAnimation.positionQueue().poll().getLerpPoint(evaluator);
-                    snapshot.positionOffsetX = position.getX();
-                    snapshot.positionOffsetY = position.getY();
-                    snapshot.positionOffsetZ = position.getZ();
-                    snapshot.isCurrentlyRunningPositionAnimation = true;
-                }
+                    if (!boneAnimation.positionQueue().isEmpty()) {
+                        Vector3f position = boneAnimation.positionQueue().poll().getLerpPoint(evaluator);
+                        snapshot.positionOffsetX = position.getX();
+                        snapshot.positionOffsetY = position.getY();
+                        snapshot.positionOffsetZ = position.getZ();
+                        snapshot.isCurrentlyRunningPositionAnimation = true;
+                    }
 
-                // 如果此骨骼有任何缩放点
-                if (!boneAnimation.scaleQueue().isEmpty()) {
-                    Vector3f scale = boneAnimation.scaleQueue().poll().getLerpPoint(evaluator);
-                    snapshot.scaleValueX = scale.getX();
-                    snapshot.scaleValueY = scale.getY();
-                    snapshot.scaleValueZ = scale.getZ();
-                    snapshot.isCurrentlyRunningScaleAnimation = true;
+                    if (!boneAnimation.scaleQueue().isEmpty()) {
+                        Vector3f scale = boneAnimation.scaleQueue().poll().getLerpPoint(evaluator);
+                        snapshot.scaleValueX = scale.getX();
+                        snapshot.scaleValueY = scale.getY();
+                        snapshot.scaleValueZ = scale.getZ();
+                        snapshot.isCurrentlyRunningScaleAnimation = true;
+                    }
                 }
+            } else {
+                // 新版路径：使用 forEachTransform() 消费变换
+                if (this.rendererDirty || this.reloadAnimations) {
+                    controller.init(this.modelRendererList, this.animatable.getAnimationExpressionMap());
+                }
+                event.setController(controller);
+                controller.process(event, evaluator, true);
+                boolean deprecatedMode = controller.isDeprecatedMode();
+                controller.forEachTransform(provider -> {
+                    BoneTransformProvider btp = (BoneTransformProvider) provider;
+                    BoneTopLevelSnapshot snapshot = btp.getBoneTarget();
+
+                    btp.getRotation(evaluator).ifPresent(value -> {
+                        if (!snapshot.isCurrentlyRunningRotationAnimation) {
+                            snapshot.isCurrentlyRunningRotationAnimation = true;
+                            snapshot.rotation.set(0.0f, 0.0f, 0.0f);
+                        }
+                        if (deprecatedMode) {
+                            snapshot.rotationValueX += value.getX();
+                            snapshot.rotationValueY += value.getY();
+                            snapshot.rotationValueZ += value.getZ();
+                            snapshot.rotation.set(snapshot.rotationValueX, snapshot.rotationValueY, snapshot.rotationValueZ);
+                        } else {
+                            value.applyRotationBlendTo(snapshot.rotation, btp.getBoneTarget().bone.getInitialRotation());
+                            snapshot.rotationValueX = snapshot.rotation.x;
+                            snapshot.rotationValueY = snapshot.rotation.y;
+                            snapshot.rotationValueZ = snapshot.rotation.z;
+                        }
+                    });
+
+                    btp.getPosition(evaluator).ifPresent(value -> {
+                        if (!snapshot.isCurrentlyRunningPositionAnimation) {
+                            snapshot.isCurrentlyRunningPositionAnimation = true;
+                            snapshot.position.set(0.0f, 0.0f, 0.0f);
+                        }
+                        value.applyLinearBlendTo(snapshot.position);
+                        snapshot.positionOffsetX = snapshot.position.x;
+                        snapshot.positionOffsetY = snapshot.position.y;
+                        snapshot.positionOffsetZ = snapshot.position.z;
+                    });
+
+                    btp.getScale(evaluator).ifPresent(value -> {
+                        if (!snapshot.isCurrentlyRunningScaleAnimation) {
+                            snapshot.isCurrentlyRunningScaleAnimation = true;
+                            snapshot.scale.set(1.0f, 1.0f, 1.0f);
+                        }
+                        value.applyLinearBlendTo(snapshot.scale);
+                        snapshot.scaleValueX = snapshot.scale.x;
+                        snapshot.scaleValueY = snapshot.scale.y;
+                        snapshot.scaleValueZ = snapshot.scale.z;
+                    });
+                });
             }
         }
 

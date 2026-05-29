@@ -1,5 +1,9 @@
 package com.elfmcys.yesstevemodel.client.compat;
 
+import com.elfmcys.yesstevemodel.client.animation.predicate.PlayerAnimationPredicate;
+import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.CompositeAnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderPlayer;
@@ -16,6 +20,7 @@ import tschipp.carryon.common.item.ItemTile;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
+import java.util.function.BiFunction;
 
 public class CarryOnCompat {
     public static void init() {
@@ -33,6 +38,17 @@ public class CarryOnCompat {
             if (type != CarryOnType.NONE) return type.name().toLowerCase(Locale.US);
         }
         return null;
+    }
+
+    public static boolean isPlayerCarrying(EntityPlayer player) {
+        return isInstalled() && getCarryOnString(player) != null;
+    }
+
+    public static java.util.Optional<BiFunction<String, CustomPlayerEntity, IAnimationController<CustomPlayerEntity>>> getControllerFactory() {
+        if (isInstalled()) {
+            return java.util.Optional.of((name, animatable) -> new CompositeAnimationController<>(animatable, name, 0.1f, new PlayerAnimationPredicate()));
+        }
+        return java.util.Optional.empty();
     }
 
     @Optional.Method(modid = Mods.CARRY_ON)

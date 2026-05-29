@@ -1,6 +1,6 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.EntityLivingBase;
 
 public class ConditionalPassenger extends AbstractConditionEntity {
     public ConditionalPassenger() {
@@ -8,7 +8,7 @@ public class ConditionalPassenger extends AbstractConditionEntity {
     }
 
     @Override
-    public String doTest(EntityPlayer player) {
-        return this.doTest(player.getControllingPassenger());
+    public String doTest(EntityLivingBase entity) {
+        return this.doTest(entity.getControllingPassenger());
     }
 }

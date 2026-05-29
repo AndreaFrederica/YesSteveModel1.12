@@ -74,18 +74,34 @@ public class SyncModelFiles implements IPacketBufferMessage {
             for (String md5 : md5Info) {
                 if (cache.contains(md5)) {
                     output.remove(md5);
-                    NetworkHandler.sendToClientPlayer(new RequestLoadModel(md5), sender);
+                    String modelId = findModelIdByMd5(md5);
+                    NetworkHandler.sendToClientPlayer(new RequestLoadModel(md5, modelId, isAuthModel(modelId)), sender);
                 }
             }
             for (String md5 : output) {
                 File modelFile = CACHE_SERVER.resolve(md5).toFile();
                 try {
                     byte[] modelBytes = FileUtils.readFileToByteArray(modelFile);
-                    ThreadTools.THREAD_POOL.submit(() -> NetworkHandler.sendToClientPlayer(new SendModelFile(modelBytes), sender));
+                    String modelId = findModelIdByMd5(md5);
+                    boolean auth = isAuthModel(modelId);
+                    ThreadTools.THREAD_POOL.submit(() -> NetworkHandler.sendToClientPlayer(new SendModelFile(modelBytes, modelId, auth), sender));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
+        }
+
+        @Nullable
+        private static String findModelIdByMd5(String md5) {
+            return CACHE_NAME_INFO.entrySet().stream()
+                    .filter(entry -> md5.equals(entry.getValue().getMd5()))
+                    .map(java.util.Map.Entry::getKey)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        private static boolean isAuthModel(@Nullable String modelId) {
+            return modelId != null && AUTH_MODELS.contains(modelId);
         }
 
         private static void sendPassword(EntityPlayerMP sender) {

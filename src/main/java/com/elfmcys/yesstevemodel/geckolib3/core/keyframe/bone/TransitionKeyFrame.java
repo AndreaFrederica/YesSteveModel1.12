@@ -20,4 +20,8 @@ public class TransitionKeyFrame extends BoneKeyFrame {
             return this.postPoint.eval(evaluator);
         }
     }
+
+    public Vector3f evaluate(ExpressionEvaluator<?> evaluator) {
+        return this.beginPoint.eval(evaluator);
+    }
 }

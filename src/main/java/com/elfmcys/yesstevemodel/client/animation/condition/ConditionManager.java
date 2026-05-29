@@ -1,79 +1,63 @@
 package com.elfmcys.yesstevemodel.client.animation.condition;
 
-import com.google.common.collect.Maps;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
-
-import java.util.Map;
 
 public class ConditionManager {
-    public static Map<ResourceLocation, ConditionalSwing> SWING = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalSwing> SWING_OFFHAND = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalUse> USE_MAINHAND = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalUse> USE_OFFHAND = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalHold> HOLD_MAINHAND = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalHold> HOLD_OFFHAND = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionArmor> ARMOR = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalVehicle> VEHICLE = Maps.newHashMap();
-    public static Map<ResourceLocation, ConditionalPassenger> PASSENGER = Maps.newHashMap();
+    private final ConditionalSwing SWING = new ConditionalSwing(EnumHand.MAIN_HAND);
+    private final ConditionalSwing SWING_OFFHAND = new ConditionalSwing(EnumHand.OFF_HAND);
+    private final ConditionalUse USE_MAINHAND = new ConditionalUse(EnumHand.MAIN_HAND);
+    private final ConditionalUse USE_OFFHAND = new ConditionalUse(EnumHand.OFF_HAND);
+    private final ConditionalHold HOLD_MAINHAND = new ConditionalHold(EnumHand.MAIN_HAND);
+    private final ConditionalHold HOLD_OFFHAND = new ConditionalHold(EnumHand.OFF_HAND);
+    private final ConditionArmor ARMOR = new ConditionArmor();
+    private final ConditionalVehicle VEHICLE = new ConditionalVehicle();
+    private final ConditionalPassenger PASSENGER = new ConditionalPassenger();
 
-    public static void addTest(ResourceLocation id, String name) {
-        SWING.computeIfAbsent(id, k -> new ConditionalSwing(EnumHand.MAIN_HAND)).addTest(name);
-        SWING_OFFHAND.computeIfAbsent(id, k -> new ConditionalSwing(EnumHand.OFF_HAND)).addTest(name);
-        USE_MAINHAND.computeIfAbsent(id, k -> new ConditionalUse(EnumHand.MAIN_HAND)).addTest(name);
-        USE_OFFHAND.computeIfAbsent(id, k -> new ConditionalUse(EnumHand.OFF_HAND)).addTest(name);
-        HOLD_MAINHAND.computeIfAbsent(id, k -> new ConditionalHold(EnumHand.MAIN_HAND)).addTest(name);
-        HOLD_OFFHAND.computeIfAbsent(id, k -> new ConditionalHold(EnumHand.OFF_HAND)).addTest(name);
-        ARMOR.computeIfAbsent(id, k -> new ConditionArmor()).addTest(name);
-        VEHICLE.computeIfAbsent(id, k -> new ConditionalVehicle()).addTest(name);
-        PASSENGER.computeIfAbsent(id, k -> new ConditionalPassenger()).addTest(name);
+    public void addTest(String name) {
+        this.SWING.addTest(name);
+        this.SWING_OFFHAND.addTest(name);
+        this.USE_MAINHAND.addTest(name);
+        this.USE_OFFHAND.addTest(name);
+        this.HOLD_MAINHAND.addTest(name);
+        this.HOLD_OFFHAND.addTest(name);
+        this.ARMOR.addTest(name);
+        this.VEHICLE.addTest(name);
+        this.PASSENGER.addTest(name);
     }
 
-    public static void clear() {
-        SWING.clear();
-        SWING_OFFHAND.clear();
-        USE_MAINHAND.clear();
-        USE_OFFHAND.clear();
-        HOLD_MAINHAND.clear();
-        HOLD_OFFHAND.clear();
-        ARMOR.clear();
-        VEHICLE.clear();
-        PASSENGER.clear();
+    public ConditionalSwing getSwingMainhand() {
+        return this.SWING;
     }
 
-    public static ConditionalSwing getSwingMainhand(ResourceLocation id) {
-        return SWING.get(id);
+    public ConditionalSwing getSwingOffhand() {
+        return this.SWING_OFFHAND;
     }
 
-    public static ConditionalSwing getSwingOffhand(ResourceLocation id) {
-        return SWING_OFFHAND.get(id);
+    public ConditionalUse getUseMainhand() {
+        return this.USE_MAINHAND;
     }
 
-    public static ConditionalUse getUseMainhand(ResourceLocation id) {
-        return USE_MAINHAND.get(id);
+    public ConditionalUse getUseOffhand() {
+        return this.USE_OFFHAND;
     }
 
-    public static ConditionalUse getUseOffhand(ResourceLocation id) {
-        return USE_OFFHAND.get(id);
+    public ConditionalHold getHoldMainhand() {
+        return this.HOLD_MAINHAND;
     }
 
-    public static ConditionalHold getHoldMainhand(ResourceLocation id) {
-        return HOLD_MAINHAND.get(id);
+    public ConditionalHold getHoldOffhand() {
+        return this.HOLD_OFFHAND;
     }
 
-    public static ConditionalHold getHoldOffhand(ResourceLocation id) {
-        return HOLD_OFFHAND.get(id);
+    public ConditionArmor getArmor() {
+        return this.ARMOR;
     }
 
-    public static ConditionArmor getArmor(ResourceLocation id) {
-        return ARMOR.get(id);
+    public ConditionalVehicle getVehicle() {
+        return this.VEHICLE;
     }
 
-    public static ConditionalVehicle getVehicle(ResourceLocation id) {
-        return VEHICLE.get(id);
-    }
-
-    public static ConditionalPassenger getPassenger(ResourceLocation id) {
-        return PASSENGER.get(id);
+    public ConditionalPassenger getPassenger() {
+        return this.PASSENGER;
     }
 }

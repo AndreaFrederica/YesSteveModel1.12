@@ -20,9 +20,9 @@ public class AnimationRegister {
     public static void registerAnimationState() {
         register("death", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.HIGHEST, (player, event) -> !player.isEntityAlive());
         register("riptide", Priority.HIGHEST, (player, event) -> TridentCompat.isAutoSpinAttack(player));
-        register("sleep", Priority.HIGHEST, (player, event) -> player.isPlayerSleeping());
+        register("sleep", Priority.HIGHEST, (player, event) -> player instanceof EntityPlayer && ((EntityPlayer) player).isPlayerSleeping());
         register("swim", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimming(player));
-        register("climb", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimmingPose(player) && isMoving(player));
+        register("climb", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimmingPose(player) && isMoving(player, event));
         register("climbing", Priority.HIGHEST, (player, event) -> SwimmingCompat.isSwimmingPose(player));
 
         register("ride_pig", Priority.HIGH, (player, event) -> player.getRidingEntity() instanceof EntityPig);
@@ -33,33 +33,45 @@ public class AnimationRegister {
 //        register("ladder_stillness", Priority.HIGHEST, (player, event) -> player.isOnLadder() && EntityUtil.getVerticalSpeed(player) == 0);
 //        register("ladder_down", Priority.HIGHEST, (player, event) -> player.isOnLadder() && EntityUtil.getVerticalSpeed(player) < 0);
 
-        register("fly", Priority.HIGH, (player, event) -> player.capabilities.isFlying);
-        register("elytra_fly", Priority.HIGH, (player, event) -> player.isElytraFlying());
+        register("fly", Priority.HIGH, (player, event) -> player instanceof EntityPlayer && ((EntityPlayer) player).capabilities.isFlying);
+        register("elytra_fly", Priority.HIGH, (player, event) -> player instanceof EntityPlayer && ((EntityPlayer) player).isElytraFlying());
 
         register("swim_stand", Priority.NORMAL, (player, event) -> player.isInWater());
         register("attacked", ILoopType.EDefaultLoopTypes.PLAY_ONCE, Priority.NORMAL, (player, event) -> player.hurtTime > 0);
         register("jump", Priority.NORMAL, (player, event) -> !player.onGround && !player.isInWater());
-        register("sneak", Priority.NORMAL, (player, event) -> player.onGround && player.isSneaking() && isMoving(player));
+        register("sneak", Priority.NORMAL, (player, event) -> player.onGround && player.isSneaking() && isMoving(player, event));
         register("sneaking", Priority.NORMAL, (player, event) -> player.onGround && player.isSneaking());
 
         register("run", Priority.LOW, (player, event) -> player.onGround && player.isSprinting());
-        register("walk", Priority.LOW, (player, event) -> player.onGround && isMoving(player));
+        register("walk", Priority.LOW, (player, event) -> player.onGround && isMoving(player, event));
 
         register("idle", Priority.LOWEST, (player, event) -> true);
     }
 
-    private static void register(String animationName, ILoopType loopType, int priority, BiPredicate<EntityPlayer, AnimationEvent<?>> predicate) {
+    private static void register(String animationName, ILoopType loopType, int priority, BiPredicate<EntityLivingBase, AnimationEvent<?>> predicate) {
         AnimationManager manager = AnimationManager.getInstance();
         manager.register(new AnimationState(animationName, loopType, priority, predicate));
     }
 
-    private static void register(String animationName, int priority, BiPredicate<EntityPlayer, AnimationEvent<?>> predicate) {
+    private static void register(String animationName, int priority, BiPredicate<EntityLivingBase, AnimationEvent<?>> predicate) {
         register(animationName, ILoopType.EDefaultLoopTypes.LOOP, priority, predicate);
     }
 
     private static boolean isMoving(EntityLivingBase entity) {
+        return isMoving(entity, null);
+    }
+
+    private static boolean isMoving(EntityLivingBase entity, AnimationEvent<?> event) {
+        if (event != null && event.getLimbSwingAmount() > 0.01f) {
+            return true;
+        }
         float partialTick = Minecraft.getMinecraft().getRenderPartialTicks();
         float speed = Interpolations.lerp(entity.prevLimbSwingAmount, entity.limbSwingAmount, partialTick);
-        return Math.abs(speed) > MIN_SPEED;
+        if (Math.abs(speed) > MIN_SPEED) {
+            return true;
+        }
+        double dx = entity.posX - entity.prevPosX;
+        double dz = entity.posZ - entity.prevPosZ;
+        return dx * dx + dz * dz > 0.0025D;
     }
 }

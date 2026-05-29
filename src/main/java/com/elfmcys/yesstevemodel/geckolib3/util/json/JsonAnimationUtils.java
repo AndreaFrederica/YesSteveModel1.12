@@ -12,6 +12,7 @@ import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.bone.BoneKeyFrame;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.bone.BoneKeyFrameProcessor;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.bone.RawBoneKeyFrame;
 import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.event.EventKeyFrame;
+import com.elfmcys.yesstevemodel.geckolib3.core.keyframe.event.ParticleEventKeyFrame;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.MolangParser;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.value.IValue;
 import com.elfmcys.yesstevemodel.geckolib3.util.AnimationUtils;
@@ -115,7 +116,12 @@ public final class JsonAnimationUtils {
         if (animationLengthTicks == -1) {
             animationLengthTicks = calculateLength(boneAnimations);
         }
-        return new Animation(animationName, animationLengthTicks, loop, boneAnimations, customInstructionKeyframes);
+        return new Animation(animationName, animationLengthTicks, loop,
+                null, null, null, null,
+                boneAnimations.toArray(new BoneAnimation[0]),
+                new EventKeyFrame[0],
+                new ParticleEventKeyFrame[0],
+                customInstructionKeyframes.toArray(new EventKeyFrame[0]));
     }
 
     private static double calculateLength(List<BoneAnimation> boneAnimations) {

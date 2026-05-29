@@ -5,8 +5,13 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.snapshot;
 
+import com.elfmcys.yesstevemodel.geckolib3.core.processor.IBone;
+
+import javax.vecmath.Vector3f;
+
 public class BoneSnapshot {
     public final String name;
+
     public float scaleValueX;
     public float scaleValueY;
     public float scaleValueZ;
@@ -20,6 +25,11 @@ public class BoneSnapshot {
     public boolean hidden;
     public boolean childrenHidden;
 
+    // Vector3f fields for new controller path (reference compatibility)
+    public final Vector3f position = new Vector3f();
+    public final Vector3f rotation = new Vector3f();
+    public final Vector3f scale = new Vector3f(1.0f, 1.0f, 1.0f);
+
     protected BoneSnapshot(String name) {
         this.name = name;
     }
@@ -27,6 +37,31 @@ public class BoneSnapshot {
     public BoneSnapshot(BoneSnapshot snapshot) {
         this.copyFrom(snapshot);
         this.name = snapshot.name;
+    }
+
+    public BoneSnapshot(IBone bone) {
+        this.name = bone.getName();
+        applyTransform(bone);
+    }
+
+    public void applyTransform(IBone bone) {
+        Vector3f initialRotation = bone.getInitialRotation();
+        this.position.set(bone.getPositionX(), bone.getPositionY(), bone.getPositionZ());
+        this.rotation.set(bone.getRotationX() - initialRotation.x, bone.getRotationY() - initialRotation.y, bone.getRotationZ() - initialRotation.z);
+        this.scale.set(bone.getScaleX(), bone.getScaleY(), bone.getScaleZ());
+        this.hidden = bone.isHidden();
+        this.childrenHidden = bone.childBonesAreHiddenToo();
+
+        // Also update individual fields for backward compat
+        this.rotationValueX = this.rotation.x;
+        this.rotationValueY = this.rotation.y;
+        this.rotationValueZ = this.rotation.z;
+        this.positionOffsetX = this.position.x;
+        this.positionOffsetY = this.position.y;
+        this.positionOffsetZ = this.position.z;
+        this.scaleValueX = this.scale.x;
+        this.scaleValueY = this.scale.y;
+        this.scaleValueZ = this.scale.z;
     }
 
     public void copyFrom(BoneSnapshot snapshot) {
@@ -44,6 +79,10 @@ public class BoneSnapshot {
 
         this.hidden = snapshot.hidden;
         this.childrenHidden = snapshot.childrenHidden;
+
+        this.position.set(snapshot.position);
+        this.rotation.set(snapshot.rotation);
+        this.scale.set(snapshot.scale);
     }
 
     @Override

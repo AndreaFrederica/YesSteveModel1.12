@@ -44,6 +44,7 @@ public class PlayerModelScreen extends Screen {
     private int page;
     private int x;
     private int y;
+    private int observedModelCount = -1;
 
     public PlayerModelScreen() {
         this(Minecraft.getMinecraft().player);
@@ -92,6 +93,7 @@ public class PlayerModelScreen extends Screen {
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
         this.calculateModelList();
+        this.observedModelCount = ClientModelManager.MODELS.size();
 
         this.x = (this.width - 420) / 2;
         this.y = (this.height - 235) / 2;
@@ -253,6 +255,11 @@ public class PlayerModelScreen extends Screen {
     @Override
     public void updateScreen() {
         this.textField.updateCursorCounter();
+        int modelCount = ClientModelManager.MODELS.size();
+        if (modelCount != this.observedModelCount) {
+            this.observedModelCount = modelCount;
+            this.refreshGui();
+        }
     }
 
     @Override

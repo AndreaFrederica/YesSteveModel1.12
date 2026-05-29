@@ -6,6 +6,8 @@ import com.elfmcys.yesstevemodel.client.animation.molang.variable.MoveInputVaria
 import com.elfmcys.yesstevemodel.client.compat.CrossbowCompat;
 import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
+import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
+import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.core.event.predicate.AnimationEvent;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.binding.ContextBinding;
 import com.elfmcys.yesstevemodel.geckolib3.core.molang.builtin.query.EmptyFunction;
@@ -32,8 +34,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.common.BiomeDictionary;
@@ -69,23 +73,37 @@ public class YSMBinding extends ContextBinding {
         this.function("bone_rot", new BoneRotation());
         this.function("bone_pos", new BonePosition());
         this.function("bone_scale", new BoneScale());
-        this.function("bone_pivot_abs", new EmptyFunction());
+        this.function("bone_pivot_abs", new BonePivotAbs());
 
         this.var("head_yaw", ctx -> ctx.data().netHeadYaw);
         this.var("head_pitch", ctx -> ctx.data().headPitch);
         this.var("weather", ctx -> getWeather(ctx.level()));
         this.var("dimension_name", ctx -> ctx.level().provider.getDimensionType().getName());
         this.var("fps", ctx -> Minecraft.getDebugFPS());
-        this.var("time_delta", ctx -> 0.0);
+        this.var("time_delta", ctx -> ctx.geoInstance().getPositionTracker().getTimeDelta() / 20.0f);
 
-        this.entityVar("ground_speed2", ctx -> 0.0);
+        this.entityVar("ground_speed2", ctx -> {
+            Entity entity = ctx.entity();
+            return 20.0 * Math.sqrt(entity.motionX * entity.motionX + entity.motionZ * entity.motionZ);
+        });
         this.entityVar("input_vertical", MoveInputVariable::getVertical);
         this.entityVar("input_horizontal", MoveInputVariable::getHorizontal);
-        this.entityVar("person_view", ctx -> 0);
+        this.entityVar("person_view", ctx -> {
+            if (ctx.entity() == Minecraft.getMinecraft().player) {
+                return Minecraft.getMinecraft().gameSettings.thirdPersonView;
+            }
+            return 2;
+        });
         this.entityVar("rendering_in_paperdoll", ctx -> false);
         this.entityVar("rendering_in_inventory", ctx -> false);
-        this.entityVar("block_light", ctx -> 0);
-        this.entityVar("sky_light", ctx -> 0);
+        this.entityVar("block_light", ctx -> {
+            BlockPos pos = ctx.entity().getPosition();
+            return ctx.level().getLightFor(EnumSkyBlock.BLOCK, pos);
+        });
+        this.entityVar("sky_light", ctx -> {
+            BlockPos pos = ctx.entity().getPosition();
+            return ctx.level().getLightFor(EnumSkyBlock.SKY, pos);
+        });
 
         this.entityVar("is_passenger", ctx -> ctx.entity().isRiding());
         this.entityVar("is_sneak", ctx -> ctx.entity().onGround && ctx.entity().isSneaking());
@@ -94,7 +112,10 @@ public class YSMBinding extends ContextBinding {
         this.entityVar("eye_in_water", ctx -> ctx.entity().isInWater());
         this.entityVar("frozen_ticks", ctx -> 0);
         this.entityVar("air_supply", ctx -> ctx.entity().getAir());
-        this.entityVar("delta_movement_length", ctx -> 0.0);
+        this.entityVar("delta_movement_length", ctx -> {
+            Entity entity = ctx.entity();
+            return Math.sqrt(entity.motionX * entity.motionX + entity.motionY * entity.motionY + entity.motionZ * entity.motionZ);
+        });
 
         this.livingEntityVar("has_helmet", ctx -> getSlotValue(ctx.entity(), EntityEquipmentSlot.HEAD));
         this.livingEntityVar("has_chest_plate", ctx -> getSlotValue(ctx.entity(), EntityEquipmentSlot.CHEST));
@@ -117,9 +138,24 @@ public class YSMBinding extends ContextBinding {
         this.livingEntityVar("is_player", ctx -> "player".equals(getEntityType(ctx.entity())));
         this.livingEntityVar("is_maid", ctx -> "maid".equals(getEntityType(ctx.entity())));
         this.livingEntityVar("food_level", ctx -> getFoodLevel(ctx.entity()));
-        this.livingEntityVar("xxa", ctx -> 0.0);
-        this.livingEntityVar("yya", ctx -> 0.0);
-        this.livingEntityVar("zza", ctx -> 0.0);
+        this.livingEntityVar("xxa", ctx -> {
+            if (ctx.entity() instanceof EntityPlayerSP sp) {
+                return (double) sp.moveStrafing;
+            }
+            return 0.0;
+        });
+        this.livingEntityVar("yya", ctx -> {
+            if (ctx.entity() instanceof EntityPlayerSP sp) {
+                return (double) sp.moveVertical;
+            }
+            return 0.0;
+        });
+        this.livingEntityVar("zza", ctx -> {
+            if (ctx.entity() instanceof EntityPlayerSP sp) {
+                return (double) sp.moveForward;
+            }
+            return 0.0;
+        });
         this.livingEntityVar("mainhand_charged_crossbow", ctx -> CrossbowCompat.isCharged(ctx.entity().getHeldItemMainhand()));
         this.livingEntityVar("offhand_charged_crossbow", ctx -> CrossbowCompat.isCharged(ctx.entity().getHeldItemOffhand()));
         this.livingEntityVar("swinging", ctx -> ctx.entity().isSwingInProgress);
@@ -127,7 +163,14 @@ public class YSMBinding extends ContextBinding {
         this.livingEntityVar("swinging_arm", ctx -> ctx.entity().swingingHand == EnumHand.MAIN_HAND ? 0 : 1);
         this.livingEntityVar("attack_time", ctx -> ctx.entity().getSwingProgress(ctx.animationEvent().getPartialTick()));
 
-        this.playerEntityVar("texture_name", ctx -> StringUtils.EMPTY);
+        this.playerEntityVar("texture_name", ctx -> {
+            AnimatableEntity<?> geo = ctx.geoInstance();
+            if (geo instanceof CustomPlayerEntity custom) {
+                ResourceLocation tex = custom.getTextureLocation();
+                return tex != null ? tex.getPath() : StringUtils.EMPTY;
+            }
+            return StringUtils.EMPTY;
+        });
         this.playerEntityVar("first_person_mod_hide", ctx -> false);
         this.playerEntityVar("has_left_shoulder_parrot", ctx -> !ctx.entity().getLeftShoulderEntity().isEmpty());
         this.playerEntityVar("has_right_shoulder_parrot", ctx -> !ctx.entity().getRightShoulderEntity().isEmpty());
@@ -159,14 +202,17 @@ public class YSMBinding extends ContextBinding {
 
         this.function("first_order", new FirstOrderFunction());
         this.function("second_order", new SecondOrderFunction());
+        // TODO: [Phase 3] particle/abs_particle 需要 ParticleEffectUtil 工具类
         this.function("particle", new EmptyFunction());
         this.function("abs_particle", new EmptyFunction());
-        this.function("perlin_noise", new EmptyFunction());
-        this.function("play_sound", new EmptyFunction());
-        this.function("stop_sound", new EmptyFunction());
-        this.function("stop_all_sounds", new EmptyFunction());
+        this.function("perlin_noise", new PerlinNoiseFunction());
+        this.function("play_sound", new SoundFunction.PlaySoundFunction());
+        this.function("stop_sound", new SoundFunction.StopSoundFunction());
+        this.function("stop_all_sounds", new SoundFunction.StopAllSoundsFunction());
+        // TODO: [Phase 3] keyboard/mouse 需要 InputStateKey 事件系统 (监听键盘/鼠标事件)
         this.function("keyboard", new EmptyFunction());
         this.function("mouse", new EmptyFunction());
+        // TODO: [Phase 3] sync 需要网络包 (C2SSyncAnimationExpressionPacket) 基础设施
         this.function("sync", new EmptyFunction());
 
         this.entityVar("projectile_owner", ctx -> ctx.createChild(getOwner(ctx.entity())));

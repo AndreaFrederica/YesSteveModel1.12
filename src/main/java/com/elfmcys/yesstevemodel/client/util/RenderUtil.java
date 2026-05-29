@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.client.util;
 
 import com.elfmcys.yesstevemodel.client.ClientProxy;
 import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
+import com.elfmcys.yesstevemodel.client.entity.PlayerPreviewEntity;
 import com.elfmcys.yesstevemodel.client.renderer.CustomPlayerRenderer;
 import com.elfmcys.yesstevemodel.geckolib3.core.AnimatableEntity;
 import com.elfmcys.yesstevemodel.geckolib3.geo.GeoReplacedEntityRenderer;
@@ -55,12 +56,13 @@ public final class RenderUtil {
         }
         try {
             CustomPlayerRenderer renderer = ClientProxy.getInstance();
-            AnimatableEntity<?> animatable = AnimatableCacheUtil.TEXTURE_GUI_CACHE.get(modelId, () -> new CustomPlayerEntity(null));
+            AnimatableEntity<?> animatable = AnimatableCacheUtil.TEXTURE_GUI_CACHE.get(modelId, PlayerPreviewEntity::new);
             if (animatable instanceof CustomPlayerEntity entity) {
                 consumer.accept(entity);
 
                 entity.setModelLocation(ModelIdUtil.getMainId(modelId));
                 entity.setTextureLocation(textureId);
+                entity.installControllers();
 
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(pPosX, pPosY, 1050.0F);
@@ -271,7 +273,7 @@ public final class RenderUtil {
         }
         try {
             CustomPlayerRenderer renderer = ClientProxy.getInstance();
-            AnimatableEntity<?> animatable = AnimatableCacheUtil.GUI_CACHE.get(modelId, () -> new CustomPlayerEntity(null));
+            AnimatableEntity<?> animatable = AnimatableCacheUtil.GUI_CACHE.get(modelId, PlayerPreviewEntity::new);
             if (animatable instanceof CustomPlayerEntity entity) {
                 consumer.accept(entity);
                 renderModel(pPosX, pPosY, (float) pScale, player, modelId, textureId, renderer, entity, disableRot);
@@ -301,6 +303,7 @@ public final class RenderUtil {
     ) {
         entity.setModelLocation(ModelIdUtil.getMainId(modelId));
         entity.setTextureLocation(textureId);
+        entity.installControllers();
 
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) pPosX, (float) pPosY, 1050.0F);

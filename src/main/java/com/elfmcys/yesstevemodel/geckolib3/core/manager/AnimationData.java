@@ -5,14 +5,16 @@
 
 package com.elfmcys.yesstevemodel.geckolib3.core.manager;
 
-import com.elfmcys.yesstevemodel.geckolib3.core.controller.AnimationController;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
 public class AnimationData {
-    private final List<AnimationController> animationControllers = new ReferenceArrayList<>(32);
+    private final List<IAnimationController> animationControllers = new ReferenceArrayList<>(32);
+    private final Object2ReferenceOpenHashMap<String, IAnimationController> animationControllerMap = new Object2ReferenceOpenHashMap<>(16);
     public double tick;
     public boolean isFirstTick = true;
     public double startTick = -1;
@@ -22,7 +24,7 @@ public class AnimationData {
     public AnimationData() {
     }
 
-    public AnimationController addAnimationController(AnimationController value) {
+    public IAnimationController addAnimationController(IAnimationController value) {
         this.animationControllers.add(value);
         return value;
     }
@@ -40,7 +42,27 @@ public class AnimationData {
         this.resetTickLength = resetTickLength < 0 ? 0 : resetTickLength;
     }
 
-    public List<AnimationController> getAnimationControllers() {
+    public List<IAnimationController> getAnimationControllers() {
         return this.animationControllers;
+    }
+
+    public IAnimationController getAnimationControllerByName(String name) {
+        if (this.animationControllerMap.isEmpty() && !this.animationControllers.isEmpty()) {
+            for (IAnimationController controller : this.animationControllers) {
+                this.animationControllerMap.put(controller.getName(), controller);
+            }
+        }
+        return this.animationControllerMap.get(name);
+    }
+
+    public void clear() {
+        this.tick = 0;
+        this.isFirstTick = true;
+        this.startTick = -1;
+        for (IAnimationController controller : this.animationControllers) {
+            controller.reset();
+        }
+        this.animationControllers.clear();
+        this.animationControllerMap.clear();
     }
 }

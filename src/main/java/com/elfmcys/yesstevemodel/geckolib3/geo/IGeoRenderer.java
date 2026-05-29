@@ -17,7 +17,10 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
+import java.util.List;
+import java.util.Map;
 
 public interface IGeoRenderer<T> {
     MatrixStack MATRIX_STACK = new MatrixStack();
@@ -45,13 +48,173 @@ public interface IGeoRenderer<T> {
 
         Tessellator tess = Tessellator.getInstance();
         tess.getBuffer().begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
-        // 渲染所有根骨骼
-        for (AnimatedGeoBone group : model.topLevelBones()) {
-            this.renderRecursively(group, tess, red, green, blue, alpha);
+        if (model.geoModel().bakedBones != null && !model.geoModel().bakedBones.isEmpty()) {
+            this.renderBakedModel(model, tess.getBuffer(), red, green, blue, alpha);
+        } else {
+            // 渲染所有根骨骼
+            for (AnimatedGeoBone group : model.topLevelBones()) {
+                this.renderRecursively(group, tess, red, green, blue, alpha);
+            }
         }
         tess.draw();
         // 由于此时我们至少渲染了一次，因此让我们将循环设置为重复
         this.setCurrentModelRenderCycle(EModelRenderCycle.REPEATED);
+    }
+
+    default void renderBakedModel(
+            AnimatedGeoModel model, BufferBuilder buffer,
+            float red, float green, float blue, float alpha
+    ) {
+        List<com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedBone> bones = model.geoModel().bakedBones;
+        Matrix4f[] transforms = new Matrix4f[bones.size()];
+        boolean[] visible = new boolean[bones.size()];
+        Matrix4f root = new Matrix4f();
+        root.setIdentity();
+        Map<String, AnimatedGeoBone> animatedBones = model.bones();
+
+        for (int i = 0; i < bones.size(); i++) {
+            this.calculateBakedBoneMatrix(i, bones, animatedBones, transforms, visible, root);
+        }
+
+        for (int i = 0; i < bones.size(); i++) {
+            if (!visible[i]) {
+                continue;
+            }
+            com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedBone bone = bones.get(i);
+            Matrix4f transform = transforms[i];
+            for (com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedCube cube : bone.cubes) {
+                for (com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedQuad quad : cube.quads) {
+                    Vector3f normal = this.transformBakedNormal(transform, quad.normal);
+                    for (int vertex = 0; vertex < 4; vertex++) {
+                        Point3f pos = this.transformBakedPosition(transform, quad.positions[vertex]);
+                        buffer.pos(pos.x, pos.y, pos.z)
+                                .tex(quad.uvs[vertex].x(), quad.uvs[vertex].y())
+                                .color(red, green, blue, alpha)
+                                .normal(normal.x, normal.y, normal.z)
+                                .endVertex();
+                    }
+                }
+            }
+        }
+    }
+
+    default Matrix4f calculateBakedBoneMatrix(
+            int index,
+            List<com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedBone> bones,
+            Map<String, AnimatedGeoBone> animatedBones,
+            Matrix4f[] cache,
+            boolean[] visible,
+            Matrix4f root
+    ) {
+        if (cache[index] != null) {
+            return cache[index];
+        }
+
+        com.elfmcys.yesstevemodel.geckolib3.geo.render.built.GeoModel.BakedBone bone = bones.get(index);
+        Matrix4f parent = root;
+        boolean isVisible = true;
+        if (bone.parentIdx != -1) {
+            parent = this.calculateBakedBoneMatrix(bone.parentIdx, bones, animatedBones, cache, visible, root);
+            if (!visible[bone.parentIdx]) {
+                isVisible = false;
+            }
+        }
+
+        AnimatedGeoBone animated = animatedBones.get(bone.name);
+        float rotX = animated != null ? animated.getRotationX() : bone.rotX;
+        float rotY = animated != null ? animated.getRotationY() : bone.rotY;
+        float rotZ = animated != null ? animated.getRotationZ() : bone.rotZ;
+        float posX = animated != null ? animated.getPositionX() : 0.0f;
+        float posY = animated != null ? animated.getPositionY() : 0.0f;
+        float posZ = animated != null ? animated.getPositionZ() : 0.0f;
+        float scaleX = animated != null ? animated.getScaleX() : 1.0f;
+        float scaleY = animated != null ? animated.getScaleY() : 1.0f;
+        float scaleZ = animated != null ? animated.getScaleZ() : 1.0f;
+        if (animated != null && (animated.isHidden() || animated.cubesAreHidden())) {
+            isVisible = false;
+        }
+        if (scaleX == 0.0f && scaleY == 0.0f && scaleZ == 0.0f) {
+            isVisible = false;
+        }
+
+        Matrix4f local = new Matrix4f(parent);
+        this.multiplyTranslation(local, (bone.pivotX - posX) / 16f, (bone.pivotY + posY) / 16f, (bone.pivotZ + posZ) / 16f);
+        if (animated != null && animated.isTrackingXform()) {
+            Point3f pivotAbs = new Point3f(0.0f, 0.0f, 0.0f);
+            local.transform(pivotAbs);
+            animated.setPivotAbs(pivotAbs.x * 16.0f, pivotAbs.y * 16.0f, pivotAbs.z * 16.0f);
+        }
+        this.multiplyRotationZ(local, rotZ);
+        this.multiplyRotationY(local, rotY);
+        this.multiplyRotationX(local, rotX);
+        this.multiplyScale(local, scaleX, scaleY, scaleZ);
+        this.multiplyTranslation(local, -bone.pivotX / 16f, -bone.pivotY / 16f, -bone.pivotZ / 16f);
+
+        cache[index] = local;
+        visible[index] = isVisible;
+        return local;
+    }
+
+    default Point3f transformBakedPosition(Matrix4f matrix, org.joml.Vector3f source) {
+        Point3f point = new Point3f(source.x(), source.y(), source.z());
+        matrix.transform(point);
+        return point;
+    }
+
+    default Vector3f transformBakedNormal(Matrix4f matrix, org.joml.Vector3f source) {
+        Vector3f normal = new Vector3f(source.x(), source.y(), source.z());
+        matrix.transform(normal);
+        float len = normal.length();
+        if (len > 1.0e-6f) {
+            normal.scale(1.0f / len);
+        }
+        return normal;
+    }
+
+    default void multiplyTranslation(Matrix4f matrix, float x, float y, float z) {
+        Matrix4f transform = new Matrix4f();
+        transform.setIdentity();
+        transform.setTranslation(new Vector3f(x, y, z));
+        matrix.mul(transform);
+    }
+
+    default void multiplyScale(Matrix4f matrix, float x, float y, float z) {
+        Matrix4f transform = new Matrix4f();
+        transform.setIdentity();
+        transform.setM00(x);
+        transform.setM11(y);
+        transform.setM22(z);
+        matrix.mul(transform);
+    }
+
+    default void multiplyRotationX(Matrix4f matrix, float angle) {
+        if (angle == 0.0f) {
+            return;
+        }
+        Matrix4f transform = new Matrix4f();
+        transform.setIdentity();
+        transform.rotX(angle);
+        matrix.mul(transform);
+    }
+
+    default void multiplyRotationY(Matrix4f matrix, float angle) {
+        if (angle == 0.0f) {
+            return;
+        }
+        Matrix4f transform = new Matrix4f();
+        transform.setIdentity();
+        transform.rotY(angle);
+        matrix.mul(transform);
+    }
+
+    default void multiplyRotationZ(Matrix4f matrix, float angle) {
+        if (angle == 0.0f) {
+            return;
+        }
+        Matrix4f transform = new Matrix4f();
+        transform.setIdentity();
+        transform.rotZ(angle);
+        matrix.mul(transform);
     }
 
     default void renderRecursively(

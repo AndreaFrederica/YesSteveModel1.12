@@ -1,0 +1,8 @@
+allprojects {
+  tasks.register("printRuntimeClasspath") {
+    doLast {
+      def cp = sourceSets.main.runtimeClasspath.files.collect { it.absolutePath }.join(File.pathSeparator)
+      println(cp)
+    }
+  }
+}

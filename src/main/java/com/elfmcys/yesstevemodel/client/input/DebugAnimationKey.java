@@ -4,8 +4,11 @@ import com.elfmcys.yesstevemodel.YesSteveModel;
 import com.elfmcys.yesstevemodel.client.compat.ElytraCompat;
 import com.elfmcys.yesstevemodel.client.compat.SwimmingCompat;
 import com.elfmcys.yesstevemodel.client.compat.TridentCompat;
+import com.elfmcys.yesstevemodel.client.entity.CustomPlayerEntity;
 import com.elfmcys.yesstevemodel.client.event.ReloadResourceEvent;
 import com.elfmcys.yesstevemodel.client.util.EntityUtil;
+import com.elfmcys.yesstevemodel.event.CapabilityEvent;
+import com.elfmcys.yesstevemodel.geckolib3.core.controller.IAnimationController;
 import com.elfmcys.yesstevemodel.geckolib3.util.Interpolations;
 import com.elfmcys.yesstevemodel.geckolib3.util.MolangUtils;
 import net.minecraft.client.Minecraft;
@@ -30,6 +33,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.input.Keyboard;
 
 import java.util.Locale;
@@ -110,7 +114,26 @@ public class DebugAnimationKey {
         final float outputHeadPitch = -headPitch;
         final float outputNetHeadYaw = -MathHelper.clamp(MathHelper.wrapDegrees(netHeadYaw), -85, 85);
 
+        float limbSwingAmount = 0.0F;
+        if (!shouldSit && player.isEntityAlive()) {
+            limbSwingAmount = Math.min(1.0F, Interpolations.lerp(player.prevLimbSwingAmount, player.limbSwingAmount, partialTick));
+        }
+        CustomPlayerEntity animatable = CapabilityEvent.getCustomPlayerEntityCap(player).orElse(null);
+        String expectedState = inferExpectedState(player, limbSwingAmount);
+        String ctrlState = getCtrlState(animatable);
+        String mainController = getControllerState(animatable, "player.main");
+        final float debugLimbSwingAmount = limbSwingAmount;
+
         int[] y = {5};
+
+        renderText(gui, y, "ysm.debug.summary", diagnoseState(expectedState, ctrlState, mainController, limbSwingAmount));
+        renderText(gui, y, "ysm.debug.expected", expectedState);
+        renderText(gui, y, "ysm.debug.ctrl_state", ctrlState);
+        renderText(gui, y, "ysm.debug.player.main", mainController);
+        renderText(gui, y, "ysm.debug.player.main.entry", getControllerEntryState(animatable, "player.main"));
+        renderText(gui, y, "ysm.debug.limb_swing_amount", () -> debugLimbSwingAmount);
+        renderText(gui, y, "ysm.debug.motion", String.format("§b%.4f, %.4f, %.4f", player.motionX, player.motionY, player.motionZ));
+        renderText(gui, y, "ysm.debug.model", animatable != null ? animatable.getModelLocation().toString() : "§c<no animatable>");
 
         renderText(gui, y, "PI", String.format("§7%.4f", Math.PI));
         renderText(gui, y, "E", String.format("§7%.4f", Math.E));
@@ -191,6 +214,122 @@ public class DebugAnimationKey {
 //            renderText(gui, y, "ysm.first_person_mod_hide", FirstPersonCompat.isHeadHide());
 //        }
         GlStateManager.popMatrix();
+    }
+
+    private static String inferExpectedState(EntityPlayerSP player, float limbSwingAmount) {
+        if (!player.isEntityAlive()) {
+            return "death";
+        }
+        if (TridentCompat.hasRiptide() && TridentCompat.isAutoSpinAttack(player)) {
+            return "riptide";
+        }
+        if (player.isPlayerSleeping()) {
+            return "sleep";
+        }
+        if (SwimmingCompat.hasSwimming() && SwimmingCompat.isSwimming(player)) {
+            return "swim";
+        }
+        if (player.isOnLadder() && isMoving(player, limbSwingAmount)) {
+            return "climb";
+        }
+        if (player.isOnLadder()) {
+            return "climbing";
+        }
+        if (player.capabilities.isFlying) {
+            return "fly";
+        }
+        if (player.isElytraFlying()) {
+            return "elytra_fly";
+        }
+        if (player.isInWater() && !player.onGround) {
+            return "swim_stand";
+        }
+        if (player.hurtTime > 0) {
+            return "attacked";
+        }
+        if (!player.onGround && !player.isInWater() && !player.isOnLadder()) {
+            return "jump";
+        }
+        if (player.onGround && player.isSneaking() && isMoving(player, limbSwingAmount)) {
+            return "sneak";
+        }
+        if (player.onGround && player.isSneaking()) {
+            return "sneaking";
+        }
+        if (player.onGround && player.isSprinting()) {
+            return "run";
+        }
+        if (player.onGround && isMoving(player, limbSwingAmount)) {
+            return "walk";
+        }
+        return "idle";
+    }
+
+    private static boolean isMoving(EntityPlayerSP player, float limbSwingAmount) {
+        if (limbSwingAmount > 0.01f) {
+            return true;
+        }
+        double dx = player.posX - player.prevPosX;
+        double dz = player.posZ - player.prevPosZ;
+        return dx * dx + dz * dz > 0.0025D;
+    }
+
+    private static String getCtrlState(CustomPlayerEntity animatable) {
+        if (animatable == null) {
+            return "§c<no animatable>";
+        }
+        String state = animatable.getPositionTracker().getCachedModelId();
+        return StringUtils.isBlank(state) ? "§7<empty>" : state;
+    }
+
+    private static String getControllerState(CustomPlayerEntity animatable, String name) {
+        if (animatable == null) {
+            return "§c<no animatable>";
+        }
+        IAnimationController<?> controller = animatable.getAnimationData().getAnimationControllerByName(name);
+        if (controller == null) {
+            return "§c<missing>";
+        }
+        return controller.getCurrentAnimationName();
+    }
+
+    private static String getControllerEntryState(CustomPlayerEntity animatable, String name) {
+        if (animatable == null) {
+            return "§c<no animatable>";
+        }
+        if (animatable.getAnimationEntries(name) != null) {
+            return "§a" + name;
+        }
+        if (animatable.getAnimationEntries("main") != null) {
+            return "§emain";
+        }
+        if (animatable.getModelAssembly() == null) {
+            return "§c<no assembly>";
+        }
+        StringBuilder builder = new StringBuilder("§c<missing>");
+        int shown = 0;
+        for (String key : animatable.getModelAssembly().getAnimationBundle().getAnimationControllers().keySet()) {
+            if (shown >= 3) {
+                builder.append(" …");
+                break;
+            }
+            builder.append(shown == 0 ? " " : ", ").append(key);
+            shown += 1;
+        }
+        return builder.toString();
+    }
+
+    private static String diagnoseState(String expectedState, String ctrlState, String mainController, float limbSwingAmount) {
+        if (ctrlState.contains("no animatable") || mainController.contains("missing")) {
+            return "§c没有拿到玩家动画实例或 player.main 控制器";
+        }
+        if (!expectedState.equals(ctrlState) && limbSwingAmount > 0.01f) {
+            return "§e实体已经在移动，但 ctrl 主状态没有切到预期状态";
+        }
+        if (expectedState.equals(ctrlState) && mainController.contains("idle") && !"idle".equals(expectedState)) {
+            return "§e状态判定正确，但 player.main 仍停在 idle/内置动画";
+        }
+        return "§a状态判定链路正常，若仍罚站就查骨骼变换输出";
     }
 
     private static boolean hasCape(EntityPlayerSP player) {

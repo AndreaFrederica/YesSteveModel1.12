@@ -2,6 +2,7 @@ package com.elfmcys.yesstevemodel.geckolib3.core.processor;
 
 import com.elfmcys.yesstevemodel.geckolib3.core.snapshot.BoneSnapshot;
 
+import javax.vecmath.Vector3f;
 
 public interface IBone extends ILocationBone {
     void setRotationX(float value);
@@ -37,4 +38,27 @@ public interface IBone extends ILocationBone {
     BoneSnapshot getInitialSnapshot();
 
     String getName();
+
+    Vector3f getInitialRotation();
+
+    int getBoneId();
+
+    default boolean isTrackingXform() {
+        return false;
+    }
+
+    default void setTrackXform(boolean track) {
+    }
+
+    default float getPivotAbsX() {
+        return getPivotX();
+    }
+
+    default float getPivotAbsY() {
+        return getPivotY();
+    }
+
+    default float getPivotAbsZ() {
+        return getPivotZ();
+    }
 }
